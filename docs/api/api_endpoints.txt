@@ -1,0 +1,29 @@
+
+POST /api/auth/login
+
+GET  /api/recipes
+GET  /api/recipes/:id
+
+GET  /api/articles
+GET  /api/articles/:id
+
+GET    /api/children
+POST   /api/children
+PUT    /api/children/:id
+
+GET    /api/meal-plans
+POST   /api/meal-plans
+
+GET    /api/favorites
+POST   /api/favorites
+
+GET    /api/recipes/:id/comments
+POST   /api/recipes/:id/comments
+
+GET    /api/recipes/:id/ratings
+POST   /api/recipes/:id/ratings
+
+GET    /api/questions
+POST   /api/questions
+
+POST   /api/answers
