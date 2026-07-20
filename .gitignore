@@ -35,3 +35,16 @@ yarn-error.log*
 ~$*.docx
 ~$*.xlsx
 ~$*.pptx
+
+node_modules/
+build/
+.gradle/
+*.keystore
+.env
+**/android/app/build/
+**/android/build/
+**/android/.gradle/
+**/android/app/.cxx/
+**/android/local.properties
+**/ios/build/
+**/ios/Pods/
