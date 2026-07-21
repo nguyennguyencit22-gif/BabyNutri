@@ -55,7 +55,14 @@ function LoginScreen({ navigation }: any) {
             // Tạm thời chuyển vào Home.
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Home' }],
+                routes: [
+                    {
+                        name: 'Questionnaire',
+                        params: {
+                            userMode: 'authenticated',
+                        },
+                    },
+                ],
             });
         } catch (error) {
             console.log('Google login error:', error);
