@@ -1,6 +1,6 @@
 import type {
     ChildQuestionnaire,
-} from '../types/auth/questionnaire';
+} from '../auth/questionnaire';
 
 export type RootStackParamList = {
     Welcome: undefined;
@@ -24,4 +24,15 @@ export type RootStackParamList = {
         questionnaire?: ChildQuestionnaire;
     }
     | undefined;
+
+    AddBabyProfile: undefined;
+
+    InvitationCode: undefined;
+
+    EditBabyProfile: {
+        babyId: string;
+    };
+
+    AccountSettings: undefined;
 };
+

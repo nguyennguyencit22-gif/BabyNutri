@@ -1,5 +1,5 @@
 export const HomeColors = {
-    background: '#FFF5F2',
+    background: '#FFFDF9',
     surface: '#FFFFFF',
 
     primary: '#FF5F70',

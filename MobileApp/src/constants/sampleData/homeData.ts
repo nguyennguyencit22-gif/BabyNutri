@@ -20,6 +20,7 @@ export type RecipeItem = {
     image: string;
 };
 
+
 export const categories = [
     "Recipes",
     "Menu",

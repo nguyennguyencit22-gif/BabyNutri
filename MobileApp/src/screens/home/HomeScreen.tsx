@@ -5,7 +5,6 @@ import {
     View,
 } from 'react-native';
 import {
-    Button,
     Icon,
 } from 'react-native-paper';
 import { SafeAreaView, } from 'react-native-safe-area-context';
@@ -15,62 +14,35 @@ import {
     IconButton,
     // Surface,
 } from 'react-native-paper';
+
+import {
+    POPULAR_CATEGORIES,
+    POPULAR_RECIPES,
+} from '../../constants/sampleData/homeData';
+
 import { HomeColors } from '../../constants/generalHome/homeTheme';
 import styles from '../../styles/home/homeStyles'
 import { FlatList, Pressable } from "react-native";
-import { categories, JOURNEY_ITEMS, WEANING_FEATURES, } from "../../constants/sampleData/homeData";
+import { JOURNEY_ITEMS, WEANING_FEATURES, } from "../../constants/sampleData/homeData";
 import JourneyCard from '@/components/home/JourneyCard';
+import ExpertCard from '../../components/home/ExpertCard';
+import { EXPERT_ITEMS, } from '../../constants/sampleData/homeData';
+import RecipeCard from '../../components/home/RecipeCard';
+import HomeBabyHeader from '@/components/home/HomeBabyHeader';
 
 function HomeScreen() {
     const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={styles.container}>
+
+            <HomeBabyHeader />
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}>
 
-                <View style={styles.header}>
-                    <View style={styles.userInfo}>
-                        <Avatar.Text
-                            size={48}
-                            label="B"
-                            style={styles.avatar}
-                        />
-
-                        <View>
-                            <Text style={styles.babyName}>
-                                Baby’s Name
-                            </Text>
-
-                            <Text style={styles.babyAge}>
-                                Create baby profile
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.headerActions}>
-                        <IconButton
-                            icon="bell-outline"
-                            size={22}
-                            iconColor={HomeColors.primary}
-                            containerColor={HomeColors.primarySoft}
-                            onPress={() => {
-                                console.log(
-                                    'Notification pressed',
-                                );
-                            }}
-                        />
-
-                        {/* <Surface
-                            elevation={0}
-                            style={styles.profileDot}
-                        /> */}
-                        <View style={styles.profileDot} />
-                    </View>
-                </View>
-
-                <FlatList
+                {/* <FlatList
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     data={categories}
@@ -96,7 +68,7 @@ function HomeScreen() {
 
                         </Pressable>
                     )}
-                />
+                /> */}
 
                 <View style={styles.weaningSection}>
 
@@ -149,6 +121,95 @@ function HomeScreen() {
                                 title={item.title}
                                 description={item.description}
                                 colorMonths={item.colorMonth}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={styles.expertSection}>
+                    <Text style={styles.expertSectionTitle}>
+                        Meet the experts
+                    </Text>
+
+                    <FlatList
+                        horizontal
+                        data={EXPERT_ITEMS}
+                        keyExtractor={item => item.id}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.expertList}
+                        renderItem={({ item }) => (
+                            <ExpertCard
+                                name={item.name}
+                                role={item.role}
+                                image={item.image}
+                            />
+                        )}
+                    />
+
+                    <Text style={styles.expertDescription}>
+                        We work closely with trusted nutritionists and
+                        child-care experts to provide helpful guidance
+                        throughout your little one’s weaning journey.
+                    </Text>
+
+                    <Pressable style={styles.expertButton}>
+                        <Text style={styles.expertButtonText}>
+                            Tell us more
+                        </Text>
+                    </Pressable>
+                </View>
+
+                <View style={styles.popularSection}>
+                    <Text style={styles.popularTitle}>
+                        Popular category
+                    </Text>
+
+                    <FlatList
+                        horizontal
+                        data={POPULAR_CATEGORIES}
+                        keyExtractor={item => item}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.popularCategoryList}
+                        renderItem={({ item }) => (
+                            <Pressable
+                                onPress={() =>
+                                    setSelectedCategory(item)
+                                }
+                                style={[
+                                    styles.popularChip,
+                                    selectedCategory === item &&
+                                    styles.popularChipActive,
+                                ]}>
+
+                                <Text
+                                    style={[
+                                        styles.popularChipText,
+                                        selectedCategory === item &&
+                                        styles.popularChipTextActive,
+                                    ]}>
+                                    {item}
+                                </Text>
+                            </Pressable>
+                        )}
+                    />
+
+                    <FlatList
+                        horizontal
+                        data={POPULAR_RECIPES}
+                        keyExtractor={item => item.id}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.recipeList}
+                        renderItem={({ item }) => (
+                            <RecipeCard
+                                title={item.title}
+                                time={item.time}
+                                image={item.image}
+                                onPress={() =>
+                                    console.log(
+                                        'Recipe selected:',
+                                        item.title,
+                                    )
+                                }
                             />
                         )}
                     />
