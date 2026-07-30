@@ -2,7 +2,6 @@ import React from 'react';
 import {
     Image,
     Pressable,
-    SafeAreaView,
     Text,
     View,
 } from 'react-native';
@@ -11,14 +10,21 @@ import GradientButton from '../../components/common/GradientButton';
 import BabyNutriBackground from '../../components/common/BabyNutriBackground';
 import styles from '../../styles/auth/welcomeStyles';
 import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView, } from 'react-native-safe-area-context';
 
 function WelcomeScreen({ navigation }: any) {
-    const handleContinue = () => {
-        navigation.navigate('Register');
-    };
+    // const handleContinue = () => {
+    //     navigation.navigate('Register');
+    // };
 
     const handleLogin = () => {
         navigation.navigate('Login');
+    };
+
+    const handleContinueAsGuest = () => {
+        navigation.navigate('FeatureIntro', {
+            userMode: 'guest',
+        });
     };
 
     return (
@@ -50,7 +56,7 @@ function WelcomeScreen({ navigation }: any) {
                 <View style={styles.bottomSection}>
                     <GradientButton
                         title="Continue"
-                        onPress={handleContinue}
+                        onPress={handleContinueAsGuest}
                     />
 
                     <View style={styles.loginRow}>
