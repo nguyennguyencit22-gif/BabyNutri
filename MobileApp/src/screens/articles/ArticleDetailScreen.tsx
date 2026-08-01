@@ -19,7 +19,13 @@ const CommentIcon = ({ size = 18, color = '#2E2E2E' }: { size?: number; color?: 
   </Svg>
 );
 
-const ArticleDetailScreen = ({ route }: any) => {
+const BackIcon = ({ size = 20, color = '#FF7A59' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M15 19l-7-7 7-7" />
+  </Svg>
+);
+
+const ArticleDetailScreen = ({ route, navigation }: any) => {
   const id = Number(route?.params?.id);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,13 +129,23 @@ const ArticleDetailScreen = ({ route }: any) => {
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF7A59" /></View>;
-  if (!article) return <View style={styles.center}><Text>Không tìm thấy bài viết</Text></View>;
+  if (!article) return <View style={styles.center}><Text>Article not found</Text></View>;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Image source={{ uri: article.image_url }} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={styles.title}>{article.title}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+        <View style={{ position: 'relative' }}>
+          <Image source={{ uri: article.image_url }} style={styles.image} />
+          <TouchableOpacity 
+            style={styles.floatingBackBtn} 
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.85}
+          >
+            <BackIcon size={20} color="#FF7A59" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.title}>{article.title}</Text>
         <Text style={styles.meta}>
           Tác giả: {article.author || 'Chuyên Gia Dinh Dưỡng'}
           {article.published_date ? ` · ${new Date(article.published_date).toLocaleDateString('vi-VN')}` : ''}
@@ -211,6 +227,7 @@ const ArticleDetailScreen = ({ route }: any) => {
         </Pressable>
       </Modal>
     </ScrollView>
+    </View>
   );
 };
 
@@ -249,6 +266,21 @@ const styles = StyleSheet.create({
   cancelBtnText: { color: '#6B7280', fontWeight: '600' },
   saveBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#FF7A59' },
   saveBtnText: { color: '#FFFFFF', fontWeight: '700' },
+  floatingBackBtn: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
 });
 
 export default ArticleDetailScreen;

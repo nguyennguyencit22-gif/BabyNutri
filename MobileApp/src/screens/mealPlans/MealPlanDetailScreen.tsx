@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan } from '../../types/meal-plan';
 
-export const MealPlanDetailScreen = ({ route }: any) => {
+const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M15 19l-7-7 7-7" />
+  </Svg>
+);
+
+export const MealPlanDetailScreen = ({ route, navigation }: any) => {
   const { mealPlanId } = route.params || {};
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +52,16 @@ export const MealPlanDetailScreen = ({ route }: any) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity 
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <BackIcon size={20} color="#FF5F70" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.headerCard}>
         <Text style={styles.title}>📅 Date: {mealPlan.date}</Text>
         <Text style={styles.totalCalories}>🔥 Total Calories: {mealPlan.totalCalories} kcal</Text>
@@ -168,5 +185,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#FF5F70',
+  },
+  headerRow: {
+    marginBottom: 10,
+    alignItems: 'flex-start',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+    shadowColor: '#FF5F70',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

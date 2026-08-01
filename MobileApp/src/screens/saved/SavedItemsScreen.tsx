@@ -23,6 +23,12 @@ const BowlIcon = ({ size = 36, color = '#9CA3AF' }: { size?: number; color?: str
   </Svg>
 );
 
+const BackIcon = ({ size = 20, color = '#FF6B4A' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M15 19l-7-7 7-7" />
+  </Svg>
+);
+
 const SavedItemsScreen = ({ navigation }: any) => {
   const [activeTab, setActiveTab] = useState<'articles' | 'recipes'>('articles');
   const [savedArticles, setSavedArticles] = useState<ArticleListItem[]>([]);
@@ -77,6 +83,13 @@ const SavedItemsScreen = ({ navigation }: any) => {
 
       <View style={styles.headerBox}>
         <View style={styles.titleRow}>
+          <TouchableOpacity 
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <BackIcon size={20} color="#FF6B4A" />
+          </TouchableOpacity>
           <BookmarkIcon size={22} color="#FF6B4A" />
           <Text style={styles.title}>Saved & Favorite Items</Text>
         </View>
@@ -154,6 +167,17 @@ const styles = StyleSheet.create({
   headerBox: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   title: { fontSize: 22, fontWeight: '800', color: '#111827' },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FFE0D6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 4,
+  },
   tabBar: { flexDirection: 'row', backgroundColor: '#FFE8DF', borderRadius: 14, padding: 4 },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   activeTabBtn: { backgroundColor: '#FF6B4A', shadowColor: '#FF6B4A', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },

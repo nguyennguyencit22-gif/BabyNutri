@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
+
+const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M15 19l-7-7 7-7" />
+  </Svg>
+);
 
 export const ChildDetailScreen = ({ route, navigation }: any) => {
   const { childId } = route.params || {};
@@ -61,6 +68,16 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity 
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}
+        >
+          <BackIcon size={20} color="#FF5F70" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.card}>
         <View style={styles.avatarCircle}>
           <Text style={styles.avatarEmoji}>👶</Text>
@@ -301,5 +318,23 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     fontSize: 15,
     fontWeight: '700',
+  },
+  headerRow: {
+    marginBottom: 10,
+    alignItems: 'flex-start',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+    shadowColor: '#FF5F70',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

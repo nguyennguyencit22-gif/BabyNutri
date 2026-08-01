@@ -45,6 +45,12 @@ const BookmarkIcon = ({ saved, size = 18 }: { saved?: boolean; size?: number }) 
   </Svg>
 );
 
+const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M15 19l-7-7 7-7" />
+  </Svg>
+);
+
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const id = Number(route?.params?.id);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
@@ -149,10 +155,20 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   if (!recipe) return <View style={styles.center}><Text>Recipe not found</Text></View>;
 
   return (
-    <ScrollView style={styles.container}>
-      <Image source={{ uri: recipe.image_url }} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={styles.title}>{recipe.name}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <View style={{ position: 'relative' }}>
+          <Image source={{ uri: recipe.image_url }} style={styles.image} />
+          <TouchableOpacity 
+            style={styles.floatingBackBtn} 
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.85}
+          >
+            <BackIcon size={20} color="#FF7A59" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.title}>{recipe.name}</Text>
         {!!recipe.expertName && <Text style={styles.author}>Expert: {recipe.expertName}</Text>}
         
         {/* Nút Sửa & Xóa công thức */}
@@ -225,6 +241,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         ))}
       </View>
     </ScrollView>
+    </View>
   );
 };
 
@@ -291,6 +308,21 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', marginBottom: 10, paddingRight: 10 },
   stepNumber: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FF7A59', color: '#fff', textAlign: 'center', lineHeight: 24, fontSize: 12, fontWeight: '700', marginRight: 10 },
   stepText: { flex: 1, fontSize: 14, color: '#4A4A4A', lineHeight: 20 },
+  floatingBackBtn: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+  },
 });
 
 export default RecipeDetailScreen;
