@@ -10,13 +10,17 @@ import { Button, Text } from 'react-native-paper';
 import BabyAvatarPicker from '../../components/profile/BabyAvatarPicker';
 import ProfileColorPicker from '../../components/profile/ProfileColorPicker';
 import DateOfBirthRow from '../../components/profile/DateOfBirthRow';
-import AllergySelector from '../../components/profile/AllergySelector';
+import OptionSelector from '../../components/profile/OptionSelector';
 import BabyNameInput from '@/components/profile/BabyNameInput';
 import { PROFILE_COLORS, } from '../../constants/profile/babyProfileData';
 import GenderSelector, { BabyGender, } from '../../components/profile/GenderSelector';
 import DateTimePicker, { DateTimePickerEvent, } from '@react-native-community/datetimepicker';
-import AllergyModal from '../../components/profile/AllergyModal';
-import { ALLERGY_OPTIONS, } from '../../constants/profile/babyProfileData';
+import OptionModalForChild from '../../components/profile/OptionModalForChild';
+import {
+    ALLERGY_OPTIONS,
+    NUTRITION_GOAL_OPTIONS,
+    FOOD_PREFERENCE_OPTIONS,
+} from '../../constants/profile/babyProfileData';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { useDispatch } from 'react-redux';
 import { addBaby } from '../../store/babySlice';
@@ -62,6 +66,31 @@ function AddBabyProfileScreen({ navigation }: any) {
         });
     };
 
+    const [selectedNutritionGoal, setSelectedNutritionGoal] = React.useState('');
+    const [showNutritionGoalModal, setShowNutritionGoalModal] = React.useState(false);
+
+    const selectNutritionGoal = (goal: string) => {
+        setSelectedNutritionGoal(goal);
+    };
+
+    const [selectedFoodPreferences, setSelectedFoodPreferences] = React.useState<string[]>([]);
+    const [showFoodPreferenceModal, setShowFoodPreferenceModal] = React.useState(false);
+
+    const toggleFoodPreference = (food: string) => {
+        setSelectedFoodPreferences(current => {
+            const alreadySelected =
+                current.includes(food);
+
+            if (alreadySelected) {
+                return current.filter(
+                    item => item !== food,
+                );
+            }
+
+            return [...current, food];
+        });
+    };
+
     const [nameError, setNameError] = React.useState('');
     const validateForm = (): boolean => {
         if (!babyName.trim()) {
@@ -95,6 +124,8 @@ function AddBabyProfileScreen({ navigation }: any) {
                 gender: selectedGender,
                 dateOfBirth: dateOfBirth.toISOString(),
                 allergies: selectedAllergies,
+                nutritionGoal: selectedNutritionGoal,
+                foodPreferences: selectedFoodPreferences,
             }),
         );
 
@@ -167,9 +198,26 @@ function AddBabyProfileScreen({ navigation }: any) {
                     />
                 )}
 
-                <AllergySelector
-                    selectedAllergies={selectedAllergies}
+                <OptionSelector
+                    label="Allergies"
+                    selectedOptions={selectedAllergies}
                     onPress={() => setShowAllergyModal(true)}
+                />
+
+                <OptionSelector
+                    label="Main nutrition goal"
+                    selectedOptions={
+                        selectedNutritionGoal
+                            ? [selectedNutritionGoal]
+                            : []
+                    }
+                    onPress={() => setShowNutritionGoalModal(true)}
+                />
+
+                <OptionSelector
+                    label="Food preferences"
+                    selectedOptions={selectedFoodPreferences}
+                    onPress={() => setShowFoodPreferenceModal(true)}
                 />
 
                 <Button
@@ -184,12 +232,35 @@ function AddBabyProfileScreen({ navigation }: any) {
                 </Button>
 
             </ScrollView>
-            <AllergyModal
+            <OptionModalForChild
+                title="Select allergies"
                 visible={showAllergyModal}
                 options={ALLERGY_OPTIONS}
-                selectedAllergies={selectedAllergies}
-                onToggleAllergy={toggleAllergy}
+                selectedOptions={selectedAllergies}
+                onToggleOption={toggleAllergy}
                 onClose={() => setShowAllergyModal(false)}
+            />
+
+            <OptionModalForChild
+                title="Select main nutrition goal"
+                visible={showNutritionGoalModal}
+                options={NUTRITION_GOAL_OPTIONS}
+                selectedOptions={
+                    selectedNutritionGoal
+                        ? [selectedNutritionGoal]
+                        : []
+                }
+                onToggleOption={selectNutritionGoal}
+                onClose={() => setShowNutritionGoalModal(false)}
+            />
+
+            <OptionModalForChild
+                title="Select food preferences"
+                visible={showFoodPreferenceModal}
+                options={FOOD_PREFERENCE_OPTIONS}
+                selectedOptions={selectedFoodPreferences}
+                onToggleOption={toggleFoodPreference}
+                onClose={() => setShowFoodPreferenceModal(false)}
             />
         </SafeAreaView>
     );

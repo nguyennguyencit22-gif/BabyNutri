@@ -28,7 +28,11 @@ const styles = StyleSheet.create({
     },
     questionContainer: {
         flex: 1,
+    },
+    questionContent: {
+        flexGrow: 1,
         justifyContent: 'center',
+        paddingVertical: 16,
     },
     question: {
         marginBottom: 28,
@@ -93,6 +97,46 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
+    },
+    dateDescription: {
+        marginTop: 110,
+        marginBottom: 36,
+        paddingHorizontal: 24,
+        color: '#8C7A77',
+        fontSize: 13,
+        lineHeight: 18,
+        textAlign: 'center',
+    },
+
+    datePickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+
+    datePickerBox: {
+        flex: 1,
+        height: 52,
+        justifyContent: 'center',
+        overflow: 'hidden',
+        borderWidth: 1.3,
+        borderColor: '#9C8985',
+        borderRadius: 8,
+        backgroundColor: '#FFF9F7',
+    },
+
+    datePicker: {
+        width: '100%',
+        height: 52,
+        color: '#2D1714',
+    },
+
+    agePreview: {
+        marginTop: 22,
+        color: '#7B312A',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
     },
 });
 export default styles;

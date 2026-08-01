@@ -27,6 +27,23 @@ const styles = StyleSheet.create({
         borderRadius: 44,
     },
 
+    avatarFallback: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        backgroundColor: '#B7A8B0',
+    },
+
+    avatarLetter: {
+        color: '#FFFFFF',
+        fontSize: 32,
+        fontWeight: '700',
+    },
+
     cameraButton: {
         position: 'absolute',
         right: -8,

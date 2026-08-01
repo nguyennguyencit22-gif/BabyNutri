@@ -144,6 +144,9 @@ const loginStyles = StyleSheet.create({
         textDecorationLine: 'underline',
         color: '#52150F',
     },
+    googleButtonDisabled:{
+        opacity: 0.55,
+    },
 });
 
 export default loginStyles;

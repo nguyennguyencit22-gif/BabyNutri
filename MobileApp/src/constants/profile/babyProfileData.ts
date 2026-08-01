@@ -21,3 +21,19 @@ export const ALLERGY_OPTIONS = [
     'Fish Allergy',
 ];
 
+export const NUTRITION_GOAL_OPTIONS = [
+    'Healthy growth',
+    'Weight gain',
+    'Weight management',
+    'Balanced diet',
+    'Improve appetite',
+];
+
+export const FOOD_PREFERENCE_OPTIONS = [
+    'Rice and noodles',
+    'Vegetables',
+    'Fruit',
+    'Meat',
+    'Fish',
+];
+

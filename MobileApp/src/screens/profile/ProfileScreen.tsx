@@ -1,55 +1,136 @@
 import React from 'react';
-import {
-    ScrollView,
-    View,
-} from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
-import { useDispatch, useSelector } from 'react-redux';
+import {
+    useDispatch,
+    useSelector,
+} from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSummaryCard from '../../components/profile/ProfileSummaryCard';
 import ProfileMenuItem from '../../components/profile/ProfileMenuItem';
 import BabyProfileItem from '../../components/profile/BabyProfileItem';
+import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
+import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
 
 import styles from '../../styles/profile/profileStyles';
 
-import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+import {
+    calculateBabyAgeInMonths,
+} from '../../utils/calculateBabyAge';
 
-import type { RootState } from '../../store/Store';
-import { deleteBaby } from '../../store/babySlice';
-import BabyProfileActionsModal from '@/components/profile/BabyProfileActionsModal';
+import type {
+    AppDispatch,
+    RootState,
+} from '../../store/Store';
 
-function ProfileScreen({ navigation }: any) {
+import {
+    deleteBaby,
+} from '../../store/babySlice';
+
+function ProfileScreen({
+    navigation,
+}: any) {
+    const dispatch =
+        useDispatch<AppDispatch>();
+
     const babies = useSelector(
-        (state: RootState) => state.baby.babies,
+        (state: RootState) =>
+            state.baby.babies,
     );
 
-    const dispatch = useDispatch();
+    const sessionMode = useSelector(
+        (state: RootState) =>
+            state.auth.mode,
+    );
 
-    const [selectedBabyId, setSelectedBabyId] = React.useState<string | null>(null);
+    const user = useSelector(
+        (state: RootState) =>
+            state.auth.user,
+    );
 
-    const [showBabyActions, setShowBabyActions] = React.useState(false);
+    const [selectedBabyId, setSelectedBabyId] =
+        React.useState<string | null>(null);
+
+    const [showBabyActions, setShowBabyActions] =
+        React.useState(false);
+
+    const isAuthenticated =
+        sessionMode === 'authenticated' &&
+        user !== null;
+
+    const handleOpenBabyActions = (
+        babyId: string,
+    ) => {
+        setSelectedBabyId(babyId);
+        setShowBabyActions(true);
+    };
+
+    const handleCloseBabyActions = () => {
+        setShowBabyActions(false);
+    };
+
+    const handleEditBaby = () => {
+        if (!selectedBabyId) {
+            return;
+        }
+
+        handleCloseBabyActions();
+
+        navigation.navigate(
+            'EditBabyProfile',
+            {
+                babyId: selectedBabyId,
+            },
+        );
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <ProfileHeader
                 title="My Profile"
-                onBack={() => navigation.goBack()}
+                onBack={() =>
+                    navigation.goBack()
+                }
             />
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContent}>
+                contentContainerStyle={
+                    styles.scrollContent
+                }>
 
-                <ProfileSummaryCard
-                    name="Sophia’s Mom"
-                    email="sophia@gmail.com"
-                    imageUrl="https://i.pravatar.cc/300?img=47"
-                    onChangePhoto={() => {
-                        console.log('Change profile photo');
-                    }}
-                />
+                {isAuthenticated ? (
+                    <ProfileSummaryCard
+                        name={
+                            user.displayName ||
+                            'BabyNutri Parent'
+                        }
+                        email={user.email}
+                        imageUrl={
+                            user.photoURL
+                        }
+                        onChangePhoto={() => {
+                            console.log(
+                                'Change profile photo',
+                            );
+                        }}
+                        onPress={() => {
+                            navigation.navigate(
+                                'AccountSettings',
+                            );
+                        }}
+                    />
+                ) : (
+                    <GuestProfileBanner
+                        onLogin={() => {
+                            navigation.navigate(
+                                'Login',
+                            );
+                        }}
+                    />
+                )}
 
                 <Text style={styles.sectionLabel}>
                     PROFILES
@@ -59,20 +140,30 @@ function ProfileScreen({ navigation }: any) {
                     <BabyProfileItem
                         key={baby.id}
                         name={baby.name}
-                        profileColor={baby.profileColor}
-                        ageInMonths={calculateBabyAgeInMonths(
-                            baby.dateOfBirth,
-                        )}
-                        onPress={() => {
-                            setSelectedBabyId(baby.id);
-                            setShowBabyActions(true);
-                        }}
-                        onEdit={() => {
-                            setSelectedBabyId(baby.id);
-                            setShowBabyActions(true);
-                        }}
+                        profileColor={
+                            baby.profileColor
+                        }
+                        ageInMonths={
+                            calculateBabyAgeInMonths(
+                                baby.dateOfBirth,
+                            )
+                        }
+                        onPress={() =>
+                            handleOpenBabyActions(
+                                baby.id,
+                            )
+                        }
+                        onEdit={() =>
+                            handleOpenBabyActions(
+                                baby.id,
+                            )
+                        }
                         onDelete={() => {
-                            dispatch(deleteBaby(baby.id));
+                            dispatch(
+                                deleteBaby(
+                                    baby.id,
+                                ),
+                            );
                         }}
                     />
                 ))}
@@ -86,14 +177,6 @@ function ProfileScreen({ navigation }: any) {
                         );
                     }}
                 />
-
-                {/* <ProfileMenuItem
-                    title="Add mom profile"
-                    leftIcon="account-outline"
-                    onPress={() => {
-                        console.log('Add mom profile');
-                    }}
-                /> */}
 
                 <ProfileMenuItem
                     title="Enter invitation code"
@@ -149,55 +232,73 @@ function ProfileScreen({ navigation }: any) {
                     title="Account settings"
                     showArrow
                     onPress={() => {
-                        navigation.navigate(
-                            'AccountSettings',
-                        );
+                        navigation.navigate('AccountSettings');
                     }}
                 />
 
-                {/* <View style={styles.deactiveAccount}>
-                    <ProfileMenuItem
-                        title="Deactivate account"
-                        leftIcon="delete-outline"
-                        showArrow={false}
-                        danger
-                        onPress={() => {
-                            console.log(
-                                'Deactivate account',
-                            );
-                        }}
-                    />
-                </View> */}
+                <ProfileMenuItem
+                    title="Tell your friends"
+                    onPress={() => {
+                        console.log('Share app');
+                    }}
+                />
+
+                <ProfileMenuItem
+                    title="About"
+                    onPress={() => {
+                        console.log('Open About');
+                    }}
+                />
+
             </ScrollView>
+
             <BabyProfileActionsModal
                 visible={showBabyActions}
-                onClose={() => setShowBabyActions(false)}
-                onEditBaby={() => {
+                onClose={
+                    handleCloseBabyActions
+                }
+                onEditBaby={
+                    handleEditBaby
+                }
+                onAddCaregiver={() => {
                     if (!selectedBabyId) {
                         return;
                     }
 
-                    navigation.navigate(
-                        'EditBabyProfile',
-                        {
-                            babyId: selectedBabyId,
-                        },
+                    console.log(
+                        'Add caregiver:',
+                        selectedBabyId,
                     );
                 }}
-                onAddCaregiver={() => {
-                    console.log('Add caregiver:', selectedBabyId);
-                }}
                 onEditEvents={() => {
-                    console.log('Edit events:', selectedBabyId);
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Edit events:',
+                        selectedBabyId,
+                    );
                 }}
                 onConfigureMainScreen={() => {
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
                     console.log(
                         'Configure main screen:',
                         selectedBabyId,
                     );
                 }}
                 onReminders={() => {
-                    console.log('Reminders:', selectedBabyId);
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Reminders:',
+                        selectedBabyId,
+                    );
                 }}
             />
         </SafeAreaView>

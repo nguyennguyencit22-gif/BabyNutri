@@ -11,17 +11,20 @@ import BabyNutriBackground from '../../components/common/BabyNutriBackground';
 import styles from '../../styles/auth/welcomeStyles';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView, } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
+import { continueAsGuest } from '../../store/auth/authSlice';
 
 function WelcomeScreen({ navigation }: any) {
-    // const handleContinue = () => {
-    //     navigation.navigate('Register');
-    // };
+
+    const dispatch = useDispatch();
 
     const handleLogin = () => {
         navigation.navigate('Login');
     };
 
     const handleContinueAsGuest = () => {
+        dispatch(continueAsGuest());
+
         navigation.navigate('FeatureIntro', {
             userMode: 'guest',
         });
