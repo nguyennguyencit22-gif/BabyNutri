@@ -11,11 +11,60 @@ import type {
     ChildQuestionnaire,
     Gender,
 } from '../../types/auth/questionnaire';
-import { SafeAreaView, } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from '../../styles/questions/questionnaireStyles';
 import { Picker } from '@react-native-picker/picker';
+import { getBabyAge } from '../../utils/calculateBabyAge';
+import {
+    MONTHS,
+    getYears,
+    getDaysInMonth,
+} from '../../utils/dateUtils';
+import { useDispatch } from 'react-redux';
+import { PROFILE_COLORS } from '@/constants/profile/babyProfileData';
+import { addBaby } from '@/store/babySlice';
+import type { AppDispatch, } from '../../store/Store';
+
 
 const TOTAL_STEPS = 7;
+
+const GENDER_OPTIONS: Array<{
+    label: string;
+    value: Gender;
+}> = [
+        {
+            label: 'Boy',
+            value: 'Boy',
+        },
+        {
+            label: 'Girl',
+            value: 'Girl',
+        },
+    ];
+
+const ALLERGY_OPTIONS = [
+    'Milk',
+    'Eggs',
+    'Peanuts',
+    'Seafood',
+    'None',
+];
+
+const NUTRITION_GOAL_OPTIONS = [
+    'Healthy growth',
+    'Weight gain',
+    'Weight management',
+    'Balanced diet',
+    'Improve appetite',
+];
+
+const FOOD_PREFERENCE_OPTIONS = [
+    'Rice and noodles',
+    'Vegetables',
+    'Fruit',
+    'Meat',
+    'Fish',
+];
 
 function QuestionnaireScreen({ navigation, route }: any) {
     const userMode: 'guest' | 'authenticated' =
@@ -23,11 +72,13 @@ function QuestionnaireScreen({ navigation, route }: any) {
 
     const [currentStep, setCurrentStep] = useState(0);
 
+    const dispatch = useDispatch<AppDispatch>();
+
     const [answers, setAnswers] =
         useState<ChildQuestionnaire>({
             hasChild: null,
             childName: '',
-            ageGroup: '',
+            dateOfBirth: '',
             gender: '',
             allergies: [],
             nutritionGoal: '',
@@ -63,17 +114,20 @@ function QuestionnaireScreen({ navigation, route }: any) {
         updateAnswer('allergies', updated);
     };
 
-    const toggleMultiSelect = (
-        key: 'allergies' | 'foodPreferences',
+    const toggleFoodPreference = (
         value: string,
     ) => {
-        const selectedValues = answers[key];
+        const selected =
+            answers.foodPreferences;
 
-        const updatedValues = selectedValues.includes(value)
-            ? selectedValues.filter(item => item !== value)
-            : [...selectedValues, value];
+        const updated = selected.includes(value)
+            ? selected.filter(item => item !== value)
+            : [...selected, value];
 
-        updateAnswer(key, updatedValues);
+        updateAnswer(
+            'foodPreferences',
+            updated,
+        );
     };
 
     const validateCurrentStep = (): boolean => {
@@ -87,6 +141,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     return false;
                 }
                 break;
+
             case 1:
                 if (!answers.childName.trim()) {
                     Alert.alert(
@@ -95,31 +150,41 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     );
                     return false;
                 }
+
+                if (answers.childName.trim().length < 2) {
+                    Alert.alert(
+                        'Invalid name',
+                        'The child’s name must contain at least 2 characters.',
+                    );
+                    return false;
+                }
                 break;
 
             case 2:
-                if (!answers.ageGroup) {
+                if (!answers.dateOfBirth) {
                     Alert.alert(
                         'Required',
-                        'Please select an age group.',
+                        'Please select your child’s complete date of birth.',
                     );
                     return false;
                 }
                 break;
+
             case 3:
-                if (answers.allergies.length === 0) {
-                    Alert.alert(
-                        'Required',
-                        'Please select at least one option.',
-                    );
-                    return false;
-                }
-                break;
-            case 4:
                 if (!answers.gender) {
                     Alert.alert(
                         'Required',
                         'Please select a gender.',
+                    );
+                    return false;
+                }
+                break;
+
+            case 4:
+                if (answers.allergies.length === 0) {
+                    Alert.alert(
+                        'Required',
+                        'Please select at least one option.',
                     );
                     return false;
                 }
@@ -134,8 +199,11 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     return false;
                 }
                 break;
+
             case 6:
-                if (answers.foodPreferences.length === 0) {
+                if (
+                    answers.foodPreferences.length === 0
+                ) {
                     Alert.alert(
                         'Required',
                         'Please select at least one food.',
@@ -143,6 +211,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     return false;
                 }
                 break;
+
             default:
                 break;
         }
@@ -150,11 +219,17 @@ function QuestionnaireScreen({ navigation, route }: any) {
         return true;
     };
 
+
+
     const handleNext = () => {
-        if (!validateCurrentStep()) {
+        const isValid = validateCurrentStep();
+
+        if (!isValid) {
             return;
         }
 
+        // Người dùng chưa có con:
+        // không tạo baby profile và đi thẳng vào Home.
         if (
             currentStep === 0 &&
             answers.hasChild === false
@@ -166,6 +241,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                         name: 'Home',
                         params: {
                             userMode,
+                            hasChild: false,
                         },
                     },
                 ],
@@ -174,12 +250,45 @@ function QuestionnaireScreen({ navigation, route }: any) {
             return;
         }
 
-        if (currentStep < TOTAL_STEPS - 1) {
-            setCurrentStep(previous => previous + 1);
+        const isLastStep =
+            currentStep === TOTAL_STEPS - 1;
+
+        if (!isLastStep) {
+            setCurrentStep(previousStep =>
+                previousStep + 1,
+            );
             return;
         }
 
-        handleSubmit();
+        // Đến đây chắc chắn đã validate gender.
+        const gender =
+            answers.gender === 'Boy'
+                ? 'boy'
+                : 'girl';
+
+        dispatch(
+            addBaby({
+                id: Date.now().toString(),
+                name: answers.childName.trim(),
+                profileColor: PROFILE_COLORS[0],
+                gender,
+                dateOfBirth: answers.dateOfBirth,
+                allergies: answers.allergies,
+            }),
+        );
+
+        navigation.reset({
+            index: 0,
+            routes: [
+                {
+                    name: 'Home',
+                    params: {
+                        userMode,
+                        hasChild: true,
+                    },
+                },
+            ],
+        });
     };
 
     const handleBack = () => {
@@ -189,36 +298,6 @@ function QuestionnaireScreen({ navigation, route }: any) {
         }
 
         navigation.goBack();
-    };
-
-    const handleSubmit = async () => {
-        try {
-            console.log('User mode:', userMode);
-            console.log('Questionnaire answers:', answers);
-
-            // Sau này:
-            // guest -> lưu AsyncStorage
-            // authenticated -> gửi backend
-
-            navigation.reset({
-                index: 0,
-                routes: [
-                    {
-                        name: 'Home',
-                        params: {
-                            userMode,
-                            hasChild: true,
-                            questionnaire: answers,
-                        },
-                    },
-                ],
-            });
-        } catch {
-            Alert.alert(
-                'Error',
-                'Unable to save your answers.',
-            );
-        }
     };
 
     const renderSingleOption = (
@@ -242,12 +321,72 @@ function QuestionnaireScreen({ navigation, route }: any) {
             </Text>
         </Pressable>
     );
-    
-    const currentYear = new Date().getFullYear();
 
-    const [birthMonth, setBirthMonth] = useState('');
-    const [birthDay, setBirthDay] = useState('');
-    const [birthYear, setBirthYear] = useState('');
+    const [birthDate, setBirthDate] = useState({
+        month: '',
+        day: '',
+        year: '',
+    });
+
+    const years = getYears();
+
+    const days = Array.from(
+        {
+            length: getDaysInMonth(
+                Number(birthDate.month),
+                Number(birthDate.year),
+            ),
+        },
+        (_, index) => index + 1,
+    );
+
+    const updateBirthDate = (
+        key: keyof typeof birthDate,
+        value: string,
+    ) => {
+        let nextBirthDate = {
+            ...birthDate,
+            [key]: value,
+        };
+
+        if (
+            key === 'month' ||
+            key === 'year'
+        ) {
+            const maximumDay = getDaysInMonth(
+                Number(nextBirthDate.month),
+                Number(nextBirthDate.year),
+            );
+
+            if (
+                nextBirthDate.day &&
+                Number(nextBirthDate.day) > maximumDay
+            ) {
+                nextBirthDate = {
+                    ...nextBirthDate,
+                    day: '',
+                };
+            }
+        }
+
+        setBirthDate(nextBirthDate);
+
+        const {
+            month,
+            day,
+            year,
+        } = nextBirthDate;
+
+        if (!month || !day || !year) {
+            updateAnswer('dateOfBirth', '');
+            return;
+        }
+
+        updateAnswer(
+            'dateOfBirth',
+            `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
+        );
+    };
 
     const renderQuestion = () => {
         switch (currentStep) {
@@ -292,31 +431,122 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     </>
                 );
 
-            case 2:
+            case 2: {
+                const babyAge = answers.dateOfBirth
+                    ? getBabyAge(answers.dateOfBirth)
+                    : null;
+
                 return (
                     <>
                         <Text style={styles.question}>
                             Enter your child's date of birth.
                         </Text>
 
-                        {[
-                            'Under 1 year',
-                            '1–3 years',
-                            '4–6 years',
-                            '7–12 years',
-                        ].map(option =>
-                            renderSingleOption(
-                                option,
-                                answers.ageGroup === option,
-                                () =>
-                                    updateAnswer(
-                                        'ageGroup',
-                                        option,
-                                    ),
-                            ),
+                        <Text style={styles.dateDescription}>
+                            Your child's age will be calculated in months
+                            and used to personalize meal plans and recipes.
+                        </Text>
+
+                        <View style={styles.datePickerContainer}>
+                            <View style={styles.datePickerBox}>
+                                <Picker
+                                    selectedValue={birthDate.month}
+                                    onValueChange={value =>
+                                        updateBirthDate(
+                                            'month',
+                                            String(value),
+                                        )
+                                    }
+                                    style={styles.datePicker}
+                                    dropdownIconColor="#4A1712"
+                                >
+                                    <Picker.Item
+                                        label="MM"
+                                        value=""
+                                        enabled={false}
+                                    />
+
+                                    {MONTHS.map(month => (
+                                        <Picker.Item
+                                            key={month}
+                                            label={String(month).padStart(
+                                                2,
+                                                '0',
+                                            )}
+                                            value={String(month)}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+
+                            <View style={styles.datePickerBox}>
+                                <Picker
+                                    selectedValue={birthDate.day}
+                                    onValueChange={value =>
+                                        updateBirthDate(
+                                            'day',
+                                            String(value),
+                                        )
+                                    }
+                                    style={styles.datePicker}
+                                    dropdownIconColor="#4A1712"
+                                >
+                                    <Picker.Item
+                                        label="DD"
+                                        value=""
+                                        enabled={false}
+                                    />
+
+                                    {days.map(day => (
+                                        <Picker.Item
+                                            key={day}
+                                            label={String(day).padStart(
+                                                2,
+                                                '0',
+                                            )}
+                                            value={String(day)}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+
+                            <View style={styles.datePickerBox}>
+                                <Picker
+                                    selectedValue={birthDate.year}
+                                    onValueChange={value =>
+                                        updateBirthDate(
+                                            'year',
+                                            String(value),
+                                        )
+                                    }
+                                    style={styles.datePicker}
+                                    dropdownIconColor="#4A1712"
+                                >
+                                    <Picker.Item
+                                        label="YYYY"
+                                        value=""
+                                        enabled={false}
+                                    />
+
+                                    {years.map(year => (
+                                        <Picker.Item
+                                            key={year}
+                                            label={String(year)}
+                                            value={String(year)}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+
+                        {babyAge && (
+                            <Text style={styles.agePreview}>
+                                Baby age: {babyAge.display}
+                            </Text>
                         )}
                     </>
                 );
+            }
 
             case 3:
                 return (
@@ -325,27 +555,14 @@ function QuestionnaireScreen({ navigation, route }: any) {
                             What is your child’s gender?
                         </Text>
 
-                        {[
-                            {
-                                label: 'Male',
-                                value: 'male',
-                            },
-                            {
-                                label: 'Female',
-                                value: 'female',
-                            },
-                            {
-                                label: 'Other',
-                                value: 'other',
-                            },
-                        ].map(option =>
+                        {GENDER_OPTIONS.map(option =>
                             renderSingleOption(
                                 option.label,
                                 answers.gender === option.value,
                                 () =>
                                     updateAnswer(
                                         'gender',
-                                        option.value as Gender,
+                                        option.value,
                                     ),
                             ),
                         )}
@@ -359,13 +576,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                             Does your child have any allergies?
                         </Text>
 
-                        {[
-                            'Milk',
-                            'Eggs',
-                            'Peanuts',
-                            'Seafood',
-                            'None',
-                        ].map(option =>
+                        {ALLERGY_OPTIONS.map(option =>
                             renderSingleOption(
                                 option,
                                 answers.allergies.includes(option),
@@ -381,13 +592,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                             What is your main nutrition goal?
                         </Text>
 
-                        {[
-                            'Healthy growth',
-                            'Weight gain',
-                            'Weight management',
-                            'Balanced diet',
-                            'Improve appetite',
-                        ].map(option =>
+                        {NUTRITION_GOAL_OPTIONS.map(option =>
                             renderSingleOption(
                                 option,
                                 answers.nutritionGoal === option,
@@ -408,23 +613,11 @@ function QuestionnaireScreen({ navigation, route }: any) {
                             What foods does your child prefer?
                         </Text>
 
-                        {[
-                            'Rice and noodles',
-                            'Vegetables',
-                            'Fruit',
-                            'Meat',
-                            'Fish',
-                        ].map(option =>
+                        {FOOD_PREFERENCE_OPTIONS.map(option =>
                             renderSingleOption(
                                 option,
-                                answers.foodPreferences.includes(
-                                    option,
-                                ),
-                                () =>
-                                    toggleMultiSelect(
-                                        'foodPreferences',
-                                        option,
-                                    ),
+                                answers.foodPreferences.includes(option),
+                                () => toggleFoodPreference(option),
                             ),
                         )}
                     </>

@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+
+import type {
+    AppDispatch,
+} from '../../store/Store';
+
+import {
+    loginFailed,
+    loginStarted,
+    loginSucceeded,
+} from '../../store/auth/authSlice';
 import {
     Alert,
     Image,
@@ -13,20 +24,24 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
-    getGoogleLoginError,
     loginWithGoogle,
 } from '../../services/firebaseAuthService';
 
 import styles from '../../styles/auth/loginStyles';
 
 function LoginScreen({ navigation }: any) {
+    const [loading, setLoading] = useState(false);
+
+    const dispatch =
+        useDispatch<AppDispatch>();
+
     const handleClose = () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
         }
     };
 
-    const [loading, setLoading] = useState(false);
+
     const handleGoogleLogin = async () => {
         if (loading) {
             return;
@@ -34,42 +49,54 @@ function LoginScreen({ navigation }: any) {
 
         try {
             setLoading(true);
+            dispatch(loginStarted());
 
-            const { user, firebaseIdToken } =
-                await loginWithGoogle();
+            const {
+                user,
+                firebaseIdToken,
+            } = await loginWithGoogle();
 
-            console.log('Firebase UID:', user.uid);
-            console.log('Firebase email:', user.email);
+            dispatch(
+                loginSucceeded({
+                    firebaseIdToken,
+                    user: {
+                        uid: user.uid,
+                        email: user.email ?? '',
+                        displayName:
+                            user.displayName ??
+                            'BabyNutri User',
+                        photoURL:
+                            user.photoURL ??
+                            undefined,
 
-            // Chỉ kiểm tra tạm thời, không log nguyên token khi production.
-            console.log(
-                'Firebase token received:',
-                Boolean(firebaseIdToken),
+                        // Tạm thời dùng parent.
+                        // Sau này role phải lấy từ backend.
+                        role: 'parent',
+                    },
+                }),
             );
 
-            Alert.alert(
-                'Login successful',
-                `Welcome ${user.displayName ?? user.email ?? 'User'}`,
-            );
-
-            // Tạm thời chuyển vào Home.
             navigation.reset({
                 index: 0,
                 routes: [
                     {
-                        name: 'Questionnaire',
-                        params: {
-                            userMode: 'authenticated',
-                        },
+                        name: 'Home',
                     },
                 ],
             });
         } catch (error) {
-            console.log('Google login error:', error);
+            dispatch(loginFailed());
+
+            console.log(
+                'Google login error:',
+                error,
+            );
 
             Alert.alert(
                 'Login Failed',
-                getGoogleLoginError(error),
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to sign in with Google.',
             );
         } finally {
             setLoading(false);
@@ -134,10 +161,15 @@ function LoginScreen({ navigation }: any) {
                 </View>
 
                 <Pressable
+                    disabled={loading}
                     onPress={handleGoogleLogin}
                     style={({ pressed }) => [
                         styles.googleButton,
-                        pressed && styles.buttonPressed,
+                        pressed &&
+                        !loading &&
+                        styles.buttonPressed,
+                        loading &&
+                        styles.googleButtonDisabled,
                     ]}>
                     <Image
                         source={require('../../assets/images/google.png')}
@@ -145,7 +177,9 @@ function LoginScreen({ navigation }: any) {
                     />
 
                     <Text style={styles.googleButtonText}>
-                        Continue with Google
+                        {loading
+                            ? 'Signing in...'
+                            : 'Continue with Google'}
                     </Text>
                 </Pressable>
 
