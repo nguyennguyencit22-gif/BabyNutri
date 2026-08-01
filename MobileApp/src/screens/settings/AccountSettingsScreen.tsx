@@ -10,6 +10,7 @@ import {
     Icon,
     Text,
 } from 'react-native-paper';
+import { useSelector } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import {
@@ -18,7 +19,8 @@ import {
 
 import styles from '@/styles/settings/accountSettingStyles';
 
-import { getAuth, } from '@react-native-firebase/auth';
+import type { RootState } from '../../store/Store';
+
 function AccountSettingsScreen({
     navigation,
 }: any) {
@@ -89,9 +91,12 @@ function AccountSettingsScreen({
         );
     };
 
-    const user = getAuth().currentUser;
+    const user = useSelector(
+        (state: RootState) =>
+            state.auth.user,
+    );
 
-    const email = user?.email ?? 'No email';
+    const email = user?.email || 'No email';
 
     const photoURL = user?.photoURL;
 
@@ -106,7 +111,7 @@ function AccountSettingsScreen({
 
             <View style={styles.profileCard}>
                 <View style={styles.avatarWrapper}>
-                    {/* {photoURL ? (
+                    {photoURL ? (
                         <Image
                             source={{ uri: photoURL }}
                             style={styles.avatar}
@@ -119,13 +124,7 @@ function AccountSettingsScreen({
                                     .toUpperCase()}
                             </Text>
                         </View>
-                    )} */}
-                    <Image
-                        source={{
-                            uri: 'https://i.pravatar.cc/300?img=47',
-                        }}
-                        style={styles.avatar}
-                    />
+                    )}
 
                     <Pressable
                         onPress={handleChangePhoto}
@@ -137,13 +136,10 @@ function AccountSettingsScreen({
                         />
                     </Pressable>
                 </View>
-                {/* <Text style={styles.email}>
-                    {email}
-                </Text> */}
                 <Text
                     numberOfLines={1}
                     style={styles.email}>
-                    nguyen.nguyen.cit22@eiu.edu.vn
+                    {email}
                 </Text>
             </View>
 

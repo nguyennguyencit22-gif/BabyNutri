@@ -28,8 +28,8 @@ import GenderSelector, {
     BabyGender,
 } from '../../components/profile/GenderSelector';
 import DateOfBirthRow from '../../components/profile/DateOfBirthRow';
-import AllergySelector from '../../components/profile/AllergySelector';
-import AllergyModal from '../../components/profile/AllergyModal';
+import AllergySelector from '../../components/profile/OptionSelector';
+import AllergyModal from '../../components/profile/OptionModalForChild';
 
 import {
     PROFILE_COLORS,
@@ -310,7 +310,8 @@ function EditBabyProfileScreen({
                 )}
 
                 <AllergySelector
-                    selectedAllergies={
+                    label="Allergies"
+                    selectedOptions={
                         selectedAllergies
                     }
                     onPress={() =>
@@ -344,16 +345,17 @@ function EditBabyProfileScreen({
             </ScrollView>
 
             <AllergyModal
+                title="Select allergies"
                 visible={
                     showAllergyModal
                 }
                 options={
                     ALLERGY_OPTIONS
                 }
-                selectedAllergies={
+                selectedOptions={
                     selectedAllergies
                 }
-                onToggleAllergy={
+                onToggleOption={
                     toggleAllergy
                 }
                 onClose={() =>

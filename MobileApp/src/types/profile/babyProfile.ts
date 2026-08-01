@@ -16,4 +16,6 @@ export type BabyProfile = {
     gender: 'boy' | 'girl';
     dateOfBirth: string;
     allergies: string[];
+    nutritionGoal?: string;
+    foodPreferences?: string[];
 };

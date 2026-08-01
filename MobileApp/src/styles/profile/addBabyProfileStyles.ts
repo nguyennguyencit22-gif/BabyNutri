@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FF5F70',
     },
 
-    optionTextAllergies: {
+    optionText: {
         flex: 1,
         color: '#5B0010',
         fontSize: 15,

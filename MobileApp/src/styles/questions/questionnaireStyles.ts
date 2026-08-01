@@ -28,7 +28,11 @@ const styles = StyleSheet.create({
     },
     questionContainer: {
         flex: 1,
+    },
+    questionContent: {
+        flexGrow: 1,
         justifyContent: 'center',
+        paddingVertical: 16,
     },
     question: {
         marginBottom: 28,

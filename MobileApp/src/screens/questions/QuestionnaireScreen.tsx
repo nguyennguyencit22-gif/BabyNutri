@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
     Alert,
     Pressable,
+    ScrollView,
     Text,
     TextInput,
     View,
@@ -24,7 +25,7 @@ import { useDispatch } from 'react-redux';
 import { PROFILE_COLORS } from '@/constants/profile/babyProfileData';
 import { addBaby } from '@/store/babySlice';
 import type { AppDispatch, } from '../../store/Store';
-
+import { ALLERGY_OPTIONS, NUTRITION_GOAL_OPTIONS, FOOD_PREFERENCE_OPTIONS } from '@/constants/profile/babyProfileData';
 
 const TOTAL_STEPS = 7;
 
@@ -41,30 +42,6 @@ const GENDER_OPTIONS: Array<{
             value: 'Girl',
         },
     ];
-
-const ALLERGY_OPTIONS = [
-    'Milk',
-    'Eggs',
-    'Peanuts',
-    'Seafood',
-    'None',
-];
-
-const NUTRITION_GOAL_OPTIONS = [
-    'Healthy growth',
-    'Weight gain',
-    'Weight management',
-    'Balanced diet',
-    'Improve appetite',
-];
-
-const FOOD_PREFERENCE_OPTIONS = [
-    'Rice and noodles',
-    'Vegetables',
-    'Fruit',
-    'Meat',
-    'Fish',
-];
 
 function QuestionnaireScreen({ navigation, route }: any) {
     const userMode: 'guest' | 'authenticated' =
@@ -649,9 +626,15 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     Step {currentStep + 1} of {TOTAL_STEPS}
                 </Text>
 
-                <View style={styles.questionContainer}>
+                <ScrollView
+                    style={styles.questionContainer}
+                    contentContainerStyle={
+                        styles.questionContent
+                    }
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled">
                     {renderQuestion()}
-                </View>
+                </ScrollView>
 
                 <View style={styles.footer}>
                     <Pressable

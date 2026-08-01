@@ -6,20 +6,22 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/allergySelectorStyles';
+import styles from '../../styles/profile/optionsSelectorStyles';
 
-type AllergySelectorProps = {
-    selectedAllergies: string[];
+type OptionSelectorProps = {
+    label: string;
+    selectedOptions: string[];
     onPress: () => void;
 };
 
-function AllergySelector({
-    selectedAllergies,
+function OptionSelector({
+    label,
+    selectedOptions,
     onPress,
-}: AllergySelectorProps) {
+}:OptionSelectorProps) {
     const summary =
-        selectedAllergies.length > 0
-            ? `${selectedAllergies.length} selected`
+        selectedOptions.length > 0
+            ? `${selectedOptions.length} selected`
             : '';
 
     return (
@@ -31,7 +33,7 @@ function AllergySelector({
             ]}>
             <View style={styles.textContent}>
                 <Text style={styles.label}>
-                    Allergies
+                    {label}
                 </Text>
 
                 {summary ? (
@@ -50,4 +52,4 @@ function AllergySelector({
     );
 }
 
-export default AllergySelector;
+export default OptionSelector;

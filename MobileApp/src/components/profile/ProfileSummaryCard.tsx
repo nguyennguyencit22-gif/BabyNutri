@@ -14,6 +14,7 @@ type ProfileSummaryCardProps = {
     email: string;
     imageUrl?: string;
     onChangePhoto?: () => void;
+    onPress?: () => void;
 };
 
 function ProfileSummaryCard({
@@ -21,9 +22,16 @@ function ProfileSummaryCard({
     email,
     imageUrl,
     onChangePhoto,
+    onPress,
 }: ProfileSummaryCardProps) {
     return (
-        <View style={styles.card}>
+        <Pressable
+            style={({ pressed }) => [
+                styles.card,
+                pressed && onPress && styles.pressed,
+            ]}
+            onPress={onPress}
+            disabled={!onPress}>
             <View style={styles.avatarWrapper}>
                 {imageUrl ? (
                     <Image
@@ -65,7 +73,7 @@ function ProfileSummaryCard({
                     {email}
                 </Text>
             </View>
-        </View>
+        </Pressable>
     );
 }
 

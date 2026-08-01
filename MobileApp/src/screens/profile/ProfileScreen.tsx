@@ -116,6 +116,11 @@ function ProfileScreen({
                                 'Change profile photo',
                             );
                         }}
+                        onPress={() => {
+                            navigation.navigate(
+                                'AccountSettings',
+                            );
+                        }}
                     />
                 ) : (
                     <GuestProfileBanner
@@ -217,17 +222,6 @@ function ProfileScreen({
                     }}
                 />
 
-                {isAuthenticated ? (
-                    <ProfileMenuItem
-                        title="Account settings"
-                        showArrow
-                        onPress={() => {
-                            navigation.navigate(
-                                'AccountSettings',
-                            );
-                        }}
-                    />
-                ) : null}
             </ScrollView>
 
             <BabyProfileActionsModal

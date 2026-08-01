@@ -11,21 +11,23 @@ import { Icon } from 'react-native-paper';
 
 import styles from '../../styles/profile/addBabyProfileStyles';
 
-type AllergyModalProps = {
+type OptionModalForChildProps = {
+    title: string;
     visible: boolean;
     options: string[];
-    selectedAllergies: string[];
-    onToggleAllergy: (allergy: string) => void;
+    selectedOptions: string[];
+    onToggleOption: (option: string) => void;
     onClose: () => void;
 };
 
-function AllergyModal({
+function OptionModalForChild({
+    title,
     visible,
     options,
-    selectedAllergies,
-    onToggleAllergy,
+    selectedOptions,
+    onToggleOption,
     onClose,
-}: AllergyModalProps) {
+}: OptionModalForChildProps) {
     return (
         <Modal
             visible={visible}
@@ -37,7 +39,7 @@ function AllergyModal({
                 <View style={styles.modalContainer}>
                     <View style={styles.header}>
                         <Text style={styles.title}>
-                            Select allergies
+                            {title}
                         </Text>
 
                         <Pressable
@@ -57,12 +59,12 @@ function AllergyModal({
                         showsVerticalScrollIndicator={false}
                         renderItem={({ item }) => {
                             const selected =
-                                selectedAllergies.includes(item);
+                                selectedOptions.includes(item);
 
                             return (
                                 <Pressable
                                     onPress={() =>
-                                        onToggleAllergy(item)
+                                        onToggleOption(item)
                                     }
                                     style={styles.optionRow}>
 
@@ -81,7 +83,7 @@ function AllergyModal({
                                         ) : null}
                                     </View>
 
-                                    <Text style={styles.optionTextAllergies}>
+                                    <Text style={styles.optionText}>
                                         {item}
                                     </Text>
                                 </Pressable>
@@ -102,4 +104,4 @@ function AllergyModal({
     );
 }
 
-export default AllergyModal;
+export default OptionModalForChild;
