@@ -43,7 +43,7 @@ function CommunityScreen({ navigation }: any) {
                             activeSubTab === 'discussion' && styles.segmentTextActive,
                         ]}
                     >
-                        💬 Diễn đàn chia sẻ
+                        💬 Community Forum
                     </Text>
                 </TouchableOpacity>
 
@@ -61,7 +61,7 @@ function CommunityScreen({ navigation }: any) {
                             activeSubTab === 'faq' && styles.segmentTextActive,
                         ]}
                     >
-                        ❓ Hỏi đáp FAQ
+                        ❓ Nutrition FAQ
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -71,16 +71,16 @@ function CommunityScreen({ navigation }: any) {
                 {activeSubTab === 'discussion' ? (
                     <View style={styles.discussionPlaceholder}>
                         <Text style={styles.emojiText}>💬</Text>
-                        <Text style={styles.discussionTitle}>Góc Chia Sẻ Kinh Nghiệm Ăn Dặm</Text>
+                        <Text style={styles.discussionTitle}>Weaning Experience Forum</Text>
                         <Text style={styles.discussionSubTitle}>
-                            Nơi các mẹ trao đổi bí quyết nấu ăn, tư vấn thực đơn và đặt câu hỏi cho Chuyên gia dinh dưỡng.
+                            A community for parents to share recipes, exchange feeding tips, and consult with nutrition experts.
                         </Text>
                         <TouchableOpacity 
                             style={styles.askQuestionBtn}
                             onPress={() => setActiveSubTab('faq')}
                             activeOpacity={0.88}
                         >
-                            <Text style={styles.askQuestionBtnText}>❓ Xem câu hỏi thường gặp (FAQ)</Text>
+                            <Text style={styles.askQuestionBtnText}>❓ View Frequently Asked Questions (FAQ)</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (

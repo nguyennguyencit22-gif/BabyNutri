@@ -14,7 +14,7 @@ interface RecipeState {
 export const useRecipeStore = create<RecipeState>((set, get) => ({
   recipes: [],
   loading: false,
-  selectedCategory: 'Tất cả',
+  selectedCategory: 'All',
 
   setSelectedCategory: (category: string) => set({ selectedCategory: category }),
 

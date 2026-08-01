@@ -183,23 +183,7 @@ function LoginScreen({ navigation }: any) {
                     </Text>
                 </Pressable>
 
-                {/* Nút Đăng Nhập Nhanh vào App (Dành cho Test / Dev) */}
-                <Pressable
-                    onPress={() => {
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: 'Home' }],
-                        });
-                    }}
-                    style={({ pressed }) => [
-                        styles.googleButton,
-                        { backgroundColor: '#FF5F70', marginTop: 12 },
-                        pressed && styles.buttonPressed,
-                    ]}>
-                    <Text style={[styles.googleButtonText, { color: '#FFFFFF' }]}>
-                        🚀 Vào thẳng Trang chủ (Dùng thử App)
-                    </Text>
-                </Pressable>
+
 
                 <View style={styles.agreement}>
                     <Text style={styles.agreementText}>

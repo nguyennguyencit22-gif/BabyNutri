@@ -36,7 +36,7 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
 
   const handleSave = async () => {
     if (!name || !age || !height || !weight) {
-      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ các thông tin bắt buộc (*)');
+      Alert.alert('Notice', 'Please fill in all required fields (*)');
       return;
     }
 
@@ -57,34 +57,34 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
       }
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể lưu thông tin bé lúc này');
+      Alert.alert('Error', 'Unable to save child info right now');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.screenTitle}>{isEditing ? 'Chỉnh sửa hồ sơ bé' : 'Tạo hồ sơ cho bé'}</Text>
+      <Text style={styles.screenTitle}>{isEditing ? 'Edit Child Profile' : 'Create Child Profile'}</Text>
 
-      <Text style={styles.label}>Tên của bé *</Text>
+      <Text style={styles.label}>Child Name *</Text>
       <TextInput 
         style={styles.input} 
         value={name} 
         onChangeText={setName} 
-        placeholder="Nhập tên bé (VD: Bé Bo)" 
+        placeholder="Enter child name (e.g. Leo)" 
         placeholderTextColor="#A0A0A0"
       />
 
-      <Text style={styles.label}>Tuổi (tuổi) *</Text>
+      <Text style={styles.label}>Age (years) *</Text>
       <TextInput 
         style={styles.input} 
         value={age} 
         onChangeText={setAge} 
         keyboardType="numeric" 
-        placeholder="Nhập số tuổi (VD: 2)" 
+        placeholder="Enter age in years (e.g. 2)" 
         placeholderTextColor="#A0A0A0"
       />
 
-      <Text style={styles.label}>Giới tính *</Text>
+      <Text style={styles.label}>Gender *</Text>
       <View style={styles.genderRow}>
         <TouchableOpacity 
           style={[styles.genderChip, gender === 'Male' && styles.genderChipActive]} 
@@ -92,7 +92,7 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
           activeOpacity={0.88}
         >
           <Text style={[styles.genderChipText, gender === 'Male' && styles.genderChipTextActive]}>
-            👦 Bé trai
+            👦 Boy
           </Text>
         </TouchableOpacity>
 
@@ -102,42 +102,42 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
           activeOpacity={0.88}
         >
           <Text style={[styles.genderChipText, gender === 'Female' && styles.genderChipTextActive]}>
-            👧 Bé gái
+            👧 Girl
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Chiều cao (cm) *</Text>
+      <Text style={styles.label}>Height (cm) *</Text>
       <TextInput 
         style={styles.input} 
         value={height} 
         onChangeText={setHeight} 
         keyboardType="numeric" 
-        placeholder="Nhập chiều cao (VD: 85)" 
+        placeholder="Enter height (e.g. 85)" 
         placeholderTextColor="#A0A0A0"
       />
 
-      <Text style={styles.label}>Cân nặng (kg) *</Text>
+      <Text style={styles.label}>Weight (kg) *</Text>
       <TextInput 
         style={styles.input} 
         value={weight} 
         onChangeText={setWeight} 
         keyboardType="numeric" 
-        placeholder="Nhập cân nặng (VD: 12)" 
+        placeholder="Enter weight (e.g. 12)" 
         placeholderTextColor="#A0A0A0"
       />
 
-      <Text style={styles.label}>Tiền sử dị ứng (phân cách bằng dấu phẩy)</Text>
+      <Text style={styles.label}>Allergy History (comma separated)</Text>
       <TextInput 
         style={styles.input} 
         value={allergies} 
         onChangeText={setAllergies} 
-        placeholder="VD: Đậu phộng, Hải sản, Sữa bò" 
+        placeholder="e.g. Peanuts, Seafood, Cow milk" 
         placeholderTextColor="#A0A0A0"
       />
 
       <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.88}>
-        <Text style={styles.saveBtnText}>{isEditing ? 'Cập nhật hồ sơ' : 'Lưu hồ sơ bé'}</Text>
+        <Text style={styles.saveBtnText}>{isEditing ? 'Update Profile' : 'Save Child Profile'}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

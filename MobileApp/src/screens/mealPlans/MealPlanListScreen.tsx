@@ -43,14 +43,14 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
             onPress={() => navigation.navigate('MealPlanDetail', { mealPlanId: item.id })}
             activeOpacity={0.88}
           >
-            <Text style={styles.planDate}>📅 Ngày: {item.date}</Text>
-            <Text style={styles.planCalories}>🔥 Tổng calo: {item.totalCalories} kcal</Text>
+            <Text style={styles.planDate}>📅 Date: {item.date}</Text>
+            <Text style={styles.planCalories}>🔥 Total Calories: {item.totalCalories} kcal</Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có thực đơn nào cho bé.</Text>
-            <Text style={styles.emptySubText}>Các thực đơn dinh dưỡng gợi ý sẽ hiển thị tại đây!</Text>
+            <Text style={styles.emptyText}>No meal plans found for this child.</Text>
+            <Text style={styles.emptySubText}>Suggested nutrition meal plans will appear here!</Text>
           </View>
         }
         contentContainerStyle={styles.listContainer}

@@ -28,10 +28,10 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
   };
 
   const handleDelete = () => {
-    Alert.alert('Xóa hồ sơ bé', 'Bạn có chắc chắn muốn xóa hồ sơ của bé này không?', [
-      { text: 'Hủy', style: 'cancel' },
+    Alert.alert('Delete Child Profile', 'Are you sure you want to delete this child profile?', [
+      { text: 'Cancel', style: 'cancel' },
       { 
-        text: 'Xóa', 
+        text: 'Delete', 
         style: 'destructive', 
         onPress: async () => {
           await childService.deleteChild(childId);
@@ -52,12 +52,12 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
   if (!child) {
     return (
       <View style={styles.center}>
-        <Text style={styles.notFoundText}>Không tìm thấy hồ sơ bé</Text>
+        <Text style={styles.notFoundText}>Child profile not found</Text>
       </View>
     );
   }
 
-  const isMale = child.gender?.toLowerCase() === 'male' || child.gender === 'Nam' || child.gender === 'Male';
+  const isMale = String(child.gender).toLowerCase() === 'male' || String(child.gender) === 'Nam';
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -71,28 +71,28 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
         <View style={styles.badgeRow}>
           <View style={[styles.badge, isMale ? styles.maleBadge : styles.femaleBadge]}>
             <Text style={[styles.badgeText, isMale ? styles.maleText : styles.femaleText]}>
-              {isMale ? 'Bé trai' : 'Bé gái'}
+              {isMale ? 'Boy' : 'Girl'}
             </Text>
           </View>
           <View style={styles.ageBadge}>
-            <Text style={styles.ageBadgeText}>{child.age} tuổi</Text>
+            <Text style={styles.ageBadgeText}>{child.age} yrs old</Text>
           </View>
         </View>
 
         <View style={styles.statsGrid}>
           <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Chiều cao</Text>
+            <Text style={styles.statLabel}>Height</Text>
             <Text style={styles.statValue}>{child.height} <Text style={styles.unit}>cm</Text></Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Cân nặng</Text>
+            <Text style={styles.statLabel}>Weight</Text>
             <Text style={styles.statValue}>{child.weight} <Text style={styles.unit}>kg</Text></Text>
           </View>
         </View>
 
         {child.allergies && child.allergies.length > 0 && (
           <View style={styles.allergyCard}>
-            <Text style={styles.allergyTitle}>⚠️ Tiền sử dị ứng</Text>
+            <Text style={styles.allergyTitle}>⚠️ Allergy History</Text>
             <Text style={styles.allergyText}>{child.allergies.join(', ')}</Text>
           </View>
         )}
@@ -104,7 +104,7 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
           onPress={() => navigation.navigate('MealPlanList', { childId: child.id })}
           activeOpacity={0.88}
         >
-          <Text style={styles.primaryBtnText}>🍲 Xem thực đơn ăn uống</Text>
+          <Text style={styles.primaryBtnText}>🍲 View Meal Plans</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -112,7 +112,7 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
           onPress={() => navigation.navigate('AddEditChild', { childId: child.id })}
           activeOpacity={0.88}
         >
-          <Text style={styles.secondaryBtnText}>✏️ Chỉnh sửa hồ sơ bé</Text>
+          <Text style={styles.secondaryBtnText}>✏️ Edit Child Profile</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -120,7 +120,7 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
           onPress={handleDelete}
           activeOpacity={0.88}
         >
-          <Text style={styles.dangerBtnText}>🗑️ Xóa hồ sơ bé</Text>
+          <Text style={styles.dangerBtnText}>🗑️ Delete Child Profile</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

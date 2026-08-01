@@ -47,14 +47,14 @@ export const ChildListScreen = ({ navigation }: any) => {
             activeOpacity={0.88}
           >
             <Text style={styles.childName}>👶 {item.name}</Text>
-            <Text style={styles.childDetails}>{item.age} tuổi · {item.gender === 'Male' || item.gender === 'Nam' ? 'Bé trai' : 'Bé gái'}</Text>
-            <Text style={styles.childStats}>Chiều cao: {item.height}cm · Cân nặng: {item.weight}kg</Text>
+            <Text style={styles.childDetails}>{item.age} yrs old · {String(item.gender) === 'Male' || String(item.gender) === 'Nam' ? 'Boy' : 'Girl'}</Text>
+            <Text style={styles.childStats}>Height: {item.height}cm · Weight: {item.weight}kg</Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có hồ sơ bé nào.</Text>
-            <Text style={styles.emptySubText}>Nhấn nút (+) bên dưới để thêm hồ sơ bé nhé!</Text>
+            <Text style={styles.emptyText}>No child profiles added yet.</Text>
+            <Text style={styles.emptySubText}>Tap (+) button below to create a new profile!</Text>
           </View>
         }
         contentContainerStyle={styles.listContainer}

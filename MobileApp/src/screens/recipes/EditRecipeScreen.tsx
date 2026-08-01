@@ -55,10 +55,10 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
         fat: Number(fat),
         carbohydrate: Number(carbohydrate),
       });
-      Alert.alert('Thành công', 'Đã cập nhật công thức', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'Recipe updated', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
       console.error('Update recipe error:', e);
-      Alert.alert('Lỗi', 'Không thể cập nhật, thử lại sau');
+      Alert.alert('Error', 'Unable to update recipe right now');
     } finally {
       setSubmitting(false);
     }
@@ -68,13 +68,13 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.label}>Tên món</Text>
+      <Text style={styles.label}>Recipe Name</Text>
       <TextInput style={styles.input} defaultValue={name} onChangeText={setName} />
 
-      <Text style={styles.label}>Mô tả</Text>
+      <Text style={styles.label}>Description</Text>
       <TextInput style={[styles.input, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline />
 
-      <Text style={styles.label}>Ảnh (URL)</Text>
+      <Text style={styles.label}>Image (URL)</Text>
       <TextInput style={styles.input} defaultValue={imageUrl} onChangeText={setImageUrl} />
 
       <View style={styles.rowInputs}>
@@ -83,7 +83,7 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
           <TextInput style={styles.input} defaultValue={calories} onChangeText={setCalories} keyboardType="numeric" />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Độ tuổi (tháng)</Text>
+          <Text style={styles.label}>Age (months)</Text>
           <TextInput style={styles.input} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" />
         </View>
       </View>
@@ -106,17 +106,17 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
 
       <View style={styles.rowInputs}>
         <View style={styles.half}>
-          <Text style={styles.label}>Thời gian chuẩn bị (phút)</Text>
+          <Text style={styles.label}>Prep Time (min)</Text>
           <TextInput style={styles.input} defaultValue={prepTime} onChangeText={setPrepTime} keyboardType="numeric" />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Thời gian nấu (phút)</Text>
+          <Text style={styles.label}>Cooking Time (min)</Text>
           <TextInput style={styles.input} defaultValue={cookingTime} onChangeText={setCookingTime} keyboardType="numeric" />
         </View>
       </View>
 
       <TouchableOpacity style={styles.submitBtn} onPress={handleSave} disabled={submitting}>
-        <Text style={styles.submitText}>{submitting ? 'Đang lưu...' : 'Lưu thay đổi'}</Text>
+        <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Changes'}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

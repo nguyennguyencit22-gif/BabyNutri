@@ -39,7 +39,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const handleSubmit = async () => {
     const data = formData.current;
     if (!data.name.trim() || !data.calories.trim() || !data.monthAge.trim()) {
-      Alert.alert('Thiếu thông tin', 'Vui lòng nhập tên món, calories và độ tuổi (tháng)');
+      Alert.alert('Missing Info', 'Please enter recipe name, calories, and target age (months)');
       return;
     }
     setSubmitting(true);
@@ -59,10 +59,10 @@ const AddRecipeScreen = ({ navigation }: any) => {
         ingredients: ingredients.filter((i) => i.name.trim()),
         steps: steps.filter((s) => s.trim()),
       });
-      Alert.alert('Thành công', 'Đã thêm công thức mới', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'New recipe added', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
       console.error('Create recipe error:', e);
-      Alert.alert('Lỗi', 'Không thể tạo công thức, thử lại sau');
+      Alert.alert('Error', 'Unable to create recipe right now');
     } finally {
       setSubmitting(false);
     }
@@ -70,13 +70,13 @@ const AddRecipeScreen = ({ navigation }: any) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.label}>Tên món</Text>
-      <TextInput style={styles.input} onChangeText={(v) => { formData.current.name = v; }} placeholder="VD: Cháo bí đỏ" />
+      <Text style={styles.label}>Recipe Name</Text>
+      <TextInput style={styles.input} onChangeText={(v) => { formData.current.name = v; }} placeholder="e.g. Pumpkin Porridge" />
 
-      <Text style={styles.label}>Mô tả</Text>
-      <TextInput style={[styles.input, styles.multiline]} onChangeText={(v) => { formData.current.description = v; }} multiline placeholder="Mô tả ngắn về món ăn" />
+      <Text style={styles.label}>Description</Text>
+      <TextInput style={[styles.input, styles.multiline]} onChangeText={(v) => { formData.current.description = v; }} multiline placeholder="Short description of the recipe" />
 
-      <Text style={styles.label}>Ảnh (URL)</Text>
+      <Text style={styles.label}>Image (URL)</Text>
       <TextInput
         style={styles.input}
         defaultValue={"DEFAULT_FOOD_IMAGE"}
@@ -90,11 +90,11 @@ const AddRecipeScreen = ({ navigation }: any) => {
           <TextInput style={styles.input} onChangeText={(v) => { formData.current.calories = v; }} keyboardType="numeric" placeholder="120" />
         </View>
         <View style={styles.third}>
-          <Text style={styles.label}>Độ tuổi (tháng)</Text>
+          <Text style={styles.label}>Age (months)</Text>
           <TextInput style={styles.input} onChangeText={(v) => { formData.current.monthAge = v; }} keyboardType="numeric" placeholder="7" />
         </View>
         <View style={styles.third}>
-          <Text style={styles.label}>Khẩu phần</Text>
+          <Text style={styles.label}>Servings</Text>
           <TextInput style={styles.input} onChangeText={(v) => { formData.current.serves = v; }} defaultValue="1" keyboardType="numeric" placeholder="1" />
         </View>
       </View>
@@ -117,29 +117,29 @@ const AddRecipeScreen = ({ navigation }: any) => {
 
       <View style={styles.rowInputs}>
         <View style={styles.half}>
-          <Text style={styles.label}>Thời gian chuẩn bị (phút)</Text>
+          <Text style={styles.label}>Prep Time (min)</Text>
           <TextInput style={styles.input} onChangeText={(v) => { formData.current.prepTime = v; }} keyboardType="numeric" placeholder="5" />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Thời gian nấu (phút)</Text>
+          <Text style={styles.label}>Cooking Time (min)</Text>
           <TextInput style={styles.input} onChangeText={(v) => { formData.current.cookingTime = v; }} keyboardType="numeric" placeholder="10" />
         </View>
       </View>
 
-      <Text style={styles.section}>Nguyên liệu</Text>
+      <Text style={styles.section}>Ingredients</Text>
       {ingredients.map((ing, i) => (
         <View key={i} style={styles.dynamicRow}>
           <TextInput
             style={[styles.input, styles.flex2]}
             defaultValue={ing.name}
             onChangeText={(v) => updateIngredient(i, 'name', v)}
-            placeholder="Tên nguyên liệu"
+            placeholder="Ingredient name"
           />
           <TextInput
             style={[styles.input, styles.flex1, { marginLeft: 8 }]}
             defaultValue={ing.quantity}
             onChangeText={(v) => updateIngredient(i, 'quantity', v)}
-            placeholder="Số lượng"
+            placeholder="Quantity"
           />
           <TouchableOpacity onPress={() => removeIngredient(i)}>
             <Text style={styles.removeBtn}>✕</Text>
@@ -147,17 +147,17 @@ const AddRecipeScreen = ({ navigation }: any) => {
         </View>
       ))}
       <TouchableOpacity onPress={addIngredient}>
-        <Text style={styles.addBtn}>+ Thêm nguyên liệu</Text>
+        <Text style={styles.addBtn}>+ Add Ingredient</Text>
       </TouchableOpacity>
 
-      <Text style={styles.section}>Các bước nấu</Text>
+      <Text style={styles.section}>Cooking Steps</Text>
       {steps.map((step, i) => (
         <View key={i} style={styles.dynamicRow}>
           <TextInput
             style={[styles.input, styles.flex1]}
             defaultValue={step}
             onChangeText={(v) => updateStep(i, v)}
-            placeholder={`Bước ${i + 1}`}
+            placeholder={`Step ${i + 1}`}
           />
           <TouchableOpacity onPress={() => removeStep(i)}>
             <Text style={styles.removeBtn}>✕</Text>
@@ -165,11 +165,11 @@ const AddRecipeScreen = ({ navigation }: any) => {
         </View>
       ))}
       <TouchableOpacity onPress={addStep}>
-        <Text style={styles.addBtn}>+ Thêm bước</Text>
+        <Text style={styles.addBtn}>+ Add Step</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-        <Text style={styles.submitText}>{submitting ? 'Đang lưu...' : 'Lưu công thức'}</Text>
+        <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Recipe'}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

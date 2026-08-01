@@ -37,7 +37,7 @@ function GenderSelector({
 
                 <Text
                     style={[
-                        styles.optionText,
+                        styles.genderOptionText,
                         selectedGender === 'boy' &&
                         styles.optionTextSelected,
                     ]}>
@@ -61,7 +61,7 @@ function GenderSelector({
 
                 <Text
                     style={[
-                        styles.optionText,
+                        styles.genderOptionText,
                         selectedGender === 'girl' &&
                         styles.optionTextSelected,
                     ]}>

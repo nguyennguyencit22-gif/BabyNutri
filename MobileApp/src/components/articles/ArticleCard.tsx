@@ -126,19 +126,19 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
 
   const handleShareOptions = () => {
     Alert.alert(
-      'Chia sẻ bài viết',
-      'Bạn muốn chia sẻ bài viết này như thế nào?',
+      'Share Article',
+      'How would you like to share this article?',
       [
         {
-          text: 'Chia sẻ kèm lời nhắn (Đăng bài)',
+          text: 'Share with message (Post)',
           onPress: () => setQuoteModalVisible(true),
         },
         {
-          text: 'Chia sẻ ứng dụng ngoài (Zalo, FB...)',
+          text: 'Share to external apps',
           onPress: async () => {
             try {
               await Share.share({
-                message: `${article.title}\n\n${article.summary || ''}\n\nXem thêm trên ứng dụng BabyNutri!`,
+                message: `${article.title}\n\n${article.summary || ''}\n\nSee more on BabyNutri app!`,
                 title: article.title,
               });
             } catch (e) {
@@ -146,7 +146,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
             }
           },
         },
-        { text: 'Hủy', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   };
@@ -157,20 +157,20 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       await articleService.create({
         title: article.title,
         summary: quoteCaption.trim()
-          ? `"${quoteCaption.trim()}"\n\nBài viết chia sẻ từ ${article.author || 'Chuyên Gia'}`
-          : `Đã chia sẻ bài viết của ${article.author || 'Chuyên Gia'}`,
-        content: `${quoteCaption.trim() ? `"${quoteCaption.trim()}"\n\n` : ''}[Bài viết gốc từ ${article.author || 'Chuyên Gia Dinh Dưỡng'}]:\n${article.summary || article.title}`,
+          ? `"${quoteCaption.trim()}"\n\nShared article from ${article.author || 'Nutrition Expert'}`
+          : `Shared an article by ${article.author || 'Nutrition Expert'}`,
+        content: `${quoteCaption.trim() ? `"${quoteCaption.trim()}"\n\n` : ''}[Original article from ${article.author || 'Nutrition Expert'}]:\n${article.summary || article.title}`,
         imageUrl: article.image_url,
       });
 
       setQuoteModalVisible(false);
       setQuoteCaption('');
-      Alert.alert('Thành công', 'Đã đăng bài viết chia sẻ lồng kèm suy nghĩ của bạn!');
+      Alert.alert('Success', 'Posted shared article with your thoughts!');
       await fetchArticles();
       onRefreshList?.();
     } catch (e) {
       console.error('Quote share error:', e);
-      Alert.alert('Lỗi', 'Không thể chia sẻ bài viết lúc này');
+      Alert.alert('Error', 'Unable to share article right now');
     } finally {
       setSharing(false);
     }
@@ -179,31 +179,31 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
   const toggleSave = () => {
     const isNowSaved = toggleBookmarkArticle(article.id);
     if (isNowSaved) {
-      Alert.alert('Đã lưu bài viết', 'Đã thêm bài viết vào danh mục "Bài viết đã lưu"');
+      Alert.alert('Article Saved', 'Added article to "Saved Articles"');
     } else {
-      Alert.alert('Bỏ lưu bài viết', 'Đã xóa bài viết khỏi danh mục đã lưu');
+      Alert.alert('Unsaved', 'Removed article from saved list');
     }
   };
 
   const handleDeleteArticle = () => {
     setMenuVisible(false);
     Alert.alert(
-      'Xóa bài viết',
-      'Bạn có chắc chắn muốn xóa bài viết này không?',
+      'Delete Article',
+      'Are you sure you want to delete this article?',
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Xóa',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await articleService.remove(article.id);
-              Alert.alert('Thành công', 'Đã xóa bài viết');
+              Alert.alert('Success', 'Article deleted');
               await fetchArticles();
               onRefreshList?.();
             } catch (e) {
               console.error('Delete article error:', e);
-              Alert.alert('Lỗi', 'Không thể xóa bài viết này');
+              Alert.alert('Error', 'Unable to delete this article');
             }
           },
         },
@@ -213,13 +213,13 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
 
   const handleReport = () => {
     setMenuVisible(false);
-    Alert.alert('Đã gửi báo cáo', 'Cảm ơn bạn đã phản hồi. Ban quản trị BabyNutri sẽ xem xét bài viết này trong thời gian sớm nhất.');
+    Alert.alert('Report Sent', 'Thank you for your feedback. BabyNutri team will review this article soon.');
   };
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author || 'Chuyên Gia')}&background=FF7A59&color=fff&bold=true`;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author || 'Expert')}&background=FF7A59&color=fff&bold=true`;
 
   // Kiểm tra xem bài viết này có phải dạng Bài đăng chia sẻ lồng bài gốc không (Quote Shared Post)
-  const isQuotePost = article.summary?.includes('💬 "') || article.summary?.includes('📌 Bài viết chia sẻ');
+  const isQuotePost = article.summary?.includes('💬 "') || article.summary?.includes('📌 Shared article');
   let userCaption = '';
   let sharedNote = '';
   if (isQuotePost && article.summary) {
@@ -234,20 +234,20 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       <View style={styles.header}>
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         <View style={styles.headerText}>
-          <Text style={styles.authorName}>{article.author || 'Chuyên Gia Dinh Dưỡng'}</Text>
+          <Text style={styles.authorName}>{article.author || 'Nutrition Expert'}</Text>
           <View style={styles.metaRow}>
             <Text style={styles.postMeta}>
-              {article.published_date ? new Date(article.published_date).toLocaleDateString('vi-VN') : 'Vừa xong'} ·{' '}
+              {article.published_date ? new Date(article.published_date).toLocaleDateString('en-US') : 'Just now'} ·{' '}
             </Text>
             {privacy === 'public' ? (
               <View style={styles.privacyBox}>
                 <GlobeIcon size={12} color="#65676B" />
-                <Text style={styles.postMeta}>Công khai</Text>
+                <Text style={styles.postMeta}>Public</Text>
               </View>
             ) : (
               <View style={styles.privacyBox}>
                 <LockIcon size={12} color="#65676B" />
-                <Text style={styles.postMeta}>Chỉ mình tôi</Text>
+                <Text style={styles.postMeta}>Only me</Text>
               </View>
             )}
           </View>
@@ -264,7 +264,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
             {!!userCaption && <Text style={styles.quoteCaptionText}>{userCaption}</Text>}
             {/* Khung bài viết gốc nằm lồng bên trong chuẩn Facebook */}
             <View style={styles.embeddedOriginalCard}>
-              <Text style={styles.embeddedTag}>{sharedNote || '📌 Bài viết được chia sẻ'}</Text>
+              <Text style={styles.embeddedTag}>{sharedNote || '📌 Shared Article'}</Text>
               <Text style={styles.embeddedTitle}>{article.title}</Text>
             </View>
           </View>
@@ -293,13 +293,13 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
           {likeCount > 0 ? (
             <View style={styles.likeBox}>
               <HeartIcon liked={true} size={14} />
-              <Text style={styles.statsText}>{likeCount} lượt thích</Text>
+              <Text style={styles.statsText}>{likeCount} likes</Text>
             </View>
           ) : <View />}
 
           {commentCount > 0 && (
             <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-              <Text style={styles.statsText}>{commentCount} bình luận</Text>
+              <Text style={styles.statsText}>{commentCount} comments</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -313,17 +313,17 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
           <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
             <HeartIcon liked={liked} size={18} />
           </Animated.View>
-          <Text style={[styles.actionLabel, liked && styles.likedLabel]}>{liked ? 'Đã thích' : 'Thích'}</Text>
+          <Text style={[styles.actionLabel, liked && styles.likedLabel]}>{liked ? 'Liked' : 'Like'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
           <CommentIcon size={18} />
-          <Text style={styles.actionLabel}>Bình luận{commentCount > 0 ? ` (${commentCount})` : ''}</Text>
+          <Text style={styles.actionLabel}>Comment{commentCount > 0 ? ` (${commentCount})` : ''}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={handleShareOptions} activeOpacity={0.7}>
           <ShareIcon size={18} />
-          <Text style={styles.actionLabel}>Chia sẻ</Text>
+          <Text style={styles.actionLabel}>Share</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={toggleSave} activeOpacity={0.7}>
@@ -335,7 +335,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuBox}>
-            <Text style={styles.menuTitle}>Tùy chọn bài viết</Text>
+            <Text style={styles.menuTitle}>Article Options</Text>
 
             <TouchableOpacity
               style={styles.menuItem}
@@ -347,12 +347,12 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
               {privacy === 'public' ? (
                 <View style={styles.menuRow}>
                   <LockIcon size={18} color="#1C1E21" />
-                  <Text style={styles.menuItemText}>Đổi sang Chế độ Riêng tư</Text>
+                  <Text style={styles.menuItemText}>Switch to Private mode</Text>
                 </View>
               ) : (
                 <View style={styles.menuRow}>
                   <GlobeIcon size={18} color="#1C1E21" />
-                  <Text style={styles.menuItemText}>Đổi sang Chế độ Công khai</Text>
+                  <Text style={styles.menuItemText}>Switch to Public mode</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -360,26 +360,26 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
             <TouchableOpacity style={styles.menuItem} onPress={handleShareOptions}>
               <View style={styles.menuRow}>
                 <LinkIcon size={18} color="#1C1E21" />
-                <Text style={styles.menuItemText}>Chia sẻ bài viết này</Text>
+                <Text style={styles.menuItemText}>Share this article</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleReport}>
               <View style={styles.menuRow}>
                 <FlagIcon size={18} color="#D97706" />
-                <Text style={[styles.menuItemText, { color: '#D97706' }]}>Báo cáo bài viết vi phạm</Text>
+                <Text style={[styles.menuItemText, { color: '#D97706' }]}>Report violating article</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleDeleteArticle}>
               <View style={styles.menuRow}>
                 <TrashIcon size={18} color="#DC2626" />
-                <Text style={[styles.menuItemText, { color: '#DC2626' }]}>Xóa bài viết</Text>
+                <Text style={[styles.menuItemText, { color: '#DC2626' }]}>Delete article</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.cancelMenuItem} onPress={() => setMenuVisible(false)}>
-              <Text style={styles.cancelText}>Đóng</Text>
+              <Text style={styles.cancelText}>Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -389,10 +389,10 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       <Modal visible={quoteModalVisible} transparent animationType="slide" onRequestClose={() => setQuoteModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setQuoteModalVisible(false)}>
           <View style={styles.quoteModalBox}>
-            <Text style={styles.quoteModalTitle}>Chia sẻ bài viết kèm lời nhắn</Text>
+            <Text style={styles.quoteModalTitle}>Share article with message</Text>
             <TextInput
               style={styles.quoteInput}
-              placeholder="Bạn đang nghĩ gì về bài viết này? (VD: Bài viết rất hữu ích cho các mẹ!)..."
+              placeholder="What's on your mind about this article?..."
               placeholderTextColor="#9CA3AF"
               value={quoteCaption}
               onChangeText={setQuoteCaption}
@@ -401,17 +401,17 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
 
             {/* Xem trước bài viết gốc được lồng bên dưới */}
             <View style={styles.previewOriginalBox}>
-              <Text style={styles.previewOriginalLabel}>Bài viết gốc lồng kèm:</Text>
+              <Text style={styles.previewOriginalLabel}>Original article attached:</Text>
               <Text style={styles.previewOriginalTitle} numberOfLines={2}>{article.title}</Text>
-              <Text style={styles.previewOriginalAuthor}>Tác giả: {article.author || 'Chuyên Gia Dinh Dưỡng'}</Text>
+              <Text style={styles.previewOriginalAuthor}>Author: {article.author || 'Nutrition Expert'}</Text>
             </View>
 
             <View style={styles.quoteBtnRow}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setQuoteModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Hủy</Text>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.shareSubmitBtn} onPress={handleConfirmQuoteShare} disabled={sharing}>
-                <Text style={styles.shareSubmitText}>{sharing ? 'Đang chia sẻ...' : 'Đăng bài chia sẻ'}</Text>
+                <Text style={styles.shareSubmitText}>{sharing ? 'Sharing...' : 'Post Shared Article'}</Text>
               </TouchableOpacity>
             </View>
           </View>

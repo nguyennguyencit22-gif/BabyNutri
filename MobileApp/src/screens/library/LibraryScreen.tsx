@@ -38,8 +38,8 @@ function LibraryScreen({ navigation }: any) {
       >
         <Text style={styles.schedulerBannerEmoji}>📅✨</Text>
         <View style={styles.schedulerBannerTextCol}>
-          <Text style={styles.schedulerBannerTitle}>Lịch Dinh Dưỡng & Đề Xuất Món Ăn</Text>
-          <Text style={styles.schedulerBannerSub}>Lên thực đơn theo ngày & Gợi ý dinh dưỡng chuẩn chuyên gia</Text>
+          <Text style={styles.schedulerBannerTitle}>Nutrition Schedule & Meal Suggestions</Text>
+          <Text style={styles.schedulerBannerSub}>Daily meal planner & expert-approved nutrition recommendations</Text>
         </View>
       </TouchableOpacity>
 
@@ -59,7 +59,7 @@ function LibraryScreen({ navigation }: any) {
               activeSubTab === 'recipes' && styles.segmentTextActive,
             ]}
           >
-            🥣 Công thức ăn dặm
+            🥣 Weaning Recipes
           </Text>
         </TouchableOpacity>
 
@@ -77,7 +77,7 @@ function LibraryScreen({ navigation }: any) {
               activeSubTab === 'articles' && styles.segmentTextActive,
             ]}
           >
-            📚 Bài viết dinh dưỡng
+            📚 Nutrition Articles
           </Text>
         </TouchableOpacity>
       </View>

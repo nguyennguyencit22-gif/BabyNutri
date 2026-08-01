@@ -13,10 +13,10 @@ const SearchIcon = ({ size = 18, color = '#6B7280' }: { size?: number; color?: s
 );
 
 const AGE_PRESETS: { label: string; min?: number; max?: number; type?: string }[] = [
-  { label: 'Tất cả' },
-  { label: '6-12 tháng', min: 6, max: 12 },
-  { label: '12-24 tháng', min: 12, max: 24 },
-  { label: '24+ tháng', min: 24 },
+  { label: 'All' },
+  { label: '6-12 months', min: 6, max: 12 },
+  { label: '12-24 months', min: 12, max: 24 },
+  { label: '24+ months', min: 24 },
 ];
 
 const SearchRecipeScreen = ({ navigation }: any) => {
@@ -53,7 +53,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
         <SearchIcon size={18} color="#FF6B4A" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Nhập tên món ăn hoặc thành phần..."
+          placeholder="Enter recipe name or ingredient..."
           placeholderTextColor="#9CA3AF"
           defaultValue={query}
           onChangeText={setQuery}
@@ -62,7 +62,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
         />
       </View>
 
-      <Text style={styles.filterLabel}>Phân loại & Độ tuổi</Text>
+      <Text style={styles.filterLabel}>Category & Age</Text>
       <FlatList
         horizontal
         data={AGE_PRESETS}
@@ -75,7 +75,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
       />
 
       <TouchableOpacity style={styles.searchBtn} onPress={handleSearch} activeOpacity={0.85}>
-        <Text style={styles.searchBtnText}>Tìm kiếm công thức</Text>
+        <Text style={styles.searchBtnText}>Search Recipes</Text>
       </TouchableOpacity>
 
       {loading && <ActivityIndicator size="large" color="#FF6B4A" style={{ marginTop: 30 }} />}
@@ -90,7 +90,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Không tìm thấy công thức món ăn nào phù hợp</Text>
+              <Text style={styles.emptyText}>No matching recipes found</Text>
             </View>
           }
         />

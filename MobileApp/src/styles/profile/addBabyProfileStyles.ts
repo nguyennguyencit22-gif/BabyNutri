@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
         opacity: 0.75,
     },
 
-    optionText: {
+    genderOptionText: {
         marginLeft: 12,
         color: '#B39195',
         fontSize: 20,

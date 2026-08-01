@@ -38,7 +38,7 @@ export const MealPlanDetailScreen = ({ route }: any) => {
   if (!mealPlan) {
     return (
       <View style={styles.center}>
-        <Text style={styles.notFoundText}>Không tìm thấy chi tiết thực đơn</Text>
+        <Text style={styles.notFoundText}>Meal plan details not found</Text>
       </View>
     );
   }
@@ -46,11 +46,11 @@ export const MealPlanDetailScreen = ({ route }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Text style={styles.title}>📅 Ngày áp dụng: {mealPlan.date}</Text>
-        <Text style={styles.totalCalories}>🔥 Tổng calo: {mealPlan.totalCalories} kcal</Text>
+        <Text style={styles.title}>📅 Date: {mealPlan.date}</Text>
+        <Text style={styles.totalCalories}>🔥 Total Calories: {mealPlan.totalCalories} kcal</Text>
       </View>
       
-      <Text style={styles.mealsTitle}>🍲 Các bữa ăn trong ngày</Text>
+      <Text style={styles.mealsTitle}>🍲 Daily Meals</Text>
       <FlatList
         data={mealPlan.meals}
         keyExtractor={(item) => item.id}

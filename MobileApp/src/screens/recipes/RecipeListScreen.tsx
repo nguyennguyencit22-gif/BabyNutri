@@ -13,7 +13,7 @@ const SearchIcon = ({ size = 18, color = '#FF7A59' }: { size?: number; color?: s
 
 import { useRecipeStore } from '../../stores/useRecipeStore';
 
-const CATEGORIES = ['Tất cả', '6-12 tháng', '12-24 tháng', '24+ tháng'];
+const CATEGORIES = ['All', '6-12 months', '12-24 months', '24+ months'];
 
 interface RecipeListScreenProps {
   navigation: any;
@@ -37,10 +37,10 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
   };
 
   const filteredRecipes = useMemo(() => {
-    if (selectedCategory === 'Tất cả') return recipes;
-    if (selectedCategory === '6-12 tháng') return recipes.filter(r => r.month_age >= 6 && r.month_age <= 12);
-    if (selectedCategory === '12-24 tháng') return recipes.filter(r => r.month_age > 12 && r.month_age <= 24);
-    if (selectedCategory === '24+ tháng') return recipes.filter(r => r.month_age > 24);
+    if (selectedCategory === 'All') return recipes;
+    if (selectedCategory === '6-12 months') return recipes.filter(r => r.month_age >= 6 && r.month_age <= 12);
+    if (selectedCategory === '12-24 months') return recipes.filter(r => r.month_age > 12 && r.month_age <= 24);
+    if (selectedCategory === '24+ months') return recipes.filter(r => r.month_age > 24);
     return recipes;
   }, [recipes, selectedCategory]);
 
@@ -50,7 +50,7 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
     <View style={styles.container}>
       {!hideTopHeader && <TopHeaderBar />}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Công thức ăn dặm</Text>
+        <Text style={styles.headerTitle}>Weaning Recipes</Text>
         <TouchableOpacity
           style={styles.searchBtnContainer}
           onPress={() => navigation.navigate('SearchRecipe')}
@@ -92,7 +92,7 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🥑</Text>
-            <Text style={styles.empty}>Không tìm thấy công thức phù hợp</Text>
+            <Text style={styles.empty}>No matching recipes found</Text>
           </View>
         }
       />

@@ -36,20 +36,20 @@ const THEME = {
 
 // Sample recipes for smart recommendations
 const SAMPLE_RECOMMENDED_RECIPES = [
-  { id: '1', name: 'Cháo rạm thịt lợn bí đỏ', category: 'Bữa sáng', monthAge: '6-12 tháng', kcal: 220, protein: 8.5, fat: 4.2, carbs: 32, icon: '🥣' },
-  { id: '2', name: 'Súp cà rốt tôm tươi', category: 'Bữa trưa', monthAge: '6-12 tháng', kcal: 180, protein: 10.2, fat: 3.1, carbs: 24, icon: '🍲' },
-  { id: '3', name: 'Sinh tố bơ chuối sữa chua', category: 'Bữa xế', monthAge: '6-12 tháng', kcal: 140, protein: 3.5, fat: 5.0, carbs: 20, icon: '🥑' },
-  { id: '4', name: 'Cháo yến mạch cá hồi khoai tây', category: 'Bữa tối', monthAge: '12-24 tháng', kcal: 260, protein: 12.0, fat: 6.8, carbs: 35, icon: '🐟' },
+  { id: '1', name: 'Pumpkin & Pork Porridge', category: 'Breakfast', monthAge: '6-12 months', kcal: 220, protein: 8.5, fat: 4.2, carbs: 32, icon: '🥣' },
+  { id: '2', name: 'Fresh Shrimp & Carrot Soup', category: 'Lunch', monthAge: '6-12 months', kcal: 180, protein: 10.2, fat: 3.1, carbs: 24, icon: '🍲' },
+  { id: '3', name: 'Banana Avocado Yogurt Smoothie', category: 'Snack', monthAge: '6-12 months', kcal: 140, protein: 3.5, fat: 5.0, carbs: 20, icon: '🥑' },
+  { id: '4', name: 'Salmon & Potato Oatmeal Porridge', category: 'Dinner', monthAge: '12-24 months', kcal: 260, protein: 12.0, fat: 6.8, carbs: 35, icon: '🐟' },
 ];
 
 const DAYS_OF_WEEK = [
-  { day: 'Thứ 2', date: '31/07' },
-  { day: 'Thứ 3', date: '01/08' },
-  { day: 'Thứ 4', date: '02/08' },
-  { day: 'Thứ 5', date: '03/08' },
-  { day: 'Thứ 6', date: '04/08' },
-  { day: 'Thứ 7', date: '05/08' },
-  { day: 'Chủ Nhật', date: '06/08' },
+  { day: 'Mon', date: '31/07' },
+  { day: 'Tue', date: '01/08' },
+  { day: 'Wed', date: '02/08' },
+  { day: 'Thu', date: '03/08' },
+  { day: 'Fri', date: '04/08' },
+  { day: 'Sat', date: '05/08' },
+  { day: 'Sun', date: '06/08' },
 ];
 
 export const MealSchedulerScreen = ({ navigation }: any) => {
@@ -57,10 +57,10 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
   
   // State for daily meal plan
   const [meals, setMeals] = useState<{ [key: string]: typeof SAMPLE_RECOMMENDED_RECIPES }>({
-    'Bữa Sáng': [SAMPLE_RECOMMENDED_RECIPES[0]],
-    'Bữa Trưa': [SAMPLE_RECOMMENDED_RECIPES[1]],
-    'Bữa Xế': [SAMPLE_RECOMMENDED_RECIPES[2]],
-    'Bữa Tối': [],
+    'Breakfast': [SAMPLE_RECOMMENDED_RECIPES[0]],
+    'Lunch': [SAMPLE_RECOMMENDED_RECIPES[1]],
+    'Snack': [SAMPLE_RECOMMENDED_RECIPES[2]],
+    'Dinner': [],
   });
 
   // Calculate total daily nutrition
@@ -86,7 +86,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
       ...prev,
       [mealType]: [...(prev[mealType] || []), recipe],
     }));
-    Alert.alert('Thành công', `Đã thêm món "${recipe.name}" vào ${mealType}!`);
+    Alert.alert('Success', `Added "${recipe.name}" to ${mealType}!`);
   };
 
   // Remove dish from meal schedule
@@ -115,8 +115,8 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
           </TouchableOpacity>
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Lịch Dinh Dưỡng Cho Bé 📅</Text>
-            <Text style={styles.subTitle}>Lên thực đơn & Đề xuất món ăn chuẩn chuyên gia</Text>
+            <Text style={styles.title}>Nutrition Schedule 📅</Text>
+            <Text style={styles.subTitle}>Meal planner & expert-approved recommendations</Text>
           </View>
         </View>
 
@@ -143,10 +143,10 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
         {/* Daily Nutrition Summary Card */}
         <View style={styles.nutritionCard}>
           <View style={styles.nutritionHeader}>
-            <Text style={styles.nutritionCardTitle}>📊 Tổng Quan Dinh Dưỡng Hôm Nay</Text>
+            <Text style={styles.nutritionCardTitle}>📊 Today's Nutrition Overview</Text>
             <View style={styles.badgeSuccess}>
               <CheckCircleIcon size={14} color="#10B981" />
-              <Text style={styles.badgeText}>Đạt tiêu chuẩn</Text>
+              <Text style={styles.badgeText}>Optimal</Text>
             </View>
           </View>
 
@@ -154,7 +154,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
             <View style={styles.statBox}>
               <FireIcon size={20} color="#FF5F70" />
               <Text style={styles.statVal}>{totalKcal} kcal</Text>
-              <Text style={styles.statLabel}>Mục tiêu: 550 kcal</Text>
+              <Text style={styles.statLabel}>Goal: 550 kcal</Text>
             </View>
 
             <View style={styles.statDivider} />
@@ -162,7 +162,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
             <View style={styles.statBox}>
               <Text style={styles.statEmoji}>🥩</Text>
               <Text style={styles.statVal}>{totalProtein}g</Text>
-              <Text style={styles.statLabel}>Chất đạm</Text>
+              <Text style={styles.statLabel}>Protein</Text>
             </View>
 
             <View style={styles.statDivider} />
@@ -170,7 +170,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
             <View style={styles.statBox}>
               <Text style={styles.statEmoji}>🌾</Text>
               <Text style={styles.statVal}>76g</Text>
-              <Text style={styles.statLabel}>Tinh bột</Text>
+              <Text style={styles.statLabel}>Carbs</Text>
             </View>
           </View>
         </View>
@@ -179,7 +179,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <SparklesIcon size={20} color="#FF5F70" />
-            <Text style={styles.sectionTitle}>Gợi Ý Thông Minh Cho Bữa Tiếp Theo</Text>
+            <Text style={styles.sectionTitle}>Smart Recommendations for Next Meal</Text>
           </View>
 
           <FlatList
@@ -200,7 +200,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                   activeOpacity={0.8}
                 >
                   <PlusIcon size={14} color="#FFFFFF" />
-                  <Text style={styles.addBtnText}>Thêm vào lịch</Text>
+                  <Text style={styles.addBtnText}>+ Add to schedule</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -208,9 +208,9 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
         </View>
 
         {/* Meal Schedule Slots (Sáng, Trưa, Xế, Tối) */}
-        <Text style={styles.sectionMainTitle}>🍽️ Thực Đơn Chi Tiết Ngày {DAYS_OF_WEEK[selectedDayIndex].date}</Text>
+        <Text style={styles.sectionMainTitle}>🍽️ Detailed Menu for {DAYS_OF_WEEK[selectedDayIndex].date}</Text>
 
-        {['Bữa Sáng', 'Bữa Trưa', 'Bữa Xế', 'Bữa Tối'].map((mealName) => {
+        {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map((mealName) => {
           const dishList = meals[mealName] || [];
           return (
             <View key={mealName} style={styles.mealSlotCard}>
@@ -222,19 +222,19 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                   activeOpacity={0.7}
                 >
                   <PlusIcon size={14} color="#FF5F70" />
-                  <Text style={styles.addMoreText}>Chọn món từ thư viện</Text>
+                  <Text style={styles.addMoreText}>+ Select from library</Text>
                 </TouchableOpacity>
               </View>
 
               {dishList.length === 0 ? (
-                <Text style={styles.emptySlotText}>Chưa có món ăn nào. Bấm (+) để thêm món nhé!</Text>
+                <Text style={styles.emptySlotText}>No dishes added yet. Tap (+) to add!</Text>
               ) : (
                 dishList.map((dish, idx) => (
                   <View key={idx} style={styles.dishRow}>
                     <Text style={styles.dishEmoji}>{dish.icon}</Text>
                     <View style={styles.dishInfo}>
                       <Text style={styles.dishName}>{dish.name}</Text>
-                      <Text style={styles.dishMeta}>{dish.kcal} kcal · Đạm {dish.protein}g</Text>
+                      <Text style={styles.dishMeta}>{dish.kcal} kcal · Protein {dish.protein}g</Text>
                     </View>
                     <TouchableOpacity onPress={() => handleRemoveDish(mealName, idx)}>
                       <TrashIcon size={18} color="#EF4444" />

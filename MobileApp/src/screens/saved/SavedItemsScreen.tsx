@@ -78,7 +78,7 @@ const SavedItemsScreen = ({ navigation }: any) => {
       <View style={styles.headerBox}>
         <View style={styles.titleRow}>
           <BookmarkIcon size={22} color="#FF6B4A" />
-          <Text style={styles.title}>Mục đã lưu & Yêu thích</Text>
+          <Text style={styles.title}>Saved & Favorite Items</Text>
         </View>
 
         {/* Tab Switcher: Bài viết đã lưu vs Công thức đã lưu */}
@@ -89,7 +89,7 @@ const SavedItemsScreen = ({ navigation }: any) => {
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'articles' && styles.activeTabText]}>
-              Bài viết đã lưu ({savedArticleIds.length})
+              Saved Articles ({savedArticleIds.length})
             </Text>
           </TouchableOpacity>
 
@@ -99,7 +99,7 @@ const SavedItemsScreen = ({ navigation }: any) => {
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'recipes' && styles.activeTabText]}>
-              Công thức yêu thích ({savedRecipeIds.length})
+              Favorite Recipes ({savedRecipeIds.length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -121,7 +121,7 @@ const SavedItemsScreen = ({ navigation }: any) => {
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <BookmarkIcon size={40} color="#D1D5DB" />
-              <Text style={styles.emptyText}>Bạn chưa lưu bài viết nào.</Text>
+              <Text style={styles.emptyText}>You haven't saved any articles yet.</Text>
             </View>
           }
         />
@@ -139,7 +139,7 @@ const SavedItemsScreen = ({ navigation }: any) => {
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <BowlIcon size={40} color="#D1D5DB" />
-              <Text style={styles.emptyText}>Bạn chưa lưu công thức món ăn nào.</Text>
+              <Text style={styles.emptyText}>You haven't saved any recipes yet.</Text>
             </View>
           }
         />

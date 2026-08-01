@@ -189,7 +189,7 @@ function ProfileScreen({
                 />
 
                 <ProfileMenuItem
-                    title="👶 Quản lý hồ sơ các bé"
+                    title="👶 Child Profiles Management"
                     leftIcon="account-child-outline"
                     showArrow
                     onPress={() => {
@@ -198,7 +198,7 @@ function ProfileScreen({
                 />
 
                 <ProfileMenuItem
-                    title="🍲 Kế hoạch thực đơn ăn dặm"
+                    title="🍲 Weaning Meal Plans"
                     leftIcon="silverware-fork-knife"
                     showArrow
                     onPress={() => {
@@ -207,7 +207,7 @@ function ProfileScreen({
                 />
 
                 <ProfileMenuItem
-                    title="❓ Hỏi đáp dinh dưỡng (FAQ)"
+                    title="❓ Nutrition FAQ"
                     leftIcon="help-circle-outline"
                     showArrow
                     onPress={() => {
@@ -216,7 +216,7 @@ function ProfileScreen({
                 />
 
                 <ProfileMenuItem
-                    title="📌 Món ăn & Bài viết đã lưu"
+                    title="📌 Saved Recipes & Articles"
                     leftIcon="bookmark-outline"
                     showArrow
                     onPress={() => {

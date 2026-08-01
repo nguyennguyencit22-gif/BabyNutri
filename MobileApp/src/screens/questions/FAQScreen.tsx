@@ -38,7 +38,7 @@ export const FAQScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{item.category || 'Dinh dưỡng'}</Text>
+              <Text style={styles.categoryText}>{item.category || 'Nutrition'}</Text>
             </View>
             <Text style={styles.title}>❓ {item.title}</Text>
             <Text style={styles.content}>{item.content}</Text>
@@ -46,7 +46,7 @@ export const FAQScreen = () => {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có câu hỏi thường gặp nào.</Text>
+            <Text style={styles.emptyText}>No frequently asked questions available.</Text>
           </View>
         }
         contentContainerStyle={styles.listContainer}

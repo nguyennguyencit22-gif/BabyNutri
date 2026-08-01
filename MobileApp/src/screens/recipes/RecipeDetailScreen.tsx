@@ -74,7 +74,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     if (!recipe) return;
     try {
       await Share.share({
-        message: `🥗 Công thức món ăn cho bé: ${recipe.name}\n\nThành phần: ${recipe.ingredients.join(', ')}\n\nXem thêm trên ứng dụng BabyNutri!`,
+        message: `🥗 Baby recipe: ${recipe.name}\n\nIngredients: ${recipe.ingredients.join(', ')}\n\nSee more on BabyNutri app!`,
         title: recipe.name,
       });
     } catch (e) {
@@ -86,22 +86,22 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     if (!recipe) return;
     try {
       await articleService.create({
-        title: `Công thức: ${recipe.name}`,
-        summary: `Chia sẻ công thức món ngon cho bé (${recipe.month_age}+ tháng) · ${recipe.calories} kcal`,
-        content: `Mô tả món ăn: ${recipe.description || 'Công thức ăn dặm giàu dinh dưỡng.'}\n\nThành phần nguyên liệu:\n- ${recipe.ingredients.join('\n- ')}\n\nHướng dẫn nấu từng bước:\n${recipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+        title: `Recipe: ${recipe.name}`,
+        summary: `Sharing baby recipe (${recipe.month_age}+ months) · ${recipe.calories} kcal`,
+        content: `Description: ${recipe.description || 'Nutritious weaning recipe.'}\n\nIngredients:\n- ${recipe.ingredients.join('\n- ')}\n\nStep-by-step instructions:\n${recipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
         imageUrl: recipe.image_url,
       });
       Alert.alert(
-        'Đã chia sẻ thành bài viết',
-        'Đã tạo bài đăng chia sẻ công thức này trên Bảng tin Dinh dưỡng!',
+        'Shared as Article',
+        'Created a post sharing this recipe on Nutrition Feed!',
         [
-          { text: 'Ở lại' },
-          { text: 'Xem Bảng tin', onPress: () => navigation.navigate('Articles') },
+          { text: 'Stay' },
+          { text: 'View Feed', onPress: () => navigation.navigate('Articles') },
         ]
       );
     } catch (e) {
       console.error('Post recipe to feed error:', e);
-      Alert.alert('Lỗi', 'Không thể chia sẻ bài đăng lúc này');
+      Alert.alert('Error', 'Unable to share post right now');
     }
   };
 
@@ -111,31 +111,31 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const toggleSaveRecipe = () => {
     const isNowSaved = toggleBookmarkRecipe(id);
     if (isNowSaved) {
-      Alert.alert('Đã lưu công thức', 'Đã thêm món ăn vào danh mục công thức yêu thích');
+      Alert.alert('Recipe Saved', 'Added recipe to favorites');
     } else {
-      Alert.alert('Bỏ lưu', 'Đã xóa công thức khỏi danh mục yêu thích');
+      Alert.alert('Unsaved', 'Removed recipe from favorites');
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Xóa công thức',
-      'Bạn có chắc chắn muốn xóa công thức này khỏi hệ thống không?',
+      'Delete Recipe',
+      'Are you sure you want to delete this recipe from system?',
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Xóa',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             setDeleting(true);
             try {
               await recipeService.remove(id);
-              Alert.alert('Thành công', 'Đã xóa công thức', [
+              Alert.alert('Success', 'Recipe deleted', [
                 { text: 'OK', onPress: () => navigation.goBack() },
               ]);
             } catch (e) {
               console.error('Delete recipe error:', e);
-              Alert.alert('Lỗi', 'Không thể xóa công thức này');
+              Alert.alert('Error', 'Unable to delete this recipe');
             } finally {
               setDeleting(false);
             }
@@ -146,24 +146,24 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF7A59" /></View>;
-  if (!recipe) return <View style={styles.center}><Text>Không tìm thấy công thức</Text></View>;
+  if (!recipe) return <View style={styles.center}><Text>Recipe not found</Text></View>;
 
   return (
     <ScrollView style={styles.container}>
       <Image source={{ uri: recipe.image_url }} style={styles.image} />
       <View style={styles.content}>
         <Text style={styles.title}>{recipe.name}</Text>
-        {!!recipe.expertName && <Text style={styles.author}>Chuyên gia: {recipe.expertName}</Text>}
+        {!!recipe.expertName && <Text style={styles.author}>Expert: {recipe.expertName}</Text>}
         
         {/* Nút Sửa & Xóa công thức */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
             <EditIcon color="#FF7A59" size={16} />
-            <Text style={styles.editBtnText}>Sửa công thức</Text>
+            <Text style={styles.editBtnText}>Edit Recipe</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={deleting}>
             <TrashIcon color="#DC2626" size={16} />
-            <Text style={styles.deleteBtnText}>{deleting ? 'Đang xóa...' : 'Xóa công thức'}</Text>
+            <Text style={styles.deleteBtnText}>{deleting ? 'Deleting...' : 'Delete Recipe'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -172,24 +172,24 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           <TouchableOpacity style={styles.socialBtn} onPress={() => setLiked(!liked)}>
             <HeartIcon liked={liked} size={18} />
             <Text style={[styles.socialText, liked && { color: '#FF3B30' }]}>
-              {liked ? 'Đã thích' : 'Thích'}
+              {liked ? 'Liked' : 'Like'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.socialBtn} onPress={handleShareRecipe}>
             <ShareIcon size={18} />
-            <Text style={styles.socialText}>Chia sẻ</Text>
+            <Text style={styles.socialText}>Share</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.socialBtn, styles.postFeedHighlightBtn]} onPress={handlePostRecipeToFeed}>
             <PostFeedIcon size={18} color="#FF7A59" />
-            <Text style={[styles.socialText, { color: '#FF7A59', fontWeight: '700' }]}>Đăng bài</Text>
+            <Text style={[styles.socialText, { color: '#FF7A59', fontWeight: '700' }]}>Post</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.socialBtn} onPress={toggleSaveRecipe}>
             <BookmarkIcon saved={saved} size={18} />
             <Text style={[styles.socialText, saved && { color: '#FF7A59' }]}>
-              {saved ? 'Đã lưu' : 'Lưu món'}
+              {saved ? 'Saved' : 'Save'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -204,19 +204,19 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         </View>
 
         <Text style={styles.meta}>
-          Độ tuổi phù hợp: {recipe.month_age}+ tháng
+          Suitable Age: {recipe.month_age}+ months
           {recipe.mealType ? ` · ${recipe.mealType}` : ''}
-          {'  '}· Chuẩn bị {recipe.prep_time} phút · Nấu {recipe.cooking_time} phút · {recipe.serves} khẩu phần
+          {'  '}· Prep {recipe.prep_time} min · Cook {recipe.cooking_time} min · {recipe.serves} servings
         </Text>
 
         {!!recipe.allergies?.length && (
-          <Text style={styles.allergyTag}>Ghi chú dị ứng: {recipe.allergies.join(', ')}</Text>
+          <Text style={styles.allergyTag}>Allergy Note: {recipe.allergies.join(', ')}</Text>
         )}
 
-        <Text style={styles.section}>Nguyên liệu</Text>
+        <Text style={styles.section}>Ingredients</Text>
         {recipe.ingredients.map((ing, i) => <IngredientItem key={i} name={ing} />)}
 
-        <Text style={styles.section}>Hướng dẫn nấu</Text>
+        <Text style={styles.section}>Instructions</Text>
         {recipe.steps.map((step, i) => (
           <View key={i} style={styles.stepRow}>
             <Text style={styles.stepNumber}>{i + 1}</Text>
