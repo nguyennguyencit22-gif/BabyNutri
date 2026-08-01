@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { ArrowLeftIcon } from 'react-native-heroicons/outline';
 import styles from '../../styles/profile/profileComponentStyles';
 
 type ProfileHeaderProps = {
@@ -14,11 +14,13 @@ function ProfileHeader({
 }: ProfileHeaderProps) {
     return (
         <View style={styles.container}>
-            <IconButton
-                icon="arrow-left"
+            <TouchableOpacity
                 style={styles.backButton}
                 onPress={onBack}
-            />
+                activeOpacity={0.8}
+            >
+                <ArrowLeftIcon size={24} color="#FF5F70" />
+            </TouchableOpacity>
 
             <Text style={styles.title}>
                 {title}

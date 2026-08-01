@@ -50,6 +50,9 @@ export interface Recipe {
     cookingTime?: number;
     prepTime?: number;
     serves?: number;
+    protein?: number;
+    fat?: number;
+    carbohydrate?: number;
     ingredients: IngredientInput[];
     steps: string[];
   }

@@ -214,6 +214,7 @@ exports.createRecipe = async (req, res) => {
         const {
             name, description, imageUrl, calories, monthAge,
             mealTypeId, cookingTime, prepTime, serves,
+            protein, fat, carbohydrate,
             ingredients, steps,
         } = req.body;
 
@@ -227,10 +228,11 @@ exports.createRecipe = async (req, res) => {
 
         const [result] = await connection.query(
             `INSERT INTO recipes
-             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, description || '', imageUrl || '', expertId, mealTypeId || null,
-             cookingTime || 0, prepTime || 0, serves || 1, monthAge, calories]
+             cookingTime || 0, prepTime || 0, serves || 1, monthAge, calories,
+             protein || 0, fat || 0, carbohydrate || 0]
         );
         const recipeId = result.insertId;
 
@@ -283,7 +285,7 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
     try {
         const id = req.params.id;
-        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves } = req.body;
+        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate } = req.body;
 
         const [existing] = await db.query(`SELECT id FROM recipes WHERE id = ?`, [id]);
         if (!existing.length) return res.status(404).json({ message: "Recipe not found" });
@@ -298,9 +300,12 @@ exports.updateRecipe = async (req, res) => {
                 meal_type_id = COALESCE(?, meal_type_id),
                 cooking_time = COALESCE(?, cooking_time),
                 prep_time = COALESCE(?, prep_time),
-                serves = COALESCE(?, serves)
+                serves = COALESCE(?, serves),
+                protein = COALESCE(?, protein),
+                fat = COALESCE(?, fat),
+                carbohydrate = COALESCE(?, carbohydrate)
              WHERE id = ?`,
-            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, id]
+            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, id]
         );
 
         res.json({ message: "Recipe updated" });

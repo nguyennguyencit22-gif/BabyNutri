@@ -107,19 +107,19 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 }
                 break;
             case 3:
-                if (answers.allergies.length === 0) {
+                if (!answers.gender) {
                     Alert.alert(
                         'Required',
-                        'Please select at least one option.',
+                        'Please select a gender.',
                     );
                     return false;
                 }
                 break;
             case 4:
-                if (!answers.gender) {
+                if (answers.allergies.length === 0) {
                     Alert.alert(
                         'Required',
-                        'Please select a gender.',
+                        'Please select at least one option.',
                     );
                     return false;
                 }

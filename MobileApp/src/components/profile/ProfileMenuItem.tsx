@@ -16,6 +16,8 @@ type ProfileMenuItemProps = {
     onPress?: () => void;
 };
 
+import { ChevronRightIcon } from 'react-native-heroicons/outline';
+
 function ProfileMenuItem({
     title,
     leftIcon,
@@ -32,20 +34,6 @@ function ProfileMenuItem({
             ]}>
 
             <View style={styles.leftContent}>
-                {leftIcon ? (
-                    <View style={styles.iconCircle}>
-                        <Icon
-                            source={leftIcon}
-                            size={22}
-                            color={
-                                danger
-                                    ? '#FF2B2B'
-                                    : '#5B0010'
-                            }
-                        />
-                    </View>
-                ) : null}
-
                 <Text
                     style={[
                         styles.titleMenu,
@@ -56,13 +44,12 @@ function ProfileMenuItem({
             </View>
 
             {showArrow ? (
-                <Icon
-                    source="chevron-right"
-                    size={28}
+                <ChevronRightIcon
+                    size={22}
                     color={
                         danger
                             ? '#FF2B2B'
-                            : '#5B0010'
+                            : '#FF5F70'
                     }
                 />
             ) : null}

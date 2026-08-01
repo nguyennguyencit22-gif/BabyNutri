@@ -25,7 +25,7 @@ export const FAQScreen = () => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#FF5F70" />
       </View>
     );
   }
@@ -38,12 +38,17 @@ export const FAQScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{item.category}</Text>
+              <Text style={styles.categoryText}>{item.category || 'Dinh dưỡng'}</Text>
             </View>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.title}>❓ {item.title}</Text>
             <Text style={styles.content}>{item.content}</Text>
           </View>
         )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Chưa có câu hỏi thường gặp nào.</Text>
+          </View>
+        }
         contentContainerStyle={styles.listContainer}
       />
     </View>
@@ -53,49 +58,63 @@ export const FAQScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFDF9',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFDF9',
   },
   listContainer: {
     padding: 16,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#FFEFEA',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
+    backgroundColor: '#FFF0F2',
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   categoryText: {
-    color: '#1976D2',
+    color: '#FF5F70',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '800',
+    color: '#4B3034',
     marginBottom: 8,
+    lineHeight: 22,
   },
   content: {
     fontSize: 14,
-    color: '#555',
+    color: '#60646C',
     lineHeight: 20,
-  }
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4B3034',
+  },
 });

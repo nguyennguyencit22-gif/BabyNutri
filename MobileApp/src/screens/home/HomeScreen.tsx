@@ -30,7 +30,7 @@ import { EXPERT_ITEMS, } from '../../constants/sampleData/homeData';
 import RecipeCard from '../../components/home/RecipeCard';
 import HomeBabyHeader from '@/components/home/HomeBabyHeader';
 
-function HomeScreen() {
+function HomeScreen({ navigation }: any) {
     const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
 
     return (
@@ -205,10 +205,7 @@ function HomeScreen() {
                                 time={item.time}
                                 image={item.image}
                                 onPress={() =>
-                                    console.log(
-                                        'Recipe selected:',
-                                        item.title,
-                                    )
+                                    navigation.navigate('RecipeDetail', { recipeId: item.id, id: item.id })
                                 }
                             />
                         )}

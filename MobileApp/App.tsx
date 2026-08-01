@@ -19,6 +19,7 @@ const babyNutriTheme = {
     onSurface: '#4B3034',
   }
 };
+
 function App() {
   return (
     <GestureHandlerRootView style={styles.root}>

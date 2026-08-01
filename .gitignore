@@ -1,16 +1,18 @@
 # Dependencies
-MobieReport#/node_modules/
+node_modules/
+**/node_modules/
+MobileApp/node_modules/
 
 # Android generated files
-MobieReport#/android/.gradle/
-MobieReport#/android/build/
-MobieReport#/android/app/build/
-MobieReport#/android/.cxx/
-MobieReport#/android/app/.cxx/
+MobileApp/android/.gradle/
+MobileApp/android/build/
+MobileApp/android/app/build/
+MobileApp/android/.cxx/
+MobileApp/android/app/.cxx/
 
 # iOS generated files
-MobieReport#/ios/build/
-MobieReport#/ios/Pods/
+MobileApp/ios/build/
+MobileApp/ios/Pods/
 
 # Build outputs
 *.apk

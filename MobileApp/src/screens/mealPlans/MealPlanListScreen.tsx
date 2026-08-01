@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan } from '../../types/meal-plan';
-import { MealPlanCard } from '../../components/mealPlans/MealPlanCard';
 
 export const MealPlanListScreen = ({ route, navigation }: any) => {
   const { childId } = route.params || {};
@@ -28,7 +27,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#FF5F70" />
       </View>
     );
   }
@@ -39,12 +38,21 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
         data={mealPlans}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <MealPlanCard 
-            mealPlan={item} 
-            onPress={() => navigation.navigate('MealPlanDetail', { mealPlanId: item.id })} 
-          />
+          <TouchableOpacity 
+            style={styles.card} 
+            onPress={() => navigation.navigate('MealPlanDetail', { mealPlanId: item.id })}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.planDate}>📅 Ngày: {item.date}</Text>
+            <Text style={styles.planCalories}>🔥 Tổng calo: {item.totalCalories} kcal</Text>
+          </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No meal plans found.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Chưa có thực đơn nào cho bé.</Text>
+            <Text style={styles.emptySubText}>Các thực đơn dinh dưỡng gợi ý sẽ hiển thị tại đây!</Text>
+          </View>
+        }
         contentContainerStyle={styles.listContainer}
       />
     </View>
@@ -54,20 +62,56 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFDF9',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFDF9',
   },
   listContainer: {
-    paddingVertical: 8,
+    paddingVertical: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFEFEA',
+    elevation: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  planDate: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4B3034',
+    marginBottom: 4,
+  },
+  planCalories: {
+    fontSize: 13,
+    color: '#FF5F70',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    paddingHorizontal: 20,
   },
   emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
     fontSize: 16,
-    color: '#888',
+    fontWeight: '700',
+    color: '#4B3034',
+    marginBottom: 6,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#8E7377',
+    textAlign: 'center',
   },
 });

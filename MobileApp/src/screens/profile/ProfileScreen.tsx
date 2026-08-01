@@ -105,30 +105,45 @@ function ProfileScreen({ navigation }: any) {
                     }}
                 />
 
+                <ProfileMenuItem
+                    title="👶 Quản lý hồ sơ các bé"
+                    leftIcon="account-child-outline"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('ChildList');
+                    }}
+                />
+
+                <ProfileMenuItem
+                    title="🍲 Kế hoạch thực đơn ăn dặm"
+                    leftIcon="silverware-fork-knife"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('MealPlanList');
+                    }}
+                />
+
+                <ProfileMenuItem
+                    title="❓ Hỏi đáp dinh dưỡng (FAQ)"
+                    leftIcon="help-circle-outline"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('FAQ');
+                    }}
+                />
+
+                <ProfileMenuItem
+                    title="📌 Món ăn & Bài viết đã lưu"
+                    leftIcon="bookmark-outline"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('SavedItems');
+                    }}
+                />
+
                 <Text style={styles.otherSettingLabel}>
                     OTHER SETTING
                 </Text>
-
-                <ProfileMenuItem
-                    title="Settings"
-                    onPress={() => {
-                        console.log('Open Settings');
-                    }}
-                />
-
-                <ProfileMenuItem
-                    title="Tell your friends"
-                    onPress={() => {
-                        console.log('Share app');
-                    }}
-                />
-
-                <ProfileMenuItem
-                    title="About"
-                    onPress={() => {
-                        console.log('Open About');
-                    }}
-                />
 
                 <ProfileMenuItem
                     title="Account settings"

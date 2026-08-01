@@ -30,7 +30,7 @@ export const MealPlanDetailScreen = ({ route }: any) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#FF5F70" />
       </View>
     );
   }
@@ -38,7 +38,7 @@ export const MealPlanDetailScreen = ({ route }: any) => {
   if (!mealPlan) {
     return (
       <View style={styles.center}>
-        <Text>Meal Plan not found</Text>
+        <Text style={styles.notFoundText}>Không tìm thấy chi tiết thực đơn</Text>
       </View>
     );
   }
@@ -46,11 +46,11 @@ export const MealPlanDetailScreen = ({ route }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerCard}>
-        <Text style={styles.title}>Date: {mealPlan.date}</Text>
-        <Text style={styles.totalCalories}>Total: {mealPlan.totalCalories} kcal</Text>
+        <Text style={styles.title}>📅 Ngày áp dụng: {mealPlan.date}</Text>
+        <Text style={styles.totalCalories}>🔥 Tổng calo: {mealPlan.totalCalories} kcal</Text>
       </View>
       
-      <Text style={styles.mealsTitle}>Meals</Text>
+      <Text style={styles.mealsTitle}>🍲 Các bữa ăn trong ngày</Text>
       <FlatList
         data={mealPlan.meals}
         keyExtractor={(item) => item.id}
@@ -58,12 +58,17 @@ export const MealPlanDetailScreen = ({ route }: any) => {
           <View style={styles.mealCard}>
             <View style={styles.mealHeader}>
               <Text style={styles.mealName}>{item.name}</Text>
-              <Text style={styles.mealTime}>{item.time}</Text>
+              <View style={styles.timeTag}>
+                <Text style={styles.mealTime}>{item.time}</Text>
+              </View>
             </View>
-            <Text style={styles.mealDescription}>{item.description}</Text>
-            <Text style={styles.mealCalories}>{item.calories} kcal</Text>
+            {!!item.description && (
+              <Text style={styles.mealDescription}>{item.description}</Text>
+            )}
+            <Text style={styles.mealCalories}>🔥 {item.calories} kcal</Text>
           </View>
         )}
+        contentContainerStyle={styles.listPadding}
       />
     </View>
   );
@@ -73,46 +78,62 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFDF9',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFDF9',
+  },
+  notFoundText: {
+    fontSize: 16,
+    color: '#8E7377',
   },
   headerCard: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FF5F70',
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 20,
     marginBottom: 20,
+    shadowColor: '#FF5F70',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
   },
   totalCalories: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFE4E6',
   },
   mealsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#4B3034',
+    marginBottom: 12,
     marginLeft: 4,
   },
+  listPadding: {
+    paddingBottom: 20,
+  },
   mealCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFEFEA',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
   mealHeader: {
     flexDirection: 'row',
@@ -122,21 +143,30 @@ const styles = StyleSheet.create({
   },
   mealName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: '#4B3034',
+    flex: 1,
+  },
+  timeTag: {
+    backgroundColor: '#FFF0F2',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   mealTime: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF5F70',
   },
   mealDescription: {
     fontSize: 14,
-    color: '#555',
+    color: '#60646C',
     marginBottom: 8,
+    lineHeight: 20,
   },
   mealCalories: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#E91E63',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FF5F70',
   },
 });
