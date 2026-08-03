@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFCF8',
+        backgroundColor: colors.background,
     },
 
     keyboardView: {
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
 
     description: {
         marginTop: 20,
-        color: '#40383D',
+        color: colors.text,
         fontSize: 19,
         lineHeight: 28,
     },
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
 
     tipText: {
         flex: 1,
-        color: '#40383D',
+        color: colors.text,
         fontSize: 18,
         lineHeight: 27,
     },
@@ -51,12 +52,12 @@ const styles = StyleSheet.create({
         height: 1,
         marginHorizontal: -28,
         marginTop: 34,
-        backgroundColor: '#E8DEDB',
+        backgroundColor: colors.border,
     },
 
     secondaryDescription: {
         marginTop: 30,
-        color: '#40383D',
+        color: colors.text,
         fontSize: 18,
         lineHeight: 28,
     },
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
         width: 160,
         marginTop: 'auto',
         borderRadius: 30,
-        backgroundColor: '#FF7B88',
+        backgroundColor: colors.primary,
     },
 
     buttonContent: {
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     },
 
     buttonLabel: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 18,
         fontWeight: '700',
     },
@@ -87,14 +88,14 @@ const styles = StyleSheet.create({
 
     instruction: {
         marginTop: 40,
-        color: '#40383D',
+        color: colors.text,
         fontSize: 19,
         lineHeight: 28,
     },
 
     codeInput: {
         marginTop: 32,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     inputOutline: {
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     errorText: {
         marginTop: 8,
         marginLeft: 16,
-        color: '#D32F2F',
+        color: colors.danger,
         fontSize: 13,
     },
     activateButton: {
@@ -119,12 +120,12 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginTop: 'auto',
         borderRadius: 30,
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
     activateButtonDisabled: {
-        backgroundColor: '#FFC2CA',
+        backgroundColor: colors.primarySoft,
     },
 });
 
-export default styles;
+export default createStyles;

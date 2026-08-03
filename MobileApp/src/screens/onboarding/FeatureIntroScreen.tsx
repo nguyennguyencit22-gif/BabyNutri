@@ -6,11 +6,19 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView, } from 'react-native-safe-area-context';
+import { useAppTheme } from '@/theme/useAppTheme';
+import type { AppColors } from '@/theme/colors';
 
 function FeatureIntroScreen({
     navigation,
     route,
 }: any) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const userMode =
         route.params?.userMode ?? 'guest';
 
@@ -61,10 +69,10 @@ function FeatureIntroScreen({
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFF2EE',
+        backgroundColor: colors.background,
     },
     container: {
         flex: 1,
@@ -77,14 +85,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     title: {
-        color: '#4D2522',
+        color: colors.text,
         fontSize: 28,
         fontWeight: '700',
         textAlign: 'center',
     },
     description: {
         marginTop: 16,
-        color: '#7B5A57',
+        color: colors.textSoft,
         fontSize: 16,
         lineHeight: 24,
         textAlign: 'center',
@@ -95,14 +103,14 @@ const styles = StyleSheet.create({
         paddingVertical: 50,
         alignItems: 'center',
         borderRadius: 28,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     previewIcon: {
         fontSize: 74,
     },
     previewText: {
         marginTop: 18,
-        color: '#5F302C',
+        color: colors.text,
         fontSize: 17,
         fontWeight: '600',
     },
@@ -110,10 +118,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 28,
         paddingVertical: 16,
-        backgroundColor: '#FF6675',
+        backgroundColor: colors.primary,
     },
     continueText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 18,
         fontWeight: '700',
     },

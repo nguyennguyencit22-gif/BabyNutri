@@ -1,16 +1,17 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         minHeight: 84,
         flexDirection: 'row',
         alignItems: 'center',
 
         borderBottomWidth: 1,
-        borderBottomColor: '#EFE7E4',
+        borderBottomColor: colors.border,
 
         paddingHorizontal: 16,
-        backgroundColor: '#FFFCF8',
+        backgroundColor: colors.background,
     },
 
     avatar: {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
     },
 
     avatarText: {
-        color: '#FF5F70',
+        color: colors.primary,
         fontSize: 24,
         fontWeight: '500',
     },
@@ -34,29 +35,29 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 17,
         fontWeight: '500',
     },
 
     age: {
         marginTop: 4,
-        color: '#B28A8F',
+        color: colors.textSoft,
         fontSize: 14,
     },
     deleteAction: {
         width: 96,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FF3B30',
+        backgroundColor: colors.danger,
     },
 
     deleteText: {
         marginTop: 4,
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 13,
         fontWeight: '700',
     },
 });
 
-export default styles;
+export default createStyles;

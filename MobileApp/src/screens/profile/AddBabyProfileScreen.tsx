@@ -24,8 +24,16 @@ import {
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { useDispatch } from 'react-redux';
 import { addBaby } from '../../store/babySlice';
+import { useAppTheme } from '@/theme/useAppTheme';
+import type { AppColors } from '@/theme/colors';
 
 function AddBabyProfileScreen({ navigation }: any) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const [babyName, setBabyName] = React.useState('');
     const [selectedColor, setSelectedColor] = React.useState(PROFILE_COLORS[0]);
     const [selectedGender, setSelectedGender] = React.useState<BabyGender>('boy');
@@ -268,10 +276,10 @@ function AddBabyProfileScreen({ navigation }: any) {
 
 export default AddBabyProfileScreen;
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFDF9',
+        backgroundColor: colors.background,
     },
 
     scrollContent: {
@@ -287,14 +295,14 @@ const styles = StyleSheet.create({
     saveButton: {
         marginTop: 32,
         borderRadius: 30,
-        backgroundColor: '#fe6574',
+        backgroundColor: colors.primary,
     },
 
     saveButtonContent: {
         height: 52,
     },
     saveButtonText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 17,
         fontWeight: '700',
     },

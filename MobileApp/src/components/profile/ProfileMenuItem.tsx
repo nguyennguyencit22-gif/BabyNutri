@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/profileComponentStyles';
+import createStyles from '../../styles/profile/profileComponentStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type ProfileMenuItemProps = {
     title: string;
@@ -23,6 +24,12 @@ function ProfileMenuItem({
     danger = false,
     onPress,
 }: ProfileMenuItemProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <Pressable
             onPress={onPress}
@@ -39,8 +46,8 @@ function ProfileMenuItem({
                             size={22}
                             color={
                                 danger
-                                    ? '#FF2B2B'
-                                    : '#5B0010'
+                                    ? colors.danger
+                                    : colors.text
                             }
                         />
                     </View>
@@ -61,8 +68,8 @@ function ProfileMenuItem({
                     size={28}
                     color={
                         danger
-                            ? '#FF2B2B'
-                            : '#5B0010'
+                            ? colors.danger
+                            : colors.text
                     }
                 />
             ) : null}

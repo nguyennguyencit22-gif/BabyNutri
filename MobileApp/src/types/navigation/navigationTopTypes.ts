@@ -34,5 +34,14 @@ export type RootStackParamList = {
     };
 
     AccountSettings: undefined;
+
+    Settings: undefined;
+
+    ThemeSettings: undefined;
+
+    LanguageSettings: undefined;
+
+    MeasurementSettings: undefined;
+    
 };
 

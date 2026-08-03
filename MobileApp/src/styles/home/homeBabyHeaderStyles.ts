@@ -2,11 +2,11 @@ import {
     StyleSheet,
 } from 'react-native';
 
-import {
-    HomeColors,
-} from '../../constants/generalHome/homeTheme';
+import type {
+    AppColors,
+} from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
 
     container: {
 
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 
         fontWeight: '700',
 
-        color: HomeColors.primary,
+        color: colors.primary,
 
     },
 
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 
         fontSize: 15,
 
-        color: '#7E6B6B',
+        color: colors.textSoft,
 
     },
 
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
 
         fontSize: 15,
 
-        color: '#8A6E6E',
+        color: colors.textSoft,
 
     },
 
@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
         marginLeft: 10,
 
         backgroundColor:
-            HomeColors.primarySoft,
+            colors.primarySoft,
 
     },
 
 });
 
-export default styles;
+export default createStyles;

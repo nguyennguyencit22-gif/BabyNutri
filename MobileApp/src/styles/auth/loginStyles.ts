@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const loginStyles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     scrollContent: {
@@ -23,7 +24,7 @@ const loginStyles = StyleSheet.create({
         fontSize: 52,
         lineHeight: 52,
         fontWeight: '400',
-        color: '#52150F',
+        color: colors.text,
     },
 
     header: {
@@ -34,7 +35,7 @@ const loginStyles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: '500',
-        color: '#52150F',
+        color: colors.text,
     },
 
     subtitle: {
@@ -43,7 +44,7 @@ const loginStyles = StyleSheet.create({
         fontSize: 25,
         lineHeight: 32,
         fontWeight: '400',
-        color: '#52150F',
+        color: colors.text,
     },
 
     description: {
@@ -51,7 +52,7 @@ const loginStyles = StyleSheet.create({
         fontSize: 18,
         lineHeight: 27,
         fontWeight: '400',
-        color: '#B89592',
+        color: colors.textSoft,
     },
 
     countryRow: {
@@ -84,13 +85,13 @@ const loginStyles = StyleSheet.create({
         marginLeft: 28,
         fontSize: 21,
         fontWeight: '400',
-        color: '#52150F',
+        color: colors.text,
     },
 
     editText: {
         fontSize: 19,
         fontWeight: '500',
-        color: '#52150F',
+        color: colors.text,
     },
 
     googleButton: {
@@ -98,11 +99,11 @@ const loginStyles = StyleSheet.create({
         marginTop: 54,
         paddingHorizontal: 20,
         borderWidth: 2,
-        borderColor: '#B89592',
+        borderColor: colors.border,
         borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     buttonPressed: {
@@ -119,7 +120,7 @@ const loginStyles = StyleSheet.create({
         textAlign: 'right',
         fontSize: 20,
         fontWeight: '400',
-        color: '#090909',
+        color: colors.text,
     },
 
     agreement: {
@@ -130,7 +131,7 @@ const loginStyles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 18,
         lineHeight: 26,
-        color: '#52150F',
+        color: colors.text,
     },
 
     linkContainer: {
@@ -142,11 +143,11 @@ const loginStyles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '500',
         textDecorationLine: 'underline',
-        color: '#52150F',
+        color: colors.text,
     },
     googleButtonDisabled:{
         opacity: 0.55,
     },
 });
 
-export default loginStyles;
+export default createStyles;

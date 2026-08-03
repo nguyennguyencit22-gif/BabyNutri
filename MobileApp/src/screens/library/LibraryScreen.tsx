@@ -5,7 +5,16 @@ import {
     View,
 } from 'react-native';
 
+import { useAppTheme } from '@/theme/useAppTheme';
+import type { AppColors } from '@/theme/colors';
+
 function LibraryScreen() {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>
@@ -15,15 +24,15 @@ function LibraryScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFF5F2',
+        backgroundColor: colors.background,
     },
     title: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 24,
         fontWeight: '700',
     },

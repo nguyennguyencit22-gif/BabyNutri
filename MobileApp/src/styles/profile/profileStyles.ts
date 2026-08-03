@@ -1,13 +1,14 @@
 import { StyleSheet } from "react-native";
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     scrollContent: {
         paddingHorizontal: 16,
         paddingBottom: 120,
     },
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFFCF8',
+        backgroundColor: colors.background,
     },
 
     container: {
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 24,
         fontWeight: '700',
         textAlign: 'center',
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 20,
         padding: 20,
-        backgroundColor: '#FFF0EA',
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatar: {
@@ -38,11 +39,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 39,
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
     avatarText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 30,
         fontWeight: '700',
     },
@@ -53,20 +54,20 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
     },
 
     email: {
         marginTop: 6,
-        color: '#8B5F65',
+        color: colors.textSoft,
         fontSize: 15,
     },
 
     testText: {
         marginTop: 30,
-        color: '#8B5F65',
+        color: colors.textSoft,
         fontSize: 16,
         textAlign: 'center',
     },
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginLeft: 8,
 
-        color: '#7F7478',
+        color: colors.textMuted,
         fontSize: 13,
         fontWeight: '500',
     },
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginLeft: 8,
 
-        color: '#7F7478',
+        color: colors.textMuted,
         fontSize: 12,
         fontWeight: '500',
     },
@@ -95,4 +96,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default styles;
+export default createStyles;

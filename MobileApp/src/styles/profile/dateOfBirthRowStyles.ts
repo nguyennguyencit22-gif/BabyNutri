@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         minHeight: 70,
         flexDirection: 'row',
@@ -9,7 +10,7 @@ const styles = StyleSheet.create({
 
         marginTop: 24,
         borderBottomWidth: 1,
-        borderBottomColor: '#EFE7E4',
+        borderBottomColor: colors.border,
 
         paddingHorizontal: 8,
     },
@@ -19,16 +20,16 @@ const styles = StyleSheet.create({
     },
 
     label: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 17,
         fontWeight: '400',
     },
 
     date: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 17,
         fontWeight: '700',
     },
 });
 
-export default styles;
+export default createStyles;

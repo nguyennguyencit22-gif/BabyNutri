@@ -5,7 +5,8 @@ import {
     View,
 } from 'react-native';
 
-import styles from '../../styles/profile/addBabyProfileStyles';
+import createStyles from '../../styles/profile/addBabyProfileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type ProfileColorPickerProps = {
     colors: string[];
@@ -18,6 +19,12 @@ function ProfileColorPicker({
     selectedColor,
     onSelectColor,
 }: ProfileColorPickerProps) {
+    const { colors: themeColors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(themeColors),
+        [themeColors],
+    );
+
     return (
         <View style={styles.containerColor}>
             <Text style={styles.labelColor}>

@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
+import type { AppColors } from '../../theme/colors';
 
-
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#FFF9F7',
+        backgroundColor: colors.background,
     },
     container: {
         flex: 1,
@@ -13,17 +13,17 @@ const styles = StyleSheet.create({
     progressBackground: {
         height: 8,
         borderRadius: 8,
-        backgroundColor: '#EEDBD7',
+        backgroundColor: colors.border,
         overflow: 'hidden',
     },
     progressValue: {
         height: '100%',
         borderRadius: 8,
-        backgroundColor: '#7A2017',
+        backgroundColor: colors.primary,
     },
     stepText: {
         marginTop: 12,
-        color: '#9A7672',
+        color: colors.textSoft,
         fontSize: 14,
     },
     questionContainer: {
@@ -36,37 +36,38 @@ const styles = StyleSheet.create({
     },
     question: {
         marginBottom: 28,
-        color: '#5F1813',
+        color: colors.text,
         fontSize: 28,
         fontWeight: '700',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#C8A5A1',
+        borderColor: colors.border,
         borderRadius: 14,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
+        color: colors.text,
     },
     optionButton: {
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#C8A5A1',
+        borderColor: colors.border,
         borderRadius: 14,
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     optionButtonSelected: {
-        borderColor: '#7A2017',
-        backgroundColor: '#FCE8E3',
+        borderColor: colors.primary,
+        backgroundColor: colors.primarySoft,
     },
     optionText: {
-        color: '#3C2825',
+        color: colors.text,
         fontSize: 16,
     },
     optionTextSelected: {
-        color: '#7A2017',
+        color: colors.primary,
         fontWeight: '700',
     },
     footer: {
@@ -77,12 +78,12 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#7A2017',
+        borderColor: colors.primary,
         borderRadius: 14,
         paddingVertical: 15,
     },
     backButtonText: {
-        color: '#7A2017',
+        color: colors.primary,
         fontSize: 16,
         fontWeight: '600',
     },
@@ -91,10 +92,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 14,
         paddingVertical: 15,
-        backgroundColor: '#7A2017',
+        backgroundColor: colors.primary,
     },
     nextButtonText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 16,
         fontWeight: '700',
     },
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
         marginTop: 110,
         marginBottom: 36,
         paddingHorizontal: 24,
-        color: '#8C7A77',
+        color: colors.textSoft,
         fontSize: 13,
         lineHeight: 18,
         textAlign: 'center',
@@ -120,23 +121,23 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         overflow: 'hidden',
         borderWidth: 1.3,
-        borderColor: '#9C8985',
+        borderColor: colors.border,
         borderRadius: 8,
-        backgroundColor: '#FFF9F7',
+        backgroundColor: colors.background,
     },
 
     datePicker: {
         width: '100%',
         height: 52,
-        color: '#2D1714',
+        color: colors.text,
     },
 
     agePreview: {
         marginTop: 22,
-        color: '#7B312A',
+        color: colors.primary,
         fontSize: 14,
         fontWeight: '600',
         textAlign: 'center',
     },
 });
-export default styles;
+export default createStyles;

@@ -5,7 +5,8 @@ import {
     View,
 } from 'react-native';
 
-import styles from '../../styles/profile/guestProfileBannerStyles';
+import createStyles from '../../styles/profile/guestProfileBannerStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type GuestProfileBannerProps = {
     onLogin: () => void;
@@ -14,6 +15,12 @@ type GuestProfileBannerProps = {
 function GuestProfileBanner({
     onLogin,
 }: GuestProfileBannerProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>

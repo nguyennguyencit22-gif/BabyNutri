@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { IconButton } from 'react-native-paper';
-import styles from '../../styles/profile/profileComponentStyles';
+import createStyles from '../../styles/profile/profileComponentStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type ProfileHeaderProps = {
     title: string;
@@ -12,6 +13,12 @@ function ProfileHeader({
     title,
     onBack,
 }: ProfileHeaderProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.container}>
             <IconButton

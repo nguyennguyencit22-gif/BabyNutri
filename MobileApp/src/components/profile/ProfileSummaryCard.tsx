@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/profileComponentStyles';
+import createStyles from '../../styles/profile/profileComponentStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type ProfileSummaryCardProps = {
     name: string;
@@ -24,6 +25,12 @@ function ProfileSummaryCard({
     onChangePhoto,
     onPress,
 }: ProfileSummaryCardProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <Pressable
             style={({ pressed }) => [

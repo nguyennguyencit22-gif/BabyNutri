@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     //Header
     container: {
         flexDirection: 'row',
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '700',
-        color: '#5B0010',
+        color: colors.text,
     },
     //Header
 
@@ -30,11 +31,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 18,
         borderWidth: 1,
-        borderColor: '#F0D9D3',
+        borderColor: colors.border,
         borderRadius: 18,
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: '#FFF0EA',
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatarWrapper: {
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
         width: 90,
         height: 90,
         borderRadius: 45,
-        backgroundColor: '#F2D7D2',
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatarFallback: {
@@ -54,11 +55,11 @@ const styles = StyleSheet.create({
         borderRadius: 45,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
     avatarText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 34,
         fontWeight: '700',
     },
@@ -70,11 +71,11 @@ const styles = StyleSheet.create({
         width: 38,
         height: 38,
         borderWidth: 3,
-        borderColor: '#FFF0EA',
+        borderColor: colors.surfaceAlt,
         borderRadius: 19,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#C735E8',
+        backgroundColor: colors.secondary,
     },
 
     cameraButtonPressed: {
@@ -92,14 +93,14 @@ const styles = StyleSheet.create({
     },
 
     name: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
     },
 
     email: {
         marginTop: 6,
-        color: '#7F4E56',
+        color: colors.textSoft,
         fontSize: 15,
     },
     //Profile Card
@@ -112,10 +113,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
 
         borderBottomWidth: 1,
-        borderBottomColor: '#EFE7E4',
+        borderBottomColor: colors.border,
 
         paddingHorizontal: 10,
-        backgroundColor: '#FFFCF8',
+        backgroundColor: colors.background,
     },
 
     pressed: {
@@ -132,14 +133,14 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderWidth: 1,
-        borderColor: '#EFE7E4',
+        borderColor: colors.border,
         borderRadius: 21,
 
         alignItems: 'center',
         justifyContent: 'center',
 
         marginRight: 14,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
 
         elevation: 2,
         shadowColor: '#000000',
@@ -153,15 +154,15 @@ const styles = StyleSheet.create({
 
     titleMenu: {
         flexShrink: 1,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '400',
     },
 
     dangerTitle: {
-        color: '#FF2B2B',
+        color: colors.danger,
     },
     //Menu Item
 });
 
-export default styles;
+export default createStyles;

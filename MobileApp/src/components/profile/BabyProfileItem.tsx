@@ -10,7 +10,8 @@ import { Icon } from 'react-native-paper';
 import ReanimatedSwipeable from
     'react-native-gesture-handler/ReanimatedSwipeable';
 
-import styles from '../../styles/profile/babyProfileItemStyles';
+import createStyles from '../../styles/profile/babyProfileItemStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type BabyProfileItemProps = {
     name: string;
@@ -29,6 +30,12 @@ function BabyProfileItem({
     onEdit,
     onDelete,
 }: BabyProfileItemProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const handleDelete = () => {
         Alert.alert(
             'Delete baby profile',
@@ -55,7 +62,7 @@ function BabyProfileItem({
             <Icon
                 source="delete-outline"
                 size={26}
-                color="#FFFFFF"
+                color={colors.onPrimary}
             />
 
             <Text style={styles.deleteText}>
@@ -100,7 +107,7 @@ function BabyProfileItem({
                     <Icon
                         source="drag"
                         size={28}
-                        color="#5B0010"
+                        color={colors.text}
                     />
                 </Pressable>
             </View>

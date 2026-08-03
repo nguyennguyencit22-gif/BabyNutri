@@ -17,13 +17,20 @@ import {
     logoutFromFirebase,
 } from '../../services/firebaseAuthService';
 
-import styles from '@/styles/settings/accountSettingStyles';
+import createStyles from '@/styles/settings/accountSettingStyles';
+import { useAppTheme } from '@/theme/useAppTheme';
 
 import type { RootState } from '../../store/Store';
 
 function AccountSettingsScreen({
     navigation,
 }: any) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const handleChangePhoto = () => {
         console.log('Open profile photo picker');
     };
@@ -132,7 +139,7 @@ function AccountSettingsScreen({
                         <Icon
                             source="camera"
                             size={22}
-                            color="#FFFFFF"
+                            color={colors.onPrimary}
                         />
                     </Pressable>
                 </View>

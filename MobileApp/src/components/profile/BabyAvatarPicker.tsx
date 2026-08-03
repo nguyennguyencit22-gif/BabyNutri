@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/addBabyProfileStyles';
+import createStyles from '../../styles/profile/addBabyProfileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type BabyAvatarPickerProps = {
     imageUri?: string | null;
@@ -19,6 +20,12 @@ function BabyAvatarPicker({
     profileColor = '#FF8AA0',
     onPressCamera,
 }: BabyAvatarPickerProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.container}>
             <View
@@ -37,7 +44,7 @@ function BabyAvatarPicker({
                     <Icon
                         source="account-outline"
                         size={72}
-                        color="#FFFFFF"
+                        color={colors.onPrimary}
                     />
                 )}
             </View>

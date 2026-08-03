@@ -13,6 +13,8 @@ import AddBabyProfileScreen from '@/screens/profile/AddBabyProfileScreen';
 import InvitationCodeScreen from '../screens/profile/InvitationCodeScreen';
 import EditBabyProfileScreen from '@/screens/profile/EditBabyProfileScreen';
 import AccountSettingsScreen from '@/screens/settings/AccountSettingsScreen';
+import SettingsScreen from '@/screens/settings/SettingsScreen';
+import ThemeSettingsScreen from '@/screens/settings/ThemeSettingsScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
@@ -84,6 +86,21 @@ function AppNavigator() {
       <Stack.Screen
         name="AccountSettings"
         component={AccountSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="ThemeSettings"
+        component={ThemeSettingsScreen}
         options={{
           headerShown: false,
         }}

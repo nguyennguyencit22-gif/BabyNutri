@@ -34,6 +34,8 @@ import AllergyModal from '../../components/profile/OptionModalForChild';
 import {
     PROFILE_COLORS,
     ALLERGY_OPTIONS,
+    NUTRITION_GOAL_OPTIONS,
+    FOOD_PREFERENCE_OPTIONS,
 } from '../../constants/profile/babyProfileData';
 
 import {
@@ -44,7 +46,9 @@ import {
 import type {
     RootState,
 } from '../../store/Store';
-import styles from '@/styles/profile/editBabyProfileStyles';
+import createStyles from '@/styles/profile/editBabyProfileStyles';
+import DeleteBabyProfileModal from '@/components/profile/DeleteBabyProfileModal';
+import { useAppTheme } from '@/theme/useAppTheme';
 function EditBabyProfileScreen({
     navigation,
     route,
@@ -52,6 +56,12 @@ function EditBabyProfileScreen({
     const { babyId } = route.params;
 
     const dispatch = useDispatch();
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     const baby = useSelector(
         (state: RootState) =>
@@ -90,6 +100,20 @@ function EditBabyProfileScreen({
         baby?.allergies ?? [],
     );
 
+    const [
+        selectedNutritionGoal,
+        setSelectedNutritionGoal,
+    ] = React.useState(
+        baby?.nutritionGoal ?? '',
+    );
+
+    const [
+        selectedFoodPreferences,
+        setSelectedFoodPreferences,
+    ] = React.useState<string[]>(
+        baby?.foodPreferences ?? [],
+    );
+
     const [nameError, setNameError] =
         React.useState('');
 
@@ -101,6 +125,16 @@ function EditBabyProfileScreen({
     const [
         showAllergyModal,
         setShowAllergyModal,
+    ] = React.useState(false);
+
+    const [
+        showNutritionGoalModal,
+        setShowNutritionGoalModal,
+    ] = React.useState(false);
+
+    const [
+        showFoodPreferenceModal,
+        setShowFoodPreferenceModal,
     ] = React.useState(false);
 
     const validateForm = (): boolean => {
@@ -151,6 +185,26 @@ function EditBabyProfileScreen({
         });
     };
 
+    const selectNutritionGoal = (
+        goal: string,
+    ) => {
+        setSelectedNutritionGoal(goal);
+    };
+
+    const toggleFoodPreference = (
+        food: string,
+    ) => {
+        setSelectedFoodPreferences(current => {
+            if (current.includes(food)) {
+                return current.filter(
+                    item => item !== food,
+                );
+            }
+
+            return [...current, food];
+        });
+    };
+
     const handleUpdate = () => {
         if (!baby || !validateForm()) {
             return;
@@ -166,6 +220,10 @@ function EditBabyProfileScreen({
                     dateOfBirth.toISOString(),
                 allergies:
                     selectedAllergies,
+                nutritionGoal:
+                    selectedNutritionGoal,
+                foodPreferences:
+                    selectedFoodPreferences,
             }),
         );
 
@@ -182,32 +240,18 @@ function EditBabyProfileScreen({
         );
     };
 
-    const handleDelete = () => {
+    const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+
+    const handleConfirmDelete = () => {
         if (!baby) {
             return;
         }
 
-        Alert.alert(
-            'Delete baby profile',
-            `Are you sure you want to delete ${baby.name}'s profile?`,
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => {
-                        dispatch(
-                            deleteBaby(baby.id),
-                        );
+        dispatch(deleteBaby(baby.id));
 
-                        navigation.goBack();
-                    },
-                },
-            ],
-        );
+        setShowDeleteModal(false);
+
+        navigation.goBack();
     };
 
     if (!baby) {
@@ -235,9 +279,17 @@ function EditBabyProfileScreen({
             <IconButton
                 icon="delete"
                 size={24}
-                iconColor="#5B0010"
+                iconColor={colors.text}
                 style={styles.deleteButton}
-                onPress={handleDelete}
+                onPress={() => setShowDeleteModal(true)}
+            />
+
+            <DeleteBabyProfileModal
+                visible={showDeleteModal}
+                babyName={baby.name}
+                recordCount={0}
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={handleConfirmDelete}
             />
 
             <ScrollView
@@ -321,6 +373,32 @@ function EditBabyProfileScreen({
                     }
                 />
 
+                <AllergySelector
+                    label="Main nutrition goal"
+                    selectedOptions={
+                        selectedNutritionGoal
+                            ? [selectedNutritionGoal]
+                            : []
+                    }
+                    onPress={() =>
+                        setShowNutritionGoalModal(
+                            true,
+                        )
+                    }
+                />
+
+                <AllergySelector
+                    label="Food preferences"
+                    selectedOptions={
+                        selectedFoodPreferences
+                    }
+                    onPress={() =>
+                        setShowFoodPreferenceModal(
+                            true,
+                        )
+                    }
+                />
+
                 <Button
                     mode="contained"
                     disabled={
@@ -362,6 +440,47 @@ function EditBabyProfileScreen({
                     setShowAllergyModal(false)
                 }
             />
+
+            <AllergyModal
+                title="Select main nutrition goal"
+                visible={
+                    showNutritionGoalModal
+                }
+                options={
+                    NUTRITION_GOAL_OPTIONS
+                }
+                selectedOptions={
+                    selectedNutritionGoal
+                        ? [selectedNutritionGoal]
+                        : []
+                }
+                onToggleOption={
+                    selectNutritionGoal
+                }
+                onClose={() =>
+                    setShowNutritionGoalModal(false)
+                }
+            />
+
+            <AllergyModal
+                title="Select food preferences"
+                visible={
+                    showFoodPreferenceModal
+                }
+                options={
+                    FOOD_PREFERENCE_OPTIONS
+                }
+                selectedOptions={
+                    selectedFoodPreferences
+                }
+                onToggleOption={
+                    toggleFoodPreference
+                }
+                onClose={() =>
+                    setShowFoodPreferenceModal(false)
+                }
+            />
+
         </SafeAreaView>
     );
 }

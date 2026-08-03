@@ -13,7 +13,8 @@ import type {
     Gender,
 } from '../../types/auth/questionnaire';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import styles from '../../styles/questions/questionnaireStyles';
+import createStyles from '../../styles/questions/questionnaireStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { Picker } from '@react-native-picker/picker';
 import { getBabyAge } from '../../utils/calculateBabyAge';
 import {
@@ -48,6 +49,12 @@ function QuestionnaireScreen({ navigation, route }: any) {
         route.params?.userMode ?? 'guest';
 
     const [currentStep, setCurrentStep] = useState(0);
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     const dispatch = useDispatch<AppDispatch>();
 
@@ -251,6 +258,8 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 gender,
                 dateOfBirth: answers.dateOfBirth,
                 allergies: answers.allergies,
+                nutritionGoal: answers.nutritionGoal,
+                foodPreferences: answers.foodPreferences,
             }),
         );
 
@@ -435,7 +444,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                                         )
                                     }
                                     style={styles.datePicker}
-                                    dropdownIconColor="#4A1712"
+                                    dropdownIconColor={colors.text}
                                 >
                                     <Picker.Item
                                         label="MM"
@@ -466,7 +475,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                                         )
                                     }
                                     style={styles.datePicker}
-                                    dropdownIconColor="#4A1712"
+                                    dropdownIconColor={colors.text}
                                 >
                                     <Picker.Item
                                         label="DD"
@@ -497,7 +506,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                                         )
                                     }
                                     style={styles.datePicker}
-                                    dropdownIconColor="#4A1712"
+                                    dropdownIconColor={colors.text}
                                 >
                                     <Picker.Item
                                         label="YYYY"
