@@ -94,7 +94,7 @@ android {
         manifestPlaceholders = [usesCleartextTraffic: "true"]
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_STL=c++_shared", "-DCMAKE_OBJECT_PATH_MAX=150"
+                arguments "-DANDROID_STL=c++_shared", "-DCMAKE_OBJECT_PATH_MAX=80"
             }
         }
     }
