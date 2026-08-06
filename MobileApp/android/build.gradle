@@ -19,8 +19,10 @@ buildscript {
     }
 }
 
-allprojects {
-    buildDir = "C:/tmp/BN/${project.name}"
+subprojects {
+    if (project.name == "app") {
+        project.layout.buildDirectory.set(file("C:/tmp/app"))
+    }
 }
 
 apply plugin: "com.facebook.react.rootproject"
