@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan } from '../../types/meal-plan';
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppColors } from '../../theme/colors';
 
 export const MealPlanListScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
+
   const { childId } = route.params || {};
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +55,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Thực Đơn Tuần</Text>
         <Text style={styles.headerSubtitle}>Lịch ăn dinh dưỡng cho bé</Text>
@@ -84,7 +90,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
       <View style={styles.mealsContainer}>
         {loading ? (
           <View style={styles.center}>
-            <ActivityIndicator size="large" color="#FF5F70" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : selectedPlan ? (
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -139,34 +145,34 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#4B3034',
+    color: colors.text,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8E7377',
+    color: colors.textSoft,
     marginTop: 2,
     fontWeight: '500',
   },
   calendarWrapper: {
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderStyle: 'solid',
-    borderBottomColor: '#FFD5CC',
+    borderBottomColor: colors.borderDashed,
   },
   calendarContainer: {
     paddingHorizontal: 16,
@@ -177,18 +183,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginHorizontal: 4,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FFD5CC',
+    borderColor: colors.borderDashed,
     minWidth: 54,
   },
   dayButtonSelected: {
-    backgroundColor: '#FF5F70',
+    backgroundColor: colors.primary,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FF5F70',
-    shadowColor: '#FF5F70',
+    borderColor: colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -197,7 +203,7 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8E7377',
+    color: colors.textSoft,
     marginBottom: 6,
   },
   dayNumberCircle: {
@@ -206,10 +212,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF0F2',
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FFD5CC',
+    borderColor: colors.borderDashedPrimary,
   },
   dayNumberCircleSelected: {
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
@@ -218,13 +224,13 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#4B3034',
+    color: colors.text,
   },
   dayNumberSelectedText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   dayTextSelected: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   mealsContainer: {
     flex: 1,
@@ -242,11 +248,11 @@ const styles = StyleSheet.create({
   },
   caloriesText: {
     fontSize: 15,
-    color: '#8E7377',
+    color: colors.textSoft,
     fontWeight: '600',
   },
   caloriesHighlight: {
-    color: '#FF5F70',
+    color: colors.primary,
     fontWeight: '800',
   },
   mealCard: {
@@ -260,24 +266,24 @@ const styles = StyleSheet.create({
   mealTime: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#FF5F70',
+    color: colors.primary,
   },
   timeLine: {
     flex: 1,
     width: 2,
-    backgroundColor: '#FFE4E6',
+    backgroundColor: colors.borderDashedPrimary,
     marginTop: 8,
     borderRadius: 1,
   },
   mealContent: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FF9EAA',
-    shadowColor: '#FF5F70',
+    borderColor: colors.borderDashedPrimary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -286,12 +292,12 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#4B3034',
+    color: colors.text,
     marginBottom: 6,
   },
   mealDesc: {
     fontSize: 14,
-    color: '#8E7377',
+    color: colors.textSoft,
     lineHeight: 20,
     marginBottom: 10,
   },
@@ -302,14 +308,14 @@ const styles = StyleSheet.create({
   mealCalories: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FF5F70',
-    backgroundColor: '#FFF0F2',
+    color: colors.primary,
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FFD5CC',
+    borderColor: colors.borderDashedPrimary,
   },
   emptyState: {
     flex: 1,
@@ -324,25 +330,25 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4B3034',
+    color: colors.text,
     marginBottom: 20,
   },
   addButton: {
-    backgroundColor: '#FF5F70',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#FF9EAA',
-    shadowColor: '#FF5F70',
+    borderColor: colors.borderDashedPrimary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 4,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 15,
     fontWeight: '700',
   },

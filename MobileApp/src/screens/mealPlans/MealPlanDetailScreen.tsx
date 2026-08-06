@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan } from '../../types/meal-plan';
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppColors } from '../../theme/colors';
 
 const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
@@ -11,6 +13,9 @@ const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: str
 );
 
 export const MealPlanDetailScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
+
   const { mealPlanId } = route.params || {};
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +42,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF5F70" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -52,13 +57,14 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
       <View style={styles.headerRow}>
         <TouchableOpacity 
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <BackIcon size={20} color="#FF5F70" />
+          <BackIcon size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -91,28 +97,31 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background,
   },
   notFoundText: {
     fontSize: 16,
-    color: '#8E7377',
+    color: colors.textSoft,
   },
   headerCard: {
-    backgroundColor: '#FF5F70',
+    backgroundColor: colors.primary,
     padding: 20,
     borderRadius: 20,
     marginBottom: 20,
-    shadowColor: '#FF5F70',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -127,12 +136,12 @@ const styles = StyleSheet.create({
   totalCalories: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFE4E6',
+    color: colors.primarySoft,
   },
   mealsTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#4B3034',
+    color: colors.text,
     marginBottom: 12,
     marginLeft: 4,
   },
@@ -140,14 +149,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   mealCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#FFEFEA',
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
     elevation: 2,
-    shadowColor: '#FF5F70',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -161,30 +171,33 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4B3034',
+    color: colors.text,
     flex: 1,
   },
   timeTag: {
-    backgroundColor: '#FFF0F2',
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
   },
   mealTime: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#FF5F70',
+    color: colors.primary,
   },
   mealDescription: {
     fontSize: 14,
-    color: '#60646C',
+    color: colors.textSoft,
     marginBottom: 8,
     lineHeight: 20,
   },
   mealCalories: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FF5F70',
+    color: colors.primary,
   },
   headerRow: {
     marginBottom: 10,
@@ -194,12 +207,13 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FFE4E6',
-    shadowColor: '#FF5F70',
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,

@@ -12,10 +12,14 @@ import {
   BookOpenIcon,
   CheckCircleIcon,
 } from 'react-native-heroicons/outline';
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppColors } from '../../theme/colors';
 
 const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
 
 const TopHeaderBar: React.FC = () => {
+  const { colors, isDark } = useAppTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<any>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [notifVisible, setNotifVisible] = useState(false);
@@ -28,6 +32,8 @@ const TopHeaderBar: React.FC = () => {
 
   return (
     <View style={styles.headerContainer}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
+      
       {/* Góc trái: Profile Avatar & Tên người dùng */}
       <TouchableOpacity 
         style={styles.profileSection} 
@@ -49,16 +55,16 @@ const TopHeaderBar: React.FC = () => {
       {/* Góc phải: Nút Thông báo & Nút 3 gạch */}
       <View style={styles.actionSection}>
         <TouchableOpacity style={styles.iconBtn} onPress={handleOpenNotification} activeOpacity={0.8}>
-          <BellIcon size={20} color="#1F2937" />
+          <BellIcon size={20} color={colors.text} />
           {unreadCount > 0 && <View style={styles.badgeDot} />}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.iconBtn} onPress={() => setMenuVisible(true)} activeOpacity={0.8}>
-          <Bars3Icon size={20} color="#1F2937" />
+          <Bars3Icon size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
 
-      {/* Modal Cửa sổ Danh sách Thông báo tự nhiên & ấm áp */}
+      {/* Modal Cửa sổ Danh sách Thông báo */}
       <Modal visible={notifVisible} transparent animationType="fade" onRequestClose={() => setNotifVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setNotifVisible(false)}>
           <View style={styles.notifBox}>
@@ -88,7 +94,7 @@ const TopHeaderBar: React.FC = () => {
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
               >
-                <View style={[styles.notifIconBadge, { backgroundColor: '#E0F2FE' }]}>
+                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
                   <BookOpenIcon size={16} color="#0284C7" />
                 </View>
                 <View style={styles.notifContent}>
@@ -102,7 +108,7 @@ const TopHeaderBar: React.FC = () => {
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
               >
-                <View style={[styles.notifIconBadge, { backgroundColor: '#F0FDF4' }]}>
+                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#143823' : '#F0FDF4' }]}>
                   <CheckCircleIcon size={16} color="#16A34A" />
                 </View>
                 <View style={styles.notifContent}>
@@ -127,7 +133,7 @@ const TopHeaderBar: React.FC = () => {
               onPress={() => { setMenuVisible(false); navigation.navigate('ProfileTab'); }}
             >
               <View style={styles.drawerRow}>
-                <UserIcon size={16} color="#4B5563" />
+                <UserIcon size={16} color={colors.textSoft} />
                 <Text style={styles.drawerText}>Hồ sơ người dùng</Text>
               </View>
             </TouchableOpacity>
@@ -144,7 +150,7 @@ const TopHeaderBar: React.FC = () => {
               onPress={() => { setMenuVisible(false); navigation.navigate('AccountSettings'); }}
             >
               <View style={styles.drawerRow}>
-                <Cog6ToothIcon size={16} color="#4B5563" />
+                <Cog6ToothIcon size={16} color={colors.textSoft} />
                 <Text style={styles.drawerText}>Cài đặt ứng dụng</Text>
               </View>
             </TouchableOpacity>
@@ -154,7 +160,7 @@ const TopHeaderBar: React.FC = () => {
               onPress={() => { setMenuVisible(false); navigation.navigate('FAQ'); }}
             >
               <View style={styles.drawerRow}>
-                <QuestionMarkCircleIcon size={16} color="#4B5563" />
+                <QuestionMarkCircleIcon size={16} color={colors.textSoft} />
                 <Text style={styles.drawerText}>Trợ giúp & Hỏi đáp FAQ</Text>
               </View>
             </TouchableOpacity>
@@ -169,18 +175,19 @@ const TopHeaderBar: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingTop: statusBarHeight + 10,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3E8E2',
-    shadowColor: '#FF7A59',
+    borderStyle: 'solid',
+    borderBottomColor: colors.borderDashed,
+    shadowColor: colors.primary,
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
@@ -192,8 +199,11 @@ const styles = StyleSheet.create({
   avatarBorder: {
     padding: 2,
     borderRadius: 22,
-    backgroundColor: '#FFE8DF',
+    backgroundColor: colors.primarySoft,
     marginRight: 10,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
   },
   avatar: {
     width: 38,
@@ -205,13 +215,13 @@ const styles = StyleSheet.create({
   },
   greetingText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: colors.textSoft,
     fontWeight: '500',
   },
   userName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.text,
   },
   actionSection: {
     flexDirection: 'row',
@@ -222,9 +232,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
@@ -236,11 +247,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#EF4444',
+    backgroundColor: colors.danger,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: colors.overlayStrong,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     paddingTop: 50,
@@ -248,9 +259,12 @@ const styles = StyleSheet.create({
   },
   notifBox: {
     width: 300,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -262,18 +276,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderStyle: 'solid',
+    borderBottomColor: colors.borderDashed,
     paddingBottom: 8,
   },
   notifTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.text,
   },
   notifCloseText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
+    color: colors.textSoft,
   },
   notifList: {
     gap: 12,
@@ -286,7 +301,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FFE8DF',
+    backgroundColor: colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -296,24 +311,27 @@ const styles = StyleSheet.create({
   notifTextBold: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#1F2937',
+    color: colors.text,
     marginBottom: 2,
   },
   notifTextSub: {
     fontSize: 11,
-    color: '#4B5563',
+    color: colors.textSoft,
     lineHeight: 16,
   },
   notifTime: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: colors.textMuted,
     marginTop: 4,
   },
   menuDrawer: {
     width: 230,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashedPrimary,
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -322,10 +340,11 @@ const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#111827',
+    color: colors.text,
     marginBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3E8E2',
+    borderStyle: 'solid',
+    borderBottomColor: colors.borderDashed,
     paddingBottom: 8,
   },
   drawerItem: {
@@ -339,19 +358,22 @@ const styles = StyleSheet.create({
   drawerText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: colors.text,
   },
   closeBtn: {
     marginTop: 12,
     paddingVertical: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: 8,
     alignItems: 'center',
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: colors.borderDashed,
   },
   closeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#6B7280',
+    color: colors.textSoft,
   },
 });
 
