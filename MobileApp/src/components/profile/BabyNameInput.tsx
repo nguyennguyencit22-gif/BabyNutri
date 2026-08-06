@@ -2,7 +2,8 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 
-import styles from '../../styles/profile/addBabyProfileStyles';
+import createStyles from '../../styles/profile/addBabyProfileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type BabyNameInputProps = {
     value: string;
@@ -15,6 +16,12 @@ function BabyNameInput({
     error,
     onChangeText,
 }: BabyNameInputProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.containerInput}>
             <Text style={styles.label}>
@@ -27,10 +34,10 @@ function BabyNameInput({
                 value={value}
                 error={Boolean(error)}
                 onChangeText={onChangeText}
-                placeholderTextColor="#B89296"
+                placeholderTextColor={colors.textMuted}
 
-                outlineColor="#F3E5E1"
-                activeOutlineColor="#5B0010"
+                outlineColor={colors.border}
+                activeOutlineColor={colors.text}
 
                 style={styles.input}
                 outlineStyle={styles.outline}

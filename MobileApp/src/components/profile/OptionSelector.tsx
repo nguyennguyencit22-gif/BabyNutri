@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/optionsSelectorStyles';
+import createStyles from '../../styles/profile/optionsSelectorStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type OptionSelectorProps = {
     label: string;
@@ -19,6 +20,12 @@ function OptionSelector({
     selectedOptions,
     onPress,
 }:OptionSelectorProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const summary =
         selectedOptions.length > 0
             ? `${selectedOptions.length} selected`
@@ -46,7 +53,7 @@ function OptionSelector({
             <Icon
                 source="chevron-right"
                 size={30}
-                color="#5B0010"
+                color={colors.text}
             />
         </Pressable>
     );

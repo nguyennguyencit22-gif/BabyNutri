@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F7F3F2',
+        backgroundColor: colors.background,
     },
 
     profileCard: {
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         paddingHorizontal: 28,
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     avatarWrapper: {
@@ -35,11 +36,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
 
-        backgroundColor: '#B7A8B0',
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatarLetter: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 32,
         fontWeight: '700',
     },
@@ -57,15 +58,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
 
         borderWidth: 3,
-        borderColor: '#FFFFFF',
-        backgroundColor: '#B7A8B0',
+        borderColor: colors.surface,
+        backgroundColor: colors.surfaceAlt,
     },
 
     email: {
         flex: 1,
         marginLeft: 26,
 
-        color: '#40383D',
+        color: colors.text,
         fontSize: 20,
     },
 
@@ -76,18 +77,18 @@ const styles = StyleSheet.create({
         marginTop: 4,
         paddingHorizontal: 28,
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     actionRowPressed: {
-        backgroundColor: '#FFF0EA',
+        backgroundColor: colors.surfaceAlt,
     },
 
     actionText: {
-        color: '#40383D',
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
     },
 });
 
-export default styles;
+export default createStyles;

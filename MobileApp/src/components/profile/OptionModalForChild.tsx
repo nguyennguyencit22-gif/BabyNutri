@@ -9,7 +9,8 @@ import {
 
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/addBabyProfileStyles';
+import createStyles from '../../styles/profile/addBabyProfileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type OptionModalForChildProps = {
     title: string;
@@ -28,6 +29,12 @@ function OptionModalForChild({
     onToggleOption,
     onClose,
 }: OptionModalForChildProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <Modal
             visible={visible}
@@ -48,7 +55,7 @@ function OptionModalForChild({
                             <Icon
                                 source="close"
                                 size={26}
-                                color="#5B0010"
+                                color={colors.text}
                             />
                         </Pressable>
                     </View>
@@ -83,7 +90,7 @@ function OptionModalForChild({
                                         ) : null}
                                     </View>
 
-                                    <Text style={styles.optionText}>
+                                    <Text style={styles.modalOptionText}>
                                         {item}
                                     </Text>
                                 </Pressable>

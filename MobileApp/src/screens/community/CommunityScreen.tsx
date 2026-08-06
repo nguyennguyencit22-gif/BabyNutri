@@ -8,18 +8,15 @@ import {
 } from 'react-native';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { FAQScreen } from '../questions/FAQScreen';
-
-const THEME = {
-    primary: '#FF5F70',
-    primaryLight: '#FFF0F2',
-    background: '#FFF5F2',
-    surface: '#FFFFFF',
-    textDark: '#4B3034',
-    textMuted: '#8E7377',
-    borderColor: '#FFE4E6',
-};
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppColors } from '../../theme/colors';
 
 function CommunityScreen({ navigation }: any) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
     const [activeSubTab, setActiveSubTab] = useState<'discussion' | 'faq'>('discussion');
 
     return (
@@ -91,22 +88,22 @@ function CommunityScreen({ navigation }: any) {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: THEME.background,
+        backgroundColor: colors.background,
     },
     segmentedContainer: {
         flexDirection: 'row',
-        backgroundColor: THEME.surface,
+        backgroundColor: colors.surface,
         marginHorizontal: 16,
         marginTop: 12,
         marginBottom: 8,
         borderRadius: 24,
         padding: 4,
         borderWidth: 1,
-        borderColor: THEME.borderColor,
-        shadowColor: THEME.primary,
+        borderColor: colors.border,
+        shadowColor: colors.primary,
         shadowOpacity: 0.06,
         shadowRadius: 8,
         elevation: 2,
@@ -119,8 +116,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     segmentBtnActive: {
-        backgroundColor: THEME.primary,
-        shadowColor: THEME.primary,
+        backgroundColor: colors.primary,
+        shadowColor: colors.primary,
         shadowOpacity: 0.3,
         shadowRadius: 6,
         elevation: 3,
@@ -128,7 +125,7 @@ const styles = StyleSheet.create({
     segmentText: {
         fontSize: 13,
         fontWeight: '600',
-        color: THEME.textMuted,
+        color: colors.textSoft,
     },
     segmentTextActive: {
         color: '#FFFFFF',
@@ -150,23 +147,23 @@ const styles = StyleSheet.create({
     discussionTitle: {
         fontSize: 18,
         fontWeight: '800',
-        color: THEME.textDark,
+        color: colors.text,
         marginBottom: 8,
         textAlign: 'center',
     },
     discussionSubTitle: {
         fontSize: 14,
-        color: THEME.textMuted,
+        color: colors.textSoft,
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: 20,
     },
     askQuestionBtn: {
-        backgroundColor: THEME.primary,
+        backgroundColor: colors.primary,
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 14,
-        shadowColor: THEME.primary,
+        shadowColor: colors.primary,
         shadowOpacity: 0.25,
         shadowRadius: 6,
         elevation: 3,

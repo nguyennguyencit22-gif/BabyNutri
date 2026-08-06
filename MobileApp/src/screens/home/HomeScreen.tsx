@@ -16,12 +16,12 @@ import {
 } from 'react-native-paper';
 
 import {
+    categories,
     POPULAR_CATEGORIES,
     POPULAR_RECIPES,
 } from '../../constants/sampleData/homeData';
 
-import { HomeColors } from '../../constants/generalHome/homeTheme';
-import styles from '../../styles/home/homeStyles'
+import createStyles from '../../styles/home/homeStyles'
 import { FlatList, Pressable } from "react-native";
 import { JOURNEY_ITEMS, WEANING_FEATURES, } from "../../constants/sampleData/homeData";
 import JourneyCard from '@/components/home/JourneyCard';
@@ -29,9 +29,16 @@ import ExpertCard from '../../components/home/ExpertCard';
 import { EXPERT_ITEMS, } from '../../constants/sampleData/homeData';
 import RecipeCard from '../../components/home/RecipeCard';
 import HomeBabyHeader from '@/components/home/HomeBabyHeader';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 function HomeScreen({ navigation }: any) {
     const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     return (
         <SafeAreaView style={styles.container}>
@@ -42,7 +49,7 @@ function HomeScreen({ navigation }: any) {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}>
 
-                {/* <FlatList
+                <FlatList
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     data={categories}
@@ -68,7 +75,7 @@ function HomeScreen({ navigation }: any) {
 
                         </Pressable>
                     )}
-                /> */}
+                />
 
                 <View style={styles.weaningSection}>
 

@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/babyProfileActionsModalStyles';
+import createStyles from '../../styles/profile/babyProfileActionsModalStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type BabyProfileActionsModalProps = {
     visible: boolean;
@@ -28,6 +29,12 @@ function BabyProfileActionsModal({
     onConfigureMainScreen,
     onReminders,
 }: BabyProfileActionsModalProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const actions = [
         {
             id: 'edit',
@@ -91,7 +98,7 @@ function BabyProfileActionsModal({
                             <Icon
                                 source={action.icon}
                                 size={24}
-                                color="#5B0010"
+                                color={colors.text}
                             />
 
                             <Text style={styles.actionText}>

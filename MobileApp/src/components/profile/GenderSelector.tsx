@@ -6,7 +6,8 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-paper';
 
-import styles from '../../styles/profile/addBabyProfileStyles';
+import createStyles from '../../styles/profile/addBabyProfileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 export type BabyGender = 'boy' | 'girl';
 
@@ -19,6 +20,12 @@ function GenderSelector({
     selectedGender,
     onSelectGender,
 }: GenderSelectorProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <View style={styles.containerGender}>
             <Pressable
@@ -32,7 +39,7 @@ function GenderSelector({
                 <Icon
                     source="face-man"
                     size={34}
-                    color="#5B0010"
+                    color={colors.text}
                 />
 
                 <Text
@@ -56,7 +63,7 @@ function GenderSelector({
                 <Icon
                     source="face-woman"
                     size={34}
-                    color="#5B0010"
+                    color={colors.text}
                 />
 
                 <Text

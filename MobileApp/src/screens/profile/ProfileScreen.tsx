@@ -14,7 +14,8 @@ import BabyProfileItem from '../../components/profile/BabyProfileItem';
 import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
 import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
 
-import styles from '../../styles/profile/profileStyles';
+import createStyles from '../../styles/profile/profileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 import {
     calculateBabyAgeInMonths,
@@ -34,6 +35,12 @@ function ProfileScreen({
 }: any) {
     const dispatch =
         useDispatch<AppDispatch>();
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     const babies = useSelector(
         (state: RootState) =>
@@ -229,10 +236,10 @@ function ProfileScreen({
                 </Text>
 
                 <ProfileMenuItem
-                    title="Account settings"
+                    title="Settings"
                     showArrow
                     onPress={() => {
-                        navigation.navigate('AccountSettings');
+                        navigation.navigate('Settings');
                     }}
                 />
 

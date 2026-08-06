@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { HomeColors } from '../../constants/generalHome/homeTheme';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: HomeColors.background,
+        backgroundColor: colors.background,
     },
     scrollContent: {
         paddingBottom: 34,
@@ -25,18 +25,18 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     avatar: {
-        backgroundColor: HomeColors.primary,
+        backgroundColor: colors.primary,
     },
     babyName: {
         marginLeft: 12,
-        color: HomeColors.primary,
+        color: colors.primary,
         fontSize: 22,
         fontWeight: '700',
     },
     babyAge: {
         marginTop: 2,
         marginLeft: 12,
-        color: HomeColors.textSoft,
+        color: colors.textSoft,
         fontSize: 13,
     },
     headerActions: {
@@ -47,23 +47,23 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: '#FFC6D0',
+        backgroundColor: colors.primarySoft,
     },
     placeholderSection: {
         marginHorizontal: 20,
         marginTop: 28,
         borderRadius: 24,
         padding: 24,
-        backgroundColor: HomeColors.surface,
+        backgroundColor: colors.surface,
     },
     placeholderTitle: {
-        color: HomeColors.text,
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
     },
     placeholderText: {
         marginTop: 10,
-        color: HomeColors.textSoft,
+        color: colors.textSoft,
         fontSize: 15,
         lineHeight: 22,
     },
@@ -83,17 +83,17 @@ const styles = StyleSheet.create({
     },
 
     categoryButtonActive: {
-        backgroundColor: HomeColors.primary,
+        backgroundColor: colors.primary,
     },
 
     categoryText: {
-        color: HomeColors.primary,
+        color: colors.primary,
         fontSize: 15,
         fontWeight: "500",
     },
 
     categoryTextActive: {
-        color: "#fff",
+        color: colors.onPrimary,
     },
     //Menu
 
@@ -106,14 +106,14 @@ const styles = StyleSheet.create({
     weaningTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: HomeColors.text,
+        color: colors.text,
         textAlign: 'center',
     },
 
     weaningDescription: {
         marginTop: 10,
         textAlign: 'center',
-        color: HomeColors.textSoft,
+        color: colors.textSoft,
         lineHeight: 22,
     },
 
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
 
     featureText: {
         fontSize: 16,
-        color: HomeColors.text,
+        color: colors.text,
     },
     // Weaning Introduction
     //Journey Section
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
 
     expertSectionTitle: {
         marginBottom: 20,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
         textAlign: 'center',
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
 
     expertDescription: {
         marginTop: 24,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 15,
         lineHeight: 22,
         textAlign: 'center',
@@ -251,4 +251,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default styles;
+export default createStyles;

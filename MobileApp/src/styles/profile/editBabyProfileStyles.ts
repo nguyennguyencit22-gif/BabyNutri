@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFDF9',
+        backgroundColor: colors.background,
     },
 
     scrollContent: {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginTop: 28,
         borderRadius: 30,
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
     buttonContent: {
@@ -31,10 +32,10 @@ const styles = StyleSheet.create({
     },
 
     buttonText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 17,
         fontWeight: '700',
     },
 });
 
-export default styles;
+export default createStyles;

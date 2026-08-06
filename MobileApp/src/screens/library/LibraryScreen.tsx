@@ -4,25 +4,20 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
 import RecipeListScreen from '../recipes/RecipeListScreen';
 import ArticleListScreen from '../articles/ArticleListScreen';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
-
-// Design system theme tokens matching member-a-auth
-const THEME = {
-  primary: '#FF5F70',
-  primaryLight: '#FFF0F2',
-  background: '#FFF5F2',
-  surface: '#FFFFFF',
-  textDark: '#4B3034',
-  textMuted: '#8E7377',
-  borderColor: '#FFE4E6',
-};
+import { useAppTheme } from '../../theme/useAppTheme';
+import type { AppColors } from '../../theme/colors';
 
 function LibraryScreen({ navigation }: any) {
+  const { colors } = useAppTheme();
+  const styles = React.useMemo(
+    () => createStyles(colors),
+    [colors],
+  );
   const [activeSubTab, setActiveSubTab] = useState<'recipes' | 'articles'>('recipes');
 
   return (
@@ -30,7 +25,7 @@ function LibraryScreen({ navigation }: any) {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <TopHeaderBar />
       
-      {/* Banner Nút mở Lịch Dinh Dưỡng & Đề Xuất Món Ăn (Member B) */}
+      {/* Banner Nút mở Lịch Dinh Dưỡng & Đề Xuất Món Ăn */}
       <TouchableOpacity 
         style={styles.schedulerBanner}
         onPress={() => navigation.navigate('MealScheduler')}
@@ -94,10 +89,10 @@ function LibraryScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: THEME.background,
+    backgroundColor: colors.background,
   },
   schedulerBanner: {
     flexDirection: 'row',
@@ -109,7 +104,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#FFE4E6',
-    shadowColor: THEME.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
@@ -124,25 +119,25 @@ const styles = StyleSheet.create({
   schedulerBannerTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: THEME.primary,
+    color: colors.primary,
     marginBottom: 2,
   },
   schedulerBannerSub: {
     fontSize: 11,
-    color: THEME.textMuted,
+    color: colors.textSoft,
     lineHeight: 15,
   },
   segmentedContainer: {
     flexDirection: 'row',
-    backgroundColor: THEME.surface,
+    backgroundColor: colors.surface,
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 8,
     borderRadius: 24,
     padding: 4,
     borderWidth: 1,
-    borderColor: THEME.borderColor,
-    shadowColor: THEME.primary,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
@@ -155,8 +150,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentBtnActive: {
-    backgroundColor: THEME.primary,
-    shadowColor: THEME.primary,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 3,
@@ -164,7 +159,7 @@ const styles = StyleSheet.create({
   segmentText: {
     fontSize: 13,
     fontWeight: '600',
-    color: THEME.textMuted,
+    color: colors.textSoft,
   },
   segmentTextActive: {
     color: '#FFFFFF',

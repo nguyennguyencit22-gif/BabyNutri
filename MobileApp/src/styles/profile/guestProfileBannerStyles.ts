@@ -1,8 +1,9 @@
 import {
     StyleSheet,
 } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     container: {
         marginHorizontal: 16,
         marginTop: 12,
@@ -10,18 +11,18 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         borderRadius: 18,
         alignItems: 'center',
-        backgroundColor: '#FFD2D9',
+        backgroundColor: colors.primarySoft,
     },
 
     title: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 17,
         fontWeight: '700',
     },
 
     description: {
         marginTop: 8,
-        color: '#7F5058',
+        color: colors.textSoft,
         fontSize: 14,
         lineHeight: 21,
         textAlign: 'center',
@@ -34,7 +35,7 @@ const styles = StyleSheet.create({
         paddingVertical: 9,
         borderRadius: 22,
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     loginButtonPressed: {
@@ -42,10 +43,10 @@ const styles = StyleSheet.create({
     },
 
     loginButtonText: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 14,
         fontWeight: '700',
     },
 });
 
-export default styles;
+export default createStyles;

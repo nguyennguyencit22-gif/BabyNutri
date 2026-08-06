@@ -1,34 +1,84 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { MD3LightTheme, PaperProvider } from 'react-native-paper';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Provider } from 'react-redux';
+import {
+  StyleSheet,
+} from 'react-native';
+
+import {
+  NavigationContainer,
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationLightTheme,
+} from '@react-navigation/native';
+
+import {
+  MD3DarkTheme,
+  MD3LightTheme,
+  PaperProvider,
+} from 'react-native-paper';
+
+import {
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+
+import {
+  Provider,
+} from 'react-redux';
+
 import { store } from './src/store/store';
 
 import AppNavigator from './src/navigation/AppNavigator';
 
-const babyNutriTheme = {
-  ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: '#FF5F70',
-    secondary: '#B445E6',
-    background: '#FFF5F2',
-    surface: '#FFFFFF',
-    onSurface: '#4B3034',
-  }
-};
+import { useAppTheme } from './src/theme/useAppTheme';
+
+function AppContent() {
+  const { isDark, colors } = useAppTheme();
+
+  const paperTheme = {
+    ...(isDark ? MD3DarkTheme : MD3LightTheme),
+    colors: {
+      ...(isDark
+        ? MD3DarkTheme.colors
+        : MD3LightTheme.colors),
+
+      primary: colors.primary,
+      secondary: colors.secondary,
+      background: colors.background,
+      surface: colors.surface,
+      onSurface: colors.text,
+    },
+  };
+
+  const navigationTheme = {
+    ...(isDark
+      ? NavigationDarkTheme
+      : NavigationLightTheme),
+
+    colors: {
+      ...(isDark
+        ? NavigationDarkTheme.colors
+        : NavigationLightTheme.colors),
+
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+    },
+  };
+
+  return (
+    <PaperProvider theme={paperTheme}>
+      <NavigationContainer theme={navigationTheme}>
+        <AppNavigator />
+      </NavigationContainer>
+    </PaperProvider>
+  );
+}
 
 function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <Provider store={store}>
-        <PaperProvider theme={babyNutriTheme}>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
-        </PaperProvider>
+        <AppContent />
       </Provider>
     </GestureHandlerRootView>
   );

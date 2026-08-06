@@ -11,18 +11,25 @@ import {
 } from 'react-native-paper';
 
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import type {
     RootState,
 } from '../../store/Store';
 
+import type {
+    RootStackParamList,
+} from '../../types/navigation/navigationTopTypes';
+
 import {
     calculateBabyAgeInMonths,
 } from '../../utils/calculateBabyAge';
 
-import styles from '../../styles/home/homeBabyHeaderStyles';
-import { HomeColors } from '../../constants/generalHome/homeTheme';
+import createStyles from '../../styles/home/homeBabyHeaderStyles';
 import BabySwitcherModal from './BabySwitcherModal';
+import BabyProfileActionsModal from '../profile/BabyProfileActionsModal';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 function HomeBabyHeader() {
 
@@ -47,6 +54,35 @@ function HomeBabyHeader() {
         babies.length > 1;
 
     const [showBabySwitcher, setShowBabySwitcher] = React.useState(false);
+    const [showBabyActions, setShowBabyActions] = React.useState(false);
+
+    const navigation =
+        useNavigation<
+            NativeStackNavigationProp<RootStackParamList>
+        >();
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
+    const handleCloseBabyActions = () => {
+        setShowBabyActions(false);
+    };
+
+    const handleEditBaby = () => {
+        if (!selectedBaby) {
+            return;
+        }
+
+        handleCloseBabyActions();
+
+        navigation.navigate('EditBabyProfile', {
+            babyId: selectedBaby.id,
+        });
+    };
+
     return (
 
         <View style={styles.container}>
@@ -54,8 +90,10 @@ function HomeBabyHeader() {
             <Pressable
                 style={styles.userInfo}
                 onPress={() => {
-                    if (babies.length > 1) {
-                        setShowBabySwitcher(true);
+                    if (!selectedBaby) {
+                        navigation.navigate('AddBabyProfile');
+                    } else {
+                        setShowBabyActions(true);
                     }
                 }}>
 
@@ -74,7 +112,7 @@ function HomeBabyHeader() {
                             backgroundColor:
                                 selectedBaby
                                     ?.profileColor ??
-                                HomeColors.primary,
+                                colors.primary,
                         },
                     ]}
                 />
@@ -93,12 +131,19 @@ function HomeBabyHeader() {
 
                         {hasMultipleBaby && (
 
-                            <Text
-                                style={
-                                    styles.arrow
+                            <Pressable
+                                onPress={() =>
+                                    setShowBabySwitcher(true)
                                 }>
-                                ▼
-                            </Text>
+
+                                <Text
+                                    style={
+                                        styles.arrow
+                                    }>
+                                    ▼
+                                </Text>
+
+                            </Pressable>
 
                         )}
 
@@ -124,10 +169,10 @@ function HomeBabyHeader() {
                     icon="bell-outline"
                     size={22}
                     iconColor={
-                        HomeColors.primary
+                        colors.primary
                     }
                     containerColor={
-                        HomeColors.primarySoft
+                        colors.primarySoft
                     }
                     onPress={() => { }}
                 />
@@ -145,6 +190,52 @@ function HomeBabyHeader() {
                 onClose={() =>
                     setShowBabySwitcher(false)
                 }
+            />
+
+            <BabyProfileActionsModal
+                visible={showBabyActions}
+                onClose={handleCloseBabyActions}
+                onEditBaby={handleEditBaby}
+                onAddCaregiver={() => {
+                    if (!selectedBaby) {
+                        return;
+                    }
+
+                    console.log(
+                        'Add caregiver:',
+                        selectedBaby.id,
+                    );
+                }}
+                onEditEvents={() => {
+                    if (!selectedBaby) {
+                        return;
+                    }
+
+                    console.log(
+                        'Edit events:',
+                        selectedBaby.id,
+                    );
+                }}
+                onConfigureMainScreen={() => {
+                    if (!selectedBaby) {
+                        return;
+                    }
+
+                    console.log(
+                        'Configure main screen:',
+                        selectedBaby.id,
+                    );
+                }}
+                onReminders={() => {
+                    if (!selectedBaby) {
+                        return;
+                    }
+
+                    console.log(
+                        'Reminders:',
+                        selectedBaby.id,
+                    );
+                }}
             />
         </View>
 

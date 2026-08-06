@@ -5,8 +5,10 @@ import {
     View,
 } from 'react-native';
 import { Icon } from 'react-native-paper';
+import { ChevronRightIcon } from 'react-native-heroicons/outline';
 
-import styles from '../../styles/profile/profileComponentStyles';
+import createStyles from '../../styles/profile/profileComponentStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type ProfileMenuItemProps = {
     title: string;
@@ -16,8 +18,6 @@ type ProfileMenuItemProps = {
     onPress?: () => void;
 };
 
-import { ChevronRightIcon } from 'react-native-heroicons/outline';
-
 function ProfileMenuItem({
     title,
     leftIcon,
@@ -25,6 +25,12 @@ function ProfileMenuItem({
     danger = false,
     onPress,
 }: ProfileMenuItemProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <Pressable
             onPress={onPress}
@@ -34,6 +40,20 @@ function ProfileMenuItem({
             ]}>
 
             <View style={styles.leftContent}>
+                {leftIcon ? (
+                    <View style={styles.iconCircle}>
+                        <Icon
+                            source={leftIcon}
+                            size={22}
+                            color={
+                                danger
+                                    ? colors.danger
+                                    : colors.text
+                            }
+                        />
+                    </View>
+                ) : null}
+
                 <Text
                     style={[
                         styles.titleMenu,
@@ -48,8 +68,8 @@ function ProfileMenuItem({
                     size={22}
                     color={
                         danger
-                            ? '#FF2B2B'
-                            : '#FF5F70'
+                            ? colors.danger
+                            : colors.text
                     }
                 />
             ) : null}

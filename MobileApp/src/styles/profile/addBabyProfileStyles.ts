@@ -1,18 +1,19 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     //Avatar
     container: {
         height: 150,
         marginTop: 18,
         borderWidth: 1,
-        borderColor: '#F0D9D3',
+        borderColor: colors.border,
         borderRadius: 18,
 
         alignItems: 'center',
         justifyContent: 'center',
 
-        backgroundColor: '#FFF0EA',
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatarCircle: {
@@ -38,9 +39,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
 
         borderWidth: 3,
-        borderColor: '#FFF0EA',
+        borderColor: colors.surfaceAlt,
 
-        backgroundColor: '#D6D3D3',
+        backgroundColor: colors.border,
     },
 
     cameraButtonPressed: {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     },
 
     testText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 16,
         fontWeight: '700',
     },
@@ -65,13 +66,13 @@ const styles = StyleSheet.create({
 
     label: {
         marginBottom: 12,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '500',
     },
 
     input: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     outline: {
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     errorText: {
         marginTop: 6,
         marginLeft: 14,
-        color: '#D32F2F',
+        color: colors.danger,
         fontSize: 13,
     },
     //Input
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
 
     labelColor: {
         marginBottom: 14,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 16,
         fontWeight: '500',
     },
@@ -110,13 +111,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
 
         borderWidth: 1,
-        borderColor: '#F1E7E4',
+        borderColor: colors.border,
         borderRadius: 34,
 
         paddingHorizontal: 14,
         paddingVertical: 14,
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     colorOption: {
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
 
     colorOptionSelected: {
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
         borderRadius: 34,
         padding: 6,
 
-        backgroundColor: '#E8D8D2',
+        backgroundColor: colors.surfaceAlt,
     },
 
     option: {
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
     },
 
     optionSelected: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
 
         elevation: 2,
         shadowColor: '#000000',
@@ -192,20 +193,20 @@ const styles = StyleSheet.create({
 
     genderOptionText: {
         marginLeft: 12,
-        color: '#B39195',
+        color: colors.textSoft,
         fontSize: 20,
         fontWeight: '600',
     },
 
     optionTextSelected: {
-        color: '#5B0010',
+        color: colors.text,
     },
     // Gender select
     //Allergies Modal
     overlay: {
         flex: 1,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(45, 30, 32, 0.28)',
+        backgroundColor: colors.overlay,
     },
 
     modalContainer: {
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 20,
         paddingBottom: 24,
-        backgroundColor: '#FFFDF9',
+        backgroundColor: colors.background,
     },
 
     header: {
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 22,
         fontWeight: '700',
     },
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
 
         borderBottomWidth: 1,
-        borderBottomColor: '#EFE7E4',
+        borderBottomColor: colors.border,
 
         paddingHorizontal: 10,
     },
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderWidth: 1.5,
-        borderColor: '#5B0010',
+        borderColor: colors.text,
         borderRadius: 12,
 
         alignItems: 'center',
@@ -258,19 +259,19 @@ const styles = StyleSheet.create({
     },
 
     radioOuterSelected: {
-        borderColor: '#FF5F70',
+        borderColor: colors.primary,
     },
 
     radioInner: {
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
-    optionText: {
+    modalOptionText: {
         flex: 1,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 15,
     },
 
@@ -280,11 +281,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 26,
-        backgroundColor: '#FF5F70',
+        backgroundColor: colors.primary,
     },
 
     doneButtonText: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 17,
         fontWeight: '700',
     },
@@ -292,4 +293,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default styles;
+export default createStyles;

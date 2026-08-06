@@ -15,9 +15,16 @@ import {
 } from 'react-native-paper';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
-import styles from '@/styles/profile/invitationCodeStyles';
+import createStyles from '@/styles/profile/invitationCodeStyles';
+import { useAppTheme } from '@/theme/useAppTheme';
 
 function InvitationCodeScreen({ navigation }: any) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     const [currentStep, setCurrentStep] =
         React.useState<0 | 1>(0);
 
@@ -200,8 +207,8 @@ function InvitationCodeScreen({ navigation }: any) {
                             autoCapitalize="characters"
                             autoCorrect={false}
                             error={Boolean(codeError)}
-                            outlineColor="#F1E7E4"
-                            activeOutlineColor="#5B0010"
+                            outlineColor={colors.border}
+                            activeOutlineColor={colors.text}
                             style={styles.codeInput}
                             outlineStyle={
                                 styles.inputOutline

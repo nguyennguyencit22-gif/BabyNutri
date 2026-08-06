@@ -13,7 +13,8 @@ import type { RootState } from '../../store/Store';
 import { selectBaby } from '../../store/babySlice';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
-import styles from '../../styles/home/babySwitcherModalStyles';
+import createStyles from '../../styles/home/babySwitcherModalStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type BabySwitcherModalProps = {
     visible: boolean;
@@ -25,6 +26,12 @@ function BabySwitcherModal({
     onClose,
 }: BabySwitcherModalProps) {
     const dispatch = useDispatch();
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     const babies = useSelector(
         (state: RootState) => state.baby.babies,
@@ -136,7 +143,7 @@ function BabySwitcherModal({
                                         <Icon
                                             source="check-circle"
                                             size={24}
-                                            color="#FF5F70"
+                                            color={colors.primary}
                                         />
                                     ) : null}
                                 </Pressable>

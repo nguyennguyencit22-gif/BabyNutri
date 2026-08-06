@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
+import type { AppColors } from '../../theme/colors';
 
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
     overlay: {
         flex: 1,
         justifyContent: 'flex-start',
@@ -8,7 +9,7 @@ const styles = StyleSheet.create({
 
     backdrop: {
         ...StyleSheet.absoluteFill,
-        backgroundColor: 'rgba(35, 20, 25, 0.30)',
+        backgroundColor: colors.overlay,
     },
 
     modalCard: {
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
         paddingTop: 18,
         paddingBottom: 10,
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
 
         elevation: 12,
         shadowColor: '#000000',
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
 
     title: {
         marginBottom: 10,
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 19,
         fontWeight: '700',
     },
@@ -47,14 +48,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
 
         borderBottomWidth: 1,
-        borderBottomColor: '#EFE7E4',
+        borderBottomColor: colors.border,
 
         paddingHorizontal: 8,
         borderRadius: 16,
     },
 
     babyRowSelected: {
-        backgroundColor: '#FFF0EA',
+        backgroundColor: colors.surfaceAlt,
     },
 
     babyRowPressed: {
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     },
 
     avatarLabel: {
-        color: '#FFFFFF',
+        color: colors.onPrimary,
         fontSize: 24,
         fontWeight: '700',
     },
@@ -77,20 +78,20 @@ const styles = StyleSheet.create({
     },
 
     babyName: {
-        color: '#5B0010',
+        color: colors.text,
         fontSize: 18,
         fontWeight: '600',
     },
 
     babyNameSelected: {
-        color: '#FF5F70',
+        color: colors.primary,
     },
 
     babyAge: {
         marginTop: 4,
-        color: '#9A7B80',
+        color: colors.textSoft,
         fontSize: 14,
     },
 });
 
-export default styles;
+export default createStyles;

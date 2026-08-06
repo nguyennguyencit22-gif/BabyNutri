@@ -4,7 +4,8 @@ import {
     Text,
 } from 'react-native';
 
-import styles from '../../styles/profile/dateOfBirthRowStyles';
+import createStyles from '../../styles/profile/dateOfBirthRowStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 type DateOfBirthRowProps = {
     date: Date;
@@ -23,6 +24,12 @@ function DateOfBirthRow({
     date,
     onPress,
 }: DateOfBirthRowProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
     return (
         <Pressable
             onPress={onPress}

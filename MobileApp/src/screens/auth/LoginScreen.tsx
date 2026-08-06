@@ -27,10 +27,17 @@ import {
     loginWithGoogle,
 } from '../../services/firebaseAuthService';
 
-import styles from '../../styles/auth/loginStyles';
+import createStyles from '../../styles/auth/loginStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 function LoginScreen({ navigation }: any) {
     const [loading, setLoading] = useState(false);
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
 
     const dispatch =
         useDispatch<AppDispatch>();
