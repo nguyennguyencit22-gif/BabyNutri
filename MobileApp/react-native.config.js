@@ -10,6 +10,11 @@ module.exports = {
         android: null,
       },
     },
+    'react-native-gesture-handler': {
+      platforms: {
+        android: null,
+      },
+    },
   },
   assets: ['./node_modules/react-native-vector-icons/Fonts'],
 };
