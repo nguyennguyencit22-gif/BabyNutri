@@ -1,8 +1,10 @@
 import React from "react";
 import { Image, ImageSourcePropType, View, Text, StyleSheet } from "react-native";
 import { Button } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 import styles from '../../styles/home/jouneyCardStyles';
+import { useTranslatedText } from '../../hooks/useTranslatedText';
 
 type JourneyCardProps = {
     age: string;
@@ -22,6 +24,12 @@ function JourneyCard(
         colorMonths,
         image, }: JourneyCardProps
 ) {
+    const { t } = useTranslation();
+    // title/description come from the journey_items table, so they go
+    // through the on-demand DB-text translator, not the static UI bundle.
+    const translatedTitle = useTranslatedText(title);
+    const translatedDescription = useTranslatedText(description);
+
     const [ageNumber, ageUnit] = age.split('\n');
 
     return (
@@ -62,11 +70,11 @@ function JourneyCard(
                 </View>
 
                 <Text style={styles.title}>
-                    {title}
+                    {translatedTitle}
                 </Text>
 
                 <Text style={styles.description}>
-                    {description}
+                    {translatedDescription}
                 </Text>
 
                 <Button
@@ -77,7 +85,7 @@ function JourneyCard(
                     buttonColor="#FFC62F"
                     textColor="#5B0010"
                 >
-                    Let&apos;s go!
+                    {t('home.letsGo')}
                 </Button>
             </View>
         </View>

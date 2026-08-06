@@ -17,6 +17,7 @@ import {
     useDispatch,
     useSelector,
 } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 
@@ -37,21 +38,21 @@ import createStyles from '../../styles/settings/themeSettingsStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 type ThemeOption = {
-    label: string;
+    labelKey: string;
     value: AppThemeMode;
 };
 
 const THEME_OPTIONS: ThemeOption[] = [
     {
-        label: 'System default',
+        labelKey: 'theme.system',
         value: 'system',
     },
     {
-        label: 'Light',
+        labelKey: 'theme.light',
         value: 'light',
     },
     {
-        label: 'Dark',
+        labelKey: 'theme.dark',
         value: 'dark',
     },
 ];
@@ -59,6 +60,7 @@ const THEME_OPTIONS: ThemeOption[] = [
 function ThemeSettingsScreen({
     navigation,
 }: any) {
+    const { t } = useTranslation();
     const dispatch =
         useDispatch<AppDispatch>();
 
@@ -83,7 +85,7 @@ function ThemeSettingsScreen({
         <SafeAreaView style={styles.safeArea}>
 
             <ProfileHeader
-                title="Theme"
+                title={t('theme.title')}
                 onBack={() =>
                     navigation.goBack()
                 }
@@ -125,7 +127,7 @@ function ThemeSettingsScreen({
                             </View>
 
                             <Text style={styles.optionText}>
-                                {option.label}
+                                {t(option.labelKey)}
                             </Text>
                         </Pressable>
                     );

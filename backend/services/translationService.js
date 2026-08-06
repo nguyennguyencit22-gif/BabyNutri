@@ -1,16 +1,7 @@
-
-
-const express = require('express');
-
-const SUPPORTED_LANGUAGES = [
-    'en',
-    'vi',
-    'fr',
-    'de',
-    'ja',
-    'ko',
-    'zh-CN',
-];
+// @ts-nocheck
+const {
+    SUPPORTED_LANGUAGE_CODES: SUPPORTED_LANGUAGES,
+} = require('../constants/languages');
 
 const translateText = async (
     text,
@@ -59,6 +50,13 @@ const translateText = async (
     }
 };
 
+const delay = (ms) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+// Sequential with a small stagger, on purpose: @vitalets/google-translate-api
+// hits Google's public endpoint directly, and firing every string at once
+// via Promise.all reliably triggers "Too Many Requests" once a bundle grows
+// past a handful of keys.
 const translateTexts = async (
     texts,
     targetLanguage = 'vi',
@@ -67,11 +65,16 @@ const translateTexts = async (
         return [];
     }
 
-    return Promise.all(
-        texts.map(text =>
-            translateText(text, targetLanguage),
-        ),
-    );
+    const results = [];
+
+    for (const text of texts) {
+        results.push(
+            await translateText(text, targetLanguage),
+        );
+        await delay(120);
+    }
+
+    return results;
 };
 
 module.exports = {

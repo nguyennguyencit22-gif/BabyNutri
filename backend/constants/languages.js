@@ -1,0 +1,53 @@
+// List of languages selectable in the app's Language settings screen.
+// `code` is passed straight through to @vitalets/google-translate-api's `to` option.
+const LANGUAGES = [
+    { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+    { code: 'az', name: 'Azerbaijani', nativeName: 'Azərbaycan' },
+    { code: 'bg', name: 'Bulgarian', nativeName: 'Български' },
+    { code: 'bn', name: 'Bengali', nativeName: 'বাংলা' },
+    { code: 'ca', name: 'Catalan', nativeName: 'Català' },
+    { code: 'cs', name: 'Czech', nativeName: 'Čeština' },
+    { code: 'da', name: 'Danish', nativeName: 'Dansk' },
+    { code: 'de', name: 'German', nativeName: 'Deutsch' },
+    { code: 'el', name: 'Greek', nativeName: 'Ελληνικά' },
+    { code: 'en', name: 'English (US)', nativeName: 'English (US)' },
+    { code: 'en-GB', name: 'English (United Kingdom)', nativeName: 'English (United Kingdom)' },
+    { code: 'es', name: 'Spanish', nativeName: 'Español' },
+    { code: 'et', name: 'Estonian', nativeName: 'Eesti' },
+    { code: 'fi', name: 'Finnish', nativeName: 'Suomi' },
+    { code: 'fr', name: 'French', nativeName: 'Français' },
+    { code: 'he', name: 'Hebrew', nativeName: 'עברית' },
+    { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+    { code: 'hr', name: 'Croatian', nativeName: 'Hrvatski' },
+    { code: 'hu', name: 'Hungarian', nativeName: 'Magyar' },
+    { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
+    { code: 'it', name: 'Italian', nativeName: 'Italiano' },
+    { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+    { code: 'ko', name: 'Korean', nativeName: '한국어' },
+    { code: 'lt', name: 'Lithuanian', nativeName: 'Lietuvių' },
+    { code: 'lv', name: 'Latvian', nativeName: 'Latviešu' },
+    { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
+    { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
+    { code: 'no', name: 'Norwegian', nativeName: 'Norsk' },
+    { code: 'pl', name: 'Polish', nativeName: 'Polski' },
+    { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
+    { code: 'ro', name: 'Romanian', nativeName: 'Română' },
+    { code: 'ru', name: 'Russian', nativeName: 'Русский' },
+    { code: 'sk', name: 'Slovak', nativeName: 'Slovenčina' },
+    { code: 'sl', name: 'Slovenian', nativeName: 'Slovenščina' },
+    { code: 'sr', name: 'Serbian', nativeName: 'Српски' },
+    { code: 'sv', name: 'Swedish', nativeName: 'Svenska' },
+    { code: 'th', name: 'Thai', nativeName: 'ไทย' },
+    { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
+    { code: 'uk', name: 'Ukrainian', nativeName: 'Українська' },
+    { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
+    { code: 'zh-CN', name: 'Chinese (Simplified)', nativeName: '简体中文' },
+    { code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文' },
+];
+
+const SUPPORTED_LANGUAGE_CODES = LANGUAGES.map((language) => language.code);
+
+module.exports = {
+    LANGUAGES,
+    SUPPORTED_LANGUAGE_CODES,
+};

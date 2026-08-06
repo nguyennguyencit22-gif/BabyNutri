@@ -15,6 +15,8 @@ import EditBabyProfileScreen from '@/screens/profile/EditBabyProfileScreen';
 import AccountSettingsScreen from '@/screens/settings/AccountSettingsScreen';
 import SettingsScreen from '@/screens/settings/SettingsScreen';
 import ThemeSettingsScreen from '@/screens/settings/ThemeSettingsScreen';
+import LanguageSettingsScreen from '@/screens/settings/LanguageSettingsScreen';
+import MeasurementSettingsScreen from '@/screens/settings/MeasurementSettingsScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
@@ -101,6 +103,22 @@ function AppNavigator() {
       <Stack.Screen
         name="ThemeSettings"
         component={ThemeSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="LanguageSettings"
+        component={LanguageSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="MeasurementSettings"
+        component={MeasurementSettingsScreen}
         options={{
           headerShown: false,
         }}

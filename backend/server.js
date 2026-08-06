@@ -45,10 +45,11 @@ const recipeRoutes = require('./routes/recipeRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const parentRoute = require('./routes/parentRoute');
 const homeRoutes = require('./routes/homeRoutes');
+const translationRoutes = require('./routes/translationRoutes');
+const measurementRoutes = require('./routes/measurementRoutes');
 
 const app = express();
 
-const translationRoutes = require('./routes/translationRoutes');
 app.use(cors());
 
 app.use(express.json({
@@ -71,6 +72,8 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/parent', parentRoute);
 app.use('/api/home', homeRoutes);
+app.use('/api/translate', translationRoutes);
+app.use('/api/measurement-settings', measurementRoutes);
 
 app.use((req, res) => {
     res.status(404).json({
@@ -88,7 +91,6 @@ app.use((error, req, res, next) => {
     });
 });
 
-app.use('/api/translate', translationRoutes,);
 const port = Number(process.env.PORT || 3000);
 
 async function startServer() {

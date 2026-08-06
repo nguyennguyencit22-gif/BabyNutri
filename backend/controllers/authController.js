@@ -291,3 +291,91 @@ VALUES (?, ?, ?, ?, ?)
 
     }
 };
+
+/**
+ * FIREBASE LOGIN
+ * Verifies a Firebase ID token (via firebaseAuthMiddleware) and finds/creates
+ * the matching MySQL user. Role is NEVER taken from the client — a brand
+ * new account always gets Parent; Expert/Admin only ever come from a row
+ * that already existed in the database (assigned by an admin).
+ */
+exports.firebaseLogin = async (req, res) => {
+    try {
+        const { uid, email, name } = req.firebaseUser;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Firebase account has no email.",
+            });
+        }
+
+        const [existing] = await db.query(
+            `
+            SELECT
+                u.*,
+                r.name AS role
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.firebase_uid = ? OR u.email = ?
+            `,
+            [uid, email]
+        );
+
+        let user;
+
+        if (existing.length > 0) {
+            user = existing[0];
+
+            if (!user.firebase_uid) {
+                await db.query(
+                    `UPDATE users SET firebase_uid = ? WHERE id = ?`,
+                    [uid, user.id]
+                );
+            }
+        } else {
+            const [insertResult] = await db.query(
+                `
+                INSERT INTO users
+                    (full_name, email, password, role_id, firebase_uid)
+                VALUES (?, ?, NULL, 3, ?)
+                `,
+                [name || email.split("@")[0], email, uid]
+            );
+
+            user = {
+                id: insertResult.insertId,
+                full_name: name || email.split("@")[0],
+                email,
+                avatar: null,
+                role: "Parent",
+            };
+        }
+
+        const token = jwt.sign(
+            {
+                id: user.id,
+                role: user.role,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return res.json({
+            token,
+            user: {
+                id: user.id,
+                fullName: user.full_name,
+                email: user.email,
+                avatar: user.avatar || null,
+                role: user.role,
+            },
+        });
+    } catch (err) {
+        console.error("FIREBASE LOGIN ERROR:", err);
+
+        return res.status(500).json({
+            message: "Server error",
+            error: err.message,
+        });
+    }
+};

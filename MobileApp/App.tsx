@@ -21,9 +21,14 @@ import {
 
 import {
   Provider,
+  useDispatch,
 } from 'react-redux';
 
-import { store } from './src/store/store';
+import './src/i18n';
+
+import { store } from './src/store/Store';
+import type { AppDispatch } from './src/store/Store';
+import { restoreLanguage } from './src/store/settings/languageSlice';
 
 import AppNavigator from './src/navigation/AppNavigator';
 
@@ -31,6 +36,11 @@ import { useAppTheme } from './src/theme/useAppTheme';
 
 function AppContent() {
   const { isDark, colors } = useAppTheme();
+  const dispatch = useDispatch<AppDispatch>();
+
+  React.useEffect(() => {
+    dispatch(restoreLanguage());
+  }, [dispatch]);
 
   const paperTheme = {
     ...(isDark ? MD3DarkTheme : MD3LightTheme),

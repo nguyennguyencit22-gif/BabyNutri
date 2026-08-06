@@ -3,6 +3,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileMenuItem from '../../components/profile/ProfileMenuItem';
@@ -11,6 +12,7 @@ import createStyles from '../../styles/settings/settingsStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 function SettingsScreen({ navigation }: any) {
+    const { t } = useTranslation();
     const { colors } = useAppTheme();
     const styles = React.useMemo(
         () => createStyles(colors),
@@ -20,7 +22,7 @@ function SettingsScreen({ navigation }: any) {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ProfileHeader
-                title="Settings"
+                title={t('settings.title')}
                 onBack={() => navigation.goBack()}
             />
 
@@ -29,7 +31,7 @@ function SettingsScreen({ navigation }: any) {
                 contentContainerStyle={styles.scrollContent}>
 
                 <ProfileMenuItem
-                    title="Themes"
+                    title={t('settings.themes')}
                     showArrow
                     onPress={() => {
                         navigation.navigate(
@@ -39,7 +41,7 @@ function SettingsScreen({ navigation }: any) {
                 />
 
                 <ProfileMenuItem
-                    title="Language"
+                    title={t('settings.language')}
                     showArrow
                     onPress={() => {
                         navigation.navigate(
@@ -49,7 +51,7 @@ function SettingsScreen({ navigation }: any) {
                 />
 
                 <ProfileMenuItem
-                    title="Measurement units"
+                    title={t('settings.measurementUnits')}
                     showArrow
                     onPress={() => {
                         navigation.navigate(

@@ -9,6 +9,7 @@ import {
     Icon,
 } from 'react-native-paper';
 import { SafeAreaView, } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import {
     categories,
@@ -42,6 +43,7 @@ function HomeScreen() {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
+    const { t } = useTranslation();
     const { colors } = useAppTheme();
     const styles = React.useMemo(
         () => createStyles(colors),
@@ -149,13 +151,11 @@ function HomeScreen() {
                 <View style={styles.weaningSection}>
 
                     <Text style={styles.weaningTitle}>
-                        Let's get weaning!
+                        {t('home.weaningTitle')}
                     </Text>
 
                     <Text style={styles.weaningDescription}>
-                        We take the stress out of weaning and put the fun into
-                        mealtimes. Explore our weaning hub as we guide you through
-                        every stage of your little one's journey.
+                        {t('home.weaningDescription')}
                     </Text>
 
                     {weaningFeatures.map(item => (
@@ -181,7 +181,7 @@ function HomeScreen() {
 
                 <View style={styles.journeySection}>
                     <Text style={styles.journeyTitle}>
-                        Your little one&apos;s weaning journey
+                        {t('home.journeyTitle')}
                     </Text>
 
                     <FlatList
@@ -205,7 +205,7 @@ function HomeScreen() {
 
                 <View style={styles.expertSection}>
                     <Text style={styles.expertSectionTitle}>
-                        Meet the experts
+                        {t('home.expertSectionTitle')}
                     </Text>
 
                     <FlatList
@@ -224,21 +224,19 @@ function HomeScreen() {
                     />
 
                     <Text style={styles.expertDescription}>
-                        We work closely with trusted nutritionists and
-                        child-care experts to provide helpful guidance
-                        throughout your little one’s weaning journey.
+                        {t('home.expertDescription')}
                     </Text>
 
                     <Pressable style={styles.expertButton}>
                         <Text style={styles.expertButtonText}>
-                            Tell us more
+                            {t('home.expertButton')}
                         </Text>
                     </Pressable>
                 </View>
 
                 <View style={styles.popularSection}>
                     <Text style={styles.popularTitle}>
-                        Popular category
+                        {t('home.popularCategoryTitle')}
                     </Text>
 
                     <FlatList

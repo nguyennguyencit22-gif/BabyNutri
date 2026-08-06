@@ -1,53 +1,49 @@
-export type AppLanguage =
-    | 'en'
-    | 'vi'
-    | 'fr'
-    | 'de'
-    | 'ja'
-    | 'ko'
-    | 'zh-CN';
+import { apiGet, apiPost } from './api';
 
-const API_BASE_URL = 'http://10.0.2.2:5000/api';
+// Language codes are open-ended (whatever the backend's LANGUAGES list
+// supports) — they come from @vitalets/google-translate-api's target codes.
+export type AppLanguage = string;
 
-type TranslationResponse = {
+export type LanguageOption = {
+    code: AppLanguage;
+    name: string;
+    nativeName: string;
+};
+
+type TranslateResponse = {
     originalText: string;
     translatedText: string;
     targetLanguage: AppLanguage;
 };
 
-export const translateText = async (
+type TranslateBatchResponse = {
+    translatedTexts: string[];
+    targetLanguage: AppLanguage;
+};
+
+type LanguagesResponse = {
+    languages: LanguageOption[];
+};
+
+export const translateText = (
     text: string,
     targetLanguage: AppLanguage,
-): Promise<string> => {
-    const response = await fetch(
-        `${API_BASE_URL}/translate`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type':
-                    'application/json',
-            },
-            body: JSON.stringify({
-                text,
-                targetLanguage,
-            }),
-        },
+): Promise<string> =>
+    apiPost<TranslateResponse>('/translate', {
+        text,
+        targetLanguage,
+    }).then((data) => data.translatedText);
+
+export const translateBatch = (
+    texts: string[],
+    targetLanguage: AppLanguage,
+): Promise<string[]> =>
+    apiPost<TranslateBatchResponse>('/translate/batch', {
+        texts,
+        targetLanguage,
+    }).then((data) => data.translatedTexts);
+
+export const fetchSupportedLanguages = (): Promise<LanguageOption[]> =>
+    apiGet<LanguagesResponse>('/translate/languages').then(
+        (data) => data.languages,
     );
-
-    const data =
-        (await response.json()) as
-        | TranslationResponse
-        | { message?: string };
-
-    if (!response.ok) {
-        throw new Error(
-            'message' in data
-                ? data.message
-                : 'Cannot translate text.',
-        );
-    }
-
-    return (
-        data as TranslationResponse
-    ).translatedText;
-};

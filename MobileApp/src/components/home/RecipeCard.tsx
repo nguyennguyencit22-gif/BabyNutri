@@ -7,8 +7,10 @@ import {
     View,
 } from 'react-native';
 import { Icon } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../../styles/home/recipeCardStyles';
+import { useTranslatedText } from '../../hooks/useTranslatedText';
 
 type RecipeCardProps = {
     title: string;
@@ -27,6 +29,12 @@ function RecipeCard({
     ratingCount,
     onPress,
 }: RecipeCardProps) {
+    const { t } = useTranslation();
+    // `title` comes from the recipes table in MySQL, so it's translated on
+    // demand via Google Translate rather than looked up in the static
+    // i18next bundle (which only covers hand-authored UI copy).
+    const translatedTitle = useTranslatedText(title);
+
     return (
         <Pressable
             onPress={onPress}
@@ -44,7 +52,7 @@ function RecipeCard({
                 <Text
                     numberOfLines={2}
                     style={styles.title}>
-                    {title}
+                    {translatedTitle}
                 </Text>
 
                 {!!rating && (
@@ -62,7 +70,7 @@ function RecipeCard({
                 )}
 
                 <Text style={styles.timeLabel}>
-                    Time
+                    {t('home.time')}
                 </Text>
 
                 <Text style={styles.time}>
