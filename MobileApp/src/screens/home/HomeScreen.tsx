@@ -11,9 +11,9 @@ import {
 import { SafeAreaView, } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import {
-    categories,
-} from '../../constants/sampleData/homeData';
+// import {
+//     categories,
+// } from '../../constants/sampleData/homeData';
 
 import createStyles from '../../styles/home/homeStyles'
 import { FlatList, Pressable } from "react-native";
@@ -120,7 +120,7 @@ function HomeScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}>
 
-                <FlatList
+                {/* <FlatList
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     data={categories}
@@ -146,7 +146,7 @@ function HomeScreen() {
 
                         </Pressable>
                     )}
-                />
+                /> */}
 
                 <View style={styles.weaningSection}>
 
