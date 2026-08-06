@@ -23,7 +23,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingBottom: 24,
 
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
 
         borderRadius: 28,
@@ -81,7 +81,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         width: 30,
         height: 30,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
         borderRadius: 15,
         alignItems: 'center',
@@ -114,7 +114,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         minHeight: 46,
         borderRadius: 14,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashed,
         marginHorizontal: 4,
     },

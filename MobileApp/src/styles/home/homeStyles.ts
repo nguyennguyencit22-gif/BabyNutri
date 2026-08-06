@@ -27,7 +27,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     avatar: {
         backgroundColor: colors.primary,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
     },
     babyName: {
@@ -52,7 +52,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         borderRadius: 18,
         backgroundColor: colors.primarySoft,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
     },
     placeholderSection: {
@@ -62,7 +62,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         padding: 24,
         backgroundColor: colors.surface,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
     },
     placeholderTitle: {
@@ -90,7 +90,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         borderRadius: 20,
         marginRight: 12,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
         backgroundColor: colors.surface,
     },
@@ -154,7 +154,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingBottom: 32,
         borderTopWidth: 1,
         borderBottomWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: '#5B0010',
     },
 
@@ -212,7 +212,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingVertical: 12,
         backgroundColor: '#FFD34E',
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: '#5B0010',
     },
 
@@ -228,7 +228,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingBottom: 34,
         backgroundColor: '#A896F4',
         borderTopWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: '#FFFFFF',
     },
 
@@ -252,7 +252,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingVertical: 10,
         backgroundColor: '#FFFFFF',
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: '#8C44ED',
     },
 

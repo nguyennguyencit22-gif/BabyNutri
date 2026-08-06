@@ -8,7 +8,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
 
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
         borderRadius: 16,
 
@@ -24,7 +24,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         borderRadius: 23,
 
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
 
         alignItems: 'center',

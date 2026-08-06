@@ -8,7 +8,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
 
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
         borderRadius: 20,
 
@@ -29,7 +29,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     avatar: {
         elevation: 4,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
         borderRadius: 25,
     },
@@ -73,7 +73,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         marginLeft: 10,
         backgroundColor: colors.primarySoft,
         borderWidth: 1,
-        borderStyle: 'dashed',
+        borderStyle: 'solid',
         borderColor: colors.borderDashedPrimary,
     },
 });
