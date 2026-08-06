@@ -47,6 +47,20 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
+    ratingRow: {
+        marginTop: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+    },
+
+    ratingText: {
+        color: '#8C7B7E',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+
     timeLabel: {
         marginTop: 14,
         color: '#D0C2C4',

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    ActivityIndicator,
     ScrollView,
     Text,
     View,
@@ -10,35 +11,103 @@ import {
 import { SafeAreaView, } from 'react-native-safe-area-context';
 
 import {
-    Avatar,
-    IconButton,
-    // Surface,
-} from 'react-native-paper';
-
-import {
     categories,
-    POPULAR_CATEGORIES,
-    POPULAR_RECIPES,
 } from '../../constants/sampleData/homeData';
 
 import createStyles from '../../styles/home/homeStyles'
 import { FlatList, Pressable } from "react-native";
-import { JOURNEY_ITEMS, WEANING_FEATURES, } from "../../constants/sampleData/homeData";
 import JourneyCard from '@/components/home/JourneyCard';
 import ExpertCard from '../../components/home/ExpertCard';
-import { EXPERT_ITEMS, } from '../../constants/sampleData/homeData';
 import RecipeCard from '../../components/home/RecipeCard';
 import HomeBabyHeader from '@/components/home/HomeBabyHeader';
 import { useAppTheme } from '../../theme/useAppTheme';
+import {
+    fetchHomeData,
+    HomeData,
+} from '../../services/home.service';
+import { getJourneyImage } from '../../constants/home/journeyImages';
+import { getRecipeImage } from '../../constants/home/recipeImages';
+
+const EMPTY_HOME_DATA: HomeData = {
+    popularCategories: [],
+    popularRecipes: [],
+    experts: [],
+    journeyItems: [],
+    weaningFeatures: [],
+};
 
 function HomeScreen() {
     const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
+    const [homeData, setHomeData] = React.useState<HomeData>(EMPTY_HOME_DATA);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
     const { colors } = useAppTheme();
     const styles = React.useMemo(
         () => createStyles(colors),
         [colors],
     );
+
+    const loadHomeData = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await fetchHomeData();
+            setHomeData(data);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to load home data',
+            );
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        loadHomeData();
+    }, [loadHomeData]);
+
+    const {
+        popularCategories,
+        popularRecipes,
+        experts,
+        journeyItems,
+        weaningFeatures,
+    } = homeData;
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator
+                        size="large"
+                        color={colors.primary}
+                    />
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (error) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.weaningDescription}>
+                        {error}
+                    </Text>
+                    <Pressable
+                        onPress={loadHomeData}
+                        style={styles.expertButton}>
+                        <Text style={styles.expertButtonText}>
+                            Try again
+                        </Text>
+                    </Pressable>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -89,7 +158,7 @@ function HomeScreen() {
                         every stage of your little one's journey.
                     </Text>
 
-                    {WEANING_FEATURES.map(item => (
+                    {weaningFeatures.map(item => (
                         <View
                             key={item}
                             style={styles.featureItem}>
@@ -117,8 +186,8 @@ function HomeScreen() {
 
                     <FlatList
                         horizontal
-                        data={JOURNEY_ITEMS}
-                        keyExtractor={(item) => item.id}
+                        data={journeyItems}
+                        keyExtractor={(item) => String(item.id)}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.journeyListContent}
 
@@ -128,6 +197,7 @@ function HomeScreen() {
                                 title={item.title}
                                 description={item.description}
                                 colorMonths={item.colorMonth}
+                                image={getJourneyImage(item.imageKey)}
                             />
                         )}
                     />
@@ -140,15 +210,15 @@ function HomeScreen() {
 
                     <FlatList
                         horizontal
-                        data={EXPERT_ITEMS}
-                        keyExtractor={item => item.id}
+                        data={experts}
+                        keyExtractor={item => String(item.id)}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.expertList}
                         renderItem={({ item }) => (
                             <ExpertCard
                                 name={item.name}
                                 role={item.role}
-                                image={item.image}
+                                image={{ uri: item.image }}
                             />
                         )}
                     />
@@ -173,7 +243,7 @@ function HomeScreen() {
 
                     <FlatList
                         horizontal
-                        data={POPULAR_CATEGORIES}
+                        data={popularCategories}
                         keyExtractor={item => item}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.popularCategoryList}
@@ -202,15 +272,17 @@ function HomeScreen() {
 
                     <FlatList
                         horizontal
-                        data={POPULAR_RECIPES}
-                        keyExtractor={item => item.id}
+                        data={popularRecipes}
+                        keyExtractor={item => String(item.id)}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.recipeList}
                         renderItem={({ item }) => (
                             <RecipeCard
                                 title={item.title}
                                 time={item.time}
-                                image={item.image}
+                                image={getRecipeImage(item.id, item.image)}
+                                rating={item.rating}
+                                ratingCount={item.ratingCount}
                                 onPress={() =>
                                     console.log(
                                         'Recipe selected:',

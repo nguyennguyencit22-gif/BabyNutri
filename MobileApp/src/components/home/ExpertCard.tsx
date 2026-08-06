@@ -1,6 +1,7 @@
 import React from 'react';
 import {
     Image,
+    ImageSourcePropType,
     StyleSheet,
     Text,
     View,
@@ -9,7 +10,7 @@ import {
 type ExpertCardProps = {
     name: string;
     role: string;
-    image: string;
+    image: ImageSourcePropType;
 };
 
 function ExpertCard({
@@ -20,7 +21,7 @@ function ExpertCard({
     return (
         <View style={styles.container}>
             <Image
-                source={{ uri: image }}
+                source={image}
                 style={styles.avatar}
             />
 

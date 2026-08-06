@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { Image, ImageSourcePropType, View, Text, StyleSheet } from "react-native";
 import { Button } from 'react-native-paper';
 import Svg, { Path } from 'react-native-svg';
 import styles from '../../styles/home/jouneyCardStyles';
@@ -9,6 +9,7 @@ type JourneyCardProps = {
     title: string;
     description: string;
     colorMonths: string;
+    image?: ImageSourcePropType;
 };
 
 const BLOB_PATH =
@@ -18,7 +19,8 @@ function JourneyCard(
     { age,
         title,
         description,
-        colorMonths, }: JourneyCardProps
+        colorMonths,
+        image, }: JourneyCardProps
 ) {
     const [ageNumber, ageUnit] = age.split('\n');
 
@@ -26,27 +28,37 @@ function JourneyCard(
         <View style={styles.card}>
             <View style={styles.cardContent}>
                 <View style={styles.ageCircle}>
-                    <Svg
-                        width="100%"
-                        height="100%"
-                        viewBox="0 0 200 200"
-                        style={StyleSheet.absoluteFill}
-                    >
-                        <Path
-                            d={BLOB_PATH}
-                            transform="translate(100 100)"
-                            fill={colorMonths}
-                            stroke="#5B0010"
-                            strokeWidth={5}
+                    {image ? (
+                        <Image
+                            source={image}
+                            style={styles.ageCircleImage}
+                            resizeMode="contain"
                         />
-                    </Svg>
+                    ) : (
+                        <>
+                            <Svg
+                                width="100%"
+                                height="100%"
+                                viewBox="0 0 200 200"
+                                style={StyleSheet.absoluteFill}
+                            >
+                                <Path
+                                    d={BLOB_PATH}
+                                    transform="translate(100 100)"
+                                    fill={colorMonths}
+                                    stroke="#5B0010"
+                                    strokeWidth={5}
+                                />
+                            </Svg>
 
-                    <Text style={styles.ageNumberText}>
-                        {ageNumber}
-                    </Text>
-                    <Text style={styles.ageUnitText}>
-                        {ageUnit}
-                    </Text>
+                            <Text style={styles.ageNumberText}>
+                                {ageNumber}
+                            </Text>
+                            <Text style={styles.ageUnitText}>
+                                {ageUnit}
+                            </Text>
+                        </>
+                    )}
                 </View>
 
                 <Text style={styles.title}>

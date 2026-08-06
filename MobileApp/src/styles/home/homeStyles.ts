@@ -9,6 +9,13 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     scrollContent: {
         paddingBottom: 34,
     },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        gap: 16,
+    },
 
     //Header
     header: {
