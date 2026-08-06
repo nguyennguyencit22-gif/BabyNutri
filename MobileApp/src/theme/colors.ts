@@ -3,6 +3,8 @@ export type AppColors = {
     surface: string;
     surfaceAlt: string;
     border: string;
+    borderDashed: string;
+    borderDashedPrimary: string;
     overlay: string;
     overlayStrong: string;
 
@@ -25,6 +27,8 @@ export const lightColors: AppColors = {
     surface: '#FFFFFF',
     surfaceAlt: '#FFF0EA',
     border: '#EFE7E4',
+    borderDashed: '#FFD5CC',
+    borderDashedPrimary: '#FF9EAA',
     overlay: 'rgba(35, 20, 25, 0.30)',
     overlayStrong: 'rgba(45, 35, 40, 0.42)',
 
@@ -47,6 +51,8 @@ export const darkColors: AppColors = {
     surface: '#2A2225',
     surfaceAlt: '#3A2E31',
     border: '#44383D',
+    borderDashed: '#5A3D42',
+    borderDashedPrimary: '#8A4550',
     overlay: 'rgba(0, 0, 0, 0.55)',
     overlayStrong: 'rgba(0, 0, 0, 0.65)',
 

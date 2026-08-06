@@ -31,7 +31,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         marginTop: 18,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
         borderRadius: 18,
         paddingHorizontal: 20,
         paddingVertical: 16,
@@ -56,6 +57,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.primary,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
     },
 
     avatarText: {
@@ -70,8 +74,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         bottom: -2,
         width: 38,
         height: 38,
-        borderWidth: 3,
-        borderColor: colors.surfaceAlt,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
         borderRadius: 19,
         alignItems: 'center',
         justifyContent: 'center',
@@ -107,16 +112,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
     // Menu Item
     containerMenu: {
-        minHeight: 72,
+        minHeight: 64,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
 
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashed,
+        borderRadius: 14,
+        marginVertical: 4,
+        marginHorizontal: 4,
 
-        paddingHorizontal: 10,
-        backgroundColor: colors.background,
+        paddingHorizontal: 14,
+        backgroundColor: colors.surface,
     },
 
     pressed: {
@@ -133,14 +142,15 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         width: 42,
         height: 42,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
         borderRadius: 21,
 
         alignItems: 'center',
         justifyContent: 'center',
 
         marginRight: 14,
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceAlt,
 
         elevation: 2,
         shadowColor: '#000000',
@@ -156,7 +166,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         flexShrink: 1,
         color: colors.text,
         fontSize: 16,
-        fontWeight: '400',
+        fontWeight: '500',
     },
 
     dangerTitle: {

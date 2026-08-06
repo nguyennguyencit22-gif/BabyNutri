@@ -22,6 +22,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingTop: 30,
         paddingBottom: 24,
 
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
+
         borderRadius: 28,
         backgroundColor: colors.surface,
 
@@ -76,8 +80,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     checkbox: {
         width: 30,
         height: 30,
-        borderWidth: 3,
-        borderColor: colors.border,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashedPrimary,
         borderRadius: 15,
         alignItems: 'center',
         justifyContent: 'center',
@@ -107,6 +112,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 46,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: colors.borderDashed,
+        marginHorizontal: 4,
     },
 
     cancelText: {
