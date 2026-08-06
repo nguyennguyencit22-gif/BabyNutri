@@ -72,3 +72,7 @@ export function apiPut<T>(path: string, data?: unknown): Promise<T> {
         body: data !== undefined ? JSON.stringify(data) : undefined,
     });
 }
+
+export function apiDelete<T>(path: string): Promise<T> {
+    return request<T>(path, { method: 'DELETE' });
+}

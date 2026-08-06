@@ -47,6 +47,7 @@ const parentRoute = require('./routes/parentRoute');
 const homeRoutes = require('./routes/homeRoutes');
 const translationRoutes = require('./routes/translationRoutes');
 const measurementRoutes = require('./routes/measurementRoutes');
+const childRoutes = require('./routes/childRoutes');
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/parent', parentRoute);
 app.use('/api/home', homeRoutes);
 app.use('/api/translate', translationRoutes);
 app.use('/api/measurement-settings', measurementRoutes);
+app.use('/api/children', childRoutes);
 
 app.use((req, res) => {
     res.status(404).json({

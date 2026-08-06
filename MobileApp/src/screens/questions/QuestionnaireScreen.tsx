@@ -24,11 +24,12 @@ import {
 } from '../../utils/dateUtils';
 import { useDispatch } from 'react-redux';
 import { PROFILE_COLORS } from '@/constants/profile/babyProfileData';
-import { addBaby } from '@/store/babySlice';
-import type { AppDispatch, } from '../../store/Store';
+import { saveBaby } from '@/store/babySlice';
+import type { AppDispatch } from '../../store/Store';
 import { ALLERGY_OPTIONS, NUTRITION_GOAL_OPTIONS, FOOD_PREFERENCE_OPTIONS } from '@/constants/profile/babyProfileData';
 
-const TOTAL_STEPS = 7;
+// hasChild, name, DOB, gender, weight, height, allergies, nutritionGoal, foodPreferences
+const TOTAL_STEPS = 9;
 
 const GENDER_OPTIONS: Array<{
     label: string;
@@ -43,6 +44,35 @@ const GENDER_OPTIONS: Array<{
             value: 'Girl',
         },
     ];
+
+type UnitOptionProps = {
+    title: string;
+    selected: boolean;
+    onPress: () => void;
+};
+
+function UnitOption({ title, selected, onPress }: UnitOptionProps) {
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
+    return (
+        <Pressable onPress={onPress} style={styles.unitOption}>
+            <View
+                style={[
+                    styles.unitRadio,
+                    selected && styles.unitRadioSelected,
+                ]}
+            />
+
+            <Text style={styles.unitLabel}>
+                {title}
+            </Text>
+        </Pressable>
+    );
+}
 
 function QuestionnaireScreen({ navigation, route }: any) {
     const userMode: 'guest' | 'authenticated' =
@@ -64,6 +94,10 @@ function QuestionnaireScreen({ navigation, route }: any) {
             childName: '',
             dateOfBirth: '',
             gender: '',
+            weight: 0,
+            weightUnit: 'lb',
+            height: 0,
+            heightUnit: 'in',
             allergies: [],
             nutritionGoal: '',
             foodPreferences: [],
@@ -163,8 +197,25 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     return false;
                 }
                 break;
-
             case 4:
+                if (!answers.weight || answers.weight <= 0) {
+                    Alert.alert(
+                        'Required',
+                        "Please enter your child's weight.",
+                    );
+                    return false;
+                }
+                break;
+            case 5:
+                if (!answers.height || answers.height <= 0) {
+                    Alert.alert(
+                        'Required',
+                        "Please enter your child's height.",
+                    );
+                    return false;
+                }
+                break;
+            case 6:
                 if (answers.allergies.length === 0) {
                     Alert.alert(
                         'Required',
@@ -174,7 +225,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 }
                 break;
 
-            case 5:
+            case 7:
                 if (!answers.nutritionGoal) {
                     Alert.alert(
                         'Required',
@@ -184,7 +235,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 }
                 break;
 
-            case 6:
+            case 8:
                 if (
                     answers.foodPreferences.length === 0
                 ) {
@@ -205,7 +256,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
 
 
 
-    const handleNext = () => {
+    const handleNext = async () => {
         const isValid = validateCurrentStep();
 
         if (!isValid) {
@@ -250,8 +301,8 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 ? 'boy'
                 : 'girl';
 
-        dispatch(
-            addBaby({
+        const result = await dispatch(
+            saveBaby({
                 id: Date.now().toString(),
                 name: answers.childName.trim(),
                 profileColor: PROFILE_COLORS[0],
@@ -260,8 +311,22 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 allergies: answers.allergies,
                 nutritionGoal: answers.nutritionGoal,
                 foodPreferences: answers.foodPreferences,
+                weight: answers.weight,
+                weightUnit: answers.weightUnit,
+                height: answers.height,
+                heightUnit: answers.heightUnit,
             }),
         );
+
+        // For a real account this hit the backend — if that failed, stay
+        // on this screen instead of navigating to Home with nothing saved.
+        if (saveBaby.rejected.match(result)) {
+            Alert.alert(
+                'Error',
+                'Could not save the baby profile. Please try again.',
+            );
+            return;
+        }
 
         navigation.reset({
             index: 0,
@@ -313,6 +378,33 @@ function QuestionnaireScreen({ navigation, route }: any) {
         day: '',
         year: '',
     });
+
+    // TextInput must be controlled by the raw string the user typed, not by
+    // String(answers.weight) — otherwise "1." immediately re-renders as "1"
+    // because Number("1.") === 1, and the decimal point can never be typed.
+    const [weightText, setWeightText] = useState('');
+    const [heightText, setHeightText] = useState('');
+
+    const sanitizeDecimal = (text: string) => {
+        const digitsAndDot = text.replace(/[^0-9.]/g, '');
+        const [wholePart, ...rest] = digitsAndDot.split('.');
+
+        return rest.length > 0
+            ? `${wholePart}.${rest.join('')}`
+            : digitsAndDot;
+    };
+
+    const handleWeightChange = (text: string) => {
+        const sanitized = sanitizeDecimal(text);
+        setWeightText(sanitized);
+        updateAnswer('weight', Number(sanitized) || 0);
+    };
+
+    const handleHeightChange = (text: string) => {
+        const sanitized = sanitizeDecimal(text);
+        setHeightText(sanitized);
+        updateAnswer('height', Number(sanitized) || 0);
+    };
 
     const years = getYears();
 
@@ -559,6 +651,112 @@ function QuestionnaireScreen({ navigation, route }: any) {
                 return (
                     <>
                         <Text style={styles.question}>
+                            Enter your child's weight
+                        </Text>
+
+                        <Text style={styles.fieldDescription}>
+                            Enter your child's current weight to help
+                            BabyNutri calculate growth indicators and
+                            provide personalized nutrition recommendations.
+                        </Text>
+
+                        <View style={styles.unitRow}>
+
+                            <UnitOption
+                                title="pounds"
+                                selected={
+                                    answers.weightUnit === 'lb'
+                                }
+                                onPress={() =>
+                                    updateAnswer(
+                                        'weightUnit',
+                                        'lb',
+                                    )
+                                }
+                            />
+
+                            <UnitOption
+                                title="kg"
+                                selected={
+                                    answers.weightUnit === 'kg'
+                                }
+                                onPress={() =>
+                                    updateAnswer(
+                                        'weightUnit',
+                                        'kg',
+                                    )
+                                }
+                            />
+
+                        </View>
+
+                        <TextInput
+                            style={styles.input}
+                            keyboardType="decimal-pad"
+                            value={weightText}
+                            onChangeText={handleWeightChange}
+                            placeholder="0.0"
+                        />
+                    </>
+                );
+
+
+            case 5:
+                return (
+                    <>
+                        <Text style={styles.question}>
+                            Enter your child's height
+                        </Text>
+
+                        <Text style={styles.fieldDescription}>
+                            Enter your child's current height to help
+                            BabyNutri calculate growth indicators and
+                            provide personalized nutrition recommendations.
+                        </Text>
+
+                        <View style={styles.unitRow}>
+
+                            <UnitOption
+                                title="inches"
+                                selected={
+                                    answers.heightUnit === 'in'
+                                }
+                                onPress={() =>
+                                    updateAnswer(
+                                        'heightUnit',
+                                        'in',
+                                    )
+                                }
+                            />
+
+                            <UnitOption
+                                title="cm"
+                                selected={
+                                    answers.heightUnit === 'cm'
+                                }
+                                onPress={() =>
+                                    updateAnswer(
+                                        'heightUnit',
+                                        'cm',
+                                    )
+                                }
+                            />
+
+                        </View>
+
+                        <TextInput
+                            style={styles.input}
+                            keyboardType="decimal-pad"
+                            value={heightText}
+                            onChangeText={handleHeightChange}
+                            placeholder="0.0"
+                        />
+                    </>
+                );
+            case 6:
+                return (
+                    <>
+                        <Text style={styles.question}>
                             Does your child have any allergies?
                         </Text>
 
@@ -571,7 +769,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                         )}
                     </>
                 );
-            case 5:
+            case 7:
                 return (
                     <>
                         <Text style={styles.question}>
@@ -592,7 +790,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     </>
                 );
 
-            case 6:
+            case 8:
                 return (
                     <>
                         <Text style={styles.question}>

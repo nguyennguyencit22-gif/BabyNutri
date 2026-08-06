@@ -30,6 +30,10 @@ import GenderSelector, {
 import DateOfBirthRow from '../../components/profile/DateOfBirthRow';
 import AllergySelector from '../../components/profile/OptionSelector';
 import AllergyModal from '../../components/profile/OptionModalForChild';
+import WeightHeightFields, {
+    HeightUnit,
+    WeightUnit,
+} from '../../components/profile/WeightHeightFields';
 
 import {
     PROFILE_COLORS,
@@ -39,11 +43,12 @@ import {
 } from '../../constants/profile/babyProfileData';
 
 import {
-    deleteBaby,
-    updateBaby,
+    editBaby,
+    removeBaby,
 } from '../../store/babySlice';
 
 import type {
+    AppDispatch,
     RootState,
 } from '../../store/Store';
 import createStyles from '@/styles/profile/editBabyProfileStyles';
@@ -55,7 +60,7 @@ function EditBabyProfileScreen({
 }: any) {
     const { babyId } = route.params;
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const { colors } = useAppTheme();
     const styles = React.useMemo(
@@ -92,6 +97,19 @@ function EditBabyProfileScreen({
                 ? new Date(baby.dateOfBirth)
                 : new Date(),
         );
+
+    const [weightText, setWeightText] = React.useState(
+        baby?.weight ? String(baby.weight) : '',
+    );
+    const [weightUnit, setWeightUnit] = React.useState<WeightUnit>(
+        baby?.weightUnit ?? 'lb',
+    );
+    const [heightText, setHeightText] = React.useState(
+        baby?.height ? String(baby.height) : '',
+    );
+    const [heightUnit, setHeightUnit] = React.useState<HeightUnit>(
+        baby?.heightUnit ?? 'in',
+    );
 
     const [
         selectedAllergies,
@@ -205,13 +223,13 @@ function EditBabyProfileScreen({
         });
     };
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         if (!baby || !validateForm()) {
             return;
         }
 
-        dispatch(
-            updateBaby({
+        const result = await dispatch(
+            editBaby({
                 id: baby.id,
                 name: babyName.trim(),
                 profileColor: selectedColor,
@@ -224,8 +242,20 @@ function EditBabyProfileScreen({
                     selectedNutritionGoal,
                 foodPreferences:
                     selectedFoodPreferences,
+                weight: Number(weightText) || undefined,
+                weightUnit,
+                height: Number(heightText) || undefined,
+                heightUnit,
             }),
         );
+
+        if (editBaby.rejected.match(result)) {
+            Alert.alert(
+                'Error',
+                'Could not update the baby profile. Please try again.',
+            );
+            return;
+        }
 
         Alert.alert(
             'Success',
@@ -242,14 +272,22 @@ function EditBabyProfileScreen({
 
     const [showDeleteModal, setShowDeleteModal] = React.useState(false);
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (!baby) {
             return;
         }
 
-        dispatch(deleteBaby(baby.id));
+        const result = await dispatch(removeBaby(baby.id));
 
         setShowDeleteModal(false);
+
+        if (removeBaby.rejected.match(result)) {
+            Alert.alert(
+                'Error',
+                'Could not delete the baby profile. Please try again.',
+            );
+            return;
+        }
 
         navigation.goBack();
     };
@@ -360,6 +398,17 @@ function EditBabyProfileScreen({
                         }
                     />
                 )}
+
+                <WeightHeightFields
+                    weightText={weightText}
+                    weightUnit={weightUnit}
+                    onChangeWeightText={setWeightText}
+                    onChangeWeightUnit={setWeightUnit}
+                    heightText={heightText}
+                    heightUnit={heightUnit}
+                    onChangeHeightText={setHeightText}
+                    onChangeHeightUnit={setHeightUnit}
+                />
 
                 <AllergySelector
                     label="Allergies"

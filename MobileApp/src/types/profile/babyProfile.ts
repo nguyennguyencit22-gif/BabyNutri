@@ -18,4 +18,9 @@ export type BabyProfile = {
     allergies: string[];
     nutritionGoal?: string;
     foodPreferences?: string[];
+
+    weight?: number;
+    weightUnit?: 'kg' | 'lb';
+    height?: number;
+    heightUnit?: 'cm' | 'in';
 };

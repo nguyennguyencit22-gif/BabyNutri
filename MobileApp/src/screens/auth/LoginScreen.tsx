@@ -31,6 +31,8 @@ import {
     loginWithFirebaseToken,
 } from '../../services/auth.service';
 
+import { loadBabies } from '../../store/babySlice';
+
 import createStyles from '../../styles/auth/loginStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
@@ -97,6 +99,10 @@ function LoginScreen({ navigation }: any) {
                     },
                 }),
             );
+
+            // Now that state.auth.mode === 'authenticated', pull this
+            // parent's real baby profiles from MySQL into Redux.
+            await dispatch(loadBabies());
 
             navigation.reset({
                 index: 0,

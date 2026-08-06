@@ -61,15 +61,38 @@ CREATE TABLE child_profiles (
     name VARCHAR(255),
     date_of_birth DATE,
     weight FLOAT,
+    weight_unit VARCHAR(10) DEFAULT 'kg',
     height FLOAT,
+    height_unit VARCHAR(10) DEFAULT 'cm',
     gender VARCHAR(20),
     image_url VARCHAR(500),
+    profile_color VARCHAR(20),
+    nutrition_goal VARCHAR(255),
 
     FOREIGN KEY (parent_id) REFERENCES users(id)
 );
 
 INSERT INTO child_profiles
+    (id,parent_id,name,date_of_birth,weight,height,gender,image_url)
 VALUES (1,3,'Emma','2024-05-01',8.5,72,'Female','/images/child1.webp');
+
+-- App-specific tags, decoupled from the recipe-filtering `allergies` table
+-- below (different vocabulary, different purpose — see migration notes).
+CREATE TABLE child_known_allergies (
+    child_id INT NOT NULL,
+    allergy_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, allergy_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE child_food_preferences (
+    child_id INT NOT NULL,
+    food_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, food_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
 
 -- ==========================================
 -- MEAL TYPES
