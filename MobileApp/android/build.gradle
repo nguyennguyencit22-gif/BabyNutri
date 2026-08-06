@@ -19,4 +19,8 @@ buildscript {
     }
 }
 
+allprojects {
+    buildDir = "C:/tmp/BN/${project.name}"
+}
+
 apply plugin: "com.facebook.react.rootproject"
