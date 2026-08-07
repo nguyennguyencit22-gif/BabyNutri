@@ -6,10 +6,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-    Icon,
-    Text,
-} from 'react-native-paper';
+import { Text } from 'react-native-paper';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { useSelector } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
@@ -21,6 +19,13 @@ import createStyles from '@/styles/settings/accountSettingStyles';
 import { useAppTheme } from '@/theme/useAppTheme';
 
 import type { RootState } from '../../store/Store';
+
+const CameraIcon = ({ size = 20, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+    <Circle cx="12" cy="13" r="4" />
+  </Svg>
+);
 
 function AccountSettingsScreen({
     navigation,
@@ -104,7 +109,6 @@ function AccountSettingsScreen({
     );
 
     const email = user?.email || 'No email';
-
     const photoURL = user?.photoURL;
 
     return (
@@ -136,9 +140,8 @@ function AccountSettingsScreen({
                     <Pressable
                         onPress={handleChangePhoto}
                         style={styles.cameraButton}>
-                        <Icon
-                            source="camera"
-                            size={22}
+                        <CameraIcon
+                            size={18}
                             color={colors.onPrimary}
                         />
                     </Pressable>
@@ -178,4 +181,3 @@ function AccountSettingsScreen({
 }
 
 export default AccountSettingsScreen;
-

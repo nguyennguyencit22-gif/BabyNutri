@@ -2,10 +2,11 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
+import { useSelector } from 'react-redux';
 import ArticleCard from '../../components/articles/ArticleCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { useArticleStore } from '../../stores/useArticleStore';
-import { ArticleListItem } from '../../types/article';
+import type { RootState } from '../../store/Store';
 
 const PencilIcon = ({ size = 12, color = '#FF7A59' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
@@ -24,9 +25,15 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
   const { articles, loading, fetchArticles } = useArticleStore();
   const [refreshing, setRefreshing] = useState(false);
 
-  // State quản lý Cuộn Vô Hạn (Infinite Scroll) & Đề xuất Bài viết
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isExpert = authMode === 'authenticated' && user?.role === 'expert';
+
+  const userName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
+  const avatarUrl = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FF5F70&color=fff&bold=true`;
 
   useFocusEffect(
     useCallback(() => {
@@ -41,14 +48,11 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
     setRefreshing(false);
   };
 
-  // Sắp xếp đề xuất bài viết thông minh theo tương tác & xáo trộn tự nhiên
   const recommendedArticles = useMemo(() => {
     if (!articles || articles.length === 0) return [];
-    // Tạo mảng bài viết với thứ tự được tối ưu hóa cho trải nghiệm lướt Bảng tin
     return [...articles].sort((a, b) => (b.id % 5) - (a.id % 5));
   }, [articles]);
 
-  // Danh sách bài viết được hiển thị theo từng trang (Infinite Lazy Loading)
   const visibleArticles = useMemo(() => {
     return recommendedArticles.slice(0, page * PAGE_SIZE);
   }, [recommendedArticles, page]);
@@ -68,24 +72,25 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
 
   const renderHeader = () => (
     <View style={styles.headerBox}>
-      <Text style={styles.headerTitle}>Bài viết dinh dưỡng</Text>
+      <Text style={styles.headerTitle}>Nutrition Articles</Text>
 
-      {/* Thanh tạo bài viết giống Facebook */}
-      <TouchableOpacity
-        style={styles.postPrompt}
-        onPress={() => navigation.navigate('AddArticle')}
-        activeOpacity={0.8}
-      >
-        <Image
-          source={{ uri: 'https://ui-avatars.com/api/?name=Minh+Nguyen&background=FF5F70&color=fff&bold=true' }}
-          style={styles.promptAvatar}
-        />
-        <Text style={styles.promptText}>Bạn muốn chia sẻ mẹo hay bài viết nào?...</Text>
-        <View style={styles.badgeContainer}>
-          <PencilIcon size={12} color="#FFFFFF" />
-          <Text style={styles.postBadgeText}>Đăng bài</Text>
-        </View>
-      </TouchableOpacity>
+      {isExpert && (
+        <TouchableOpacity
+          style={styles.postPrompt}
+          onPress={() => navigation.navigate('AddArticle')}
+          activeOpacity={0.8}
+        >
+          <Image
+            source={{ uri: avatarUrl }}
+            style={styles.promptAvatar}
+          />
+          <Text style={styles.promptText}>What's on your mind?...</Text>
+          <View style={styles.badgeContainer}>
+            <PencilIcon size={12} color="#FFFFFF" />
+            <Text style={styles.postBadgeText}>Post</Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -94,7 +99,7 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color="#FF5F70" />
-        <Text style={styles.footerText}>Đang tải thêm bài viết...</Text>
+        <Text style={styles.footerText}>Loading more articles...</Text>
       </View>
     );
   };
@@ -114,11 +119,13 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
         renderItem={({ item }) => (
           <ArticleCard article={item} onPress={() => navigation.navigate('ArticleDetail', { id: item.id })} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Chưa có bài viết nào trên bảng tin</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No articles on newsfeed yet</Text>}
       />
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddArticle')} activeOpacity={0.85}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {isExpert && (
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddArticle')} activeOpacity={0.85}>
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

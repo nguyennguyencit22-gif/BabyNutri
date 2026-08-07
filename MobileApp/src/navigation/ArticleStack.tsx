@@ -18,8 +18,8 @@ export default function ArticleStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       <Stack.Screen name="ArticleList" component={ArticleListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} options={{ title: 'Chi tiết bài viết' }} />
-      <Stack.Screen name="AddArticle" component={AddArticleScreen} options={{ title: 'Tạo bài viết chia sẻ' }} />
+      <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} options={{ title: 'Article Details' }} />
+      <Stack.Screen name="AddArticle" component={AddArticleScreen} options={{ title: 'Create Shared Article' }} />
       <Stack.Screen name="SavedItems" component={SavedItemsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );

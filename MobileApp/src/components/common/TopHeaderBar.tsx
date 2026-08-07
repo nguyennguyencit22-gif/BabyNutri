@@ -1,19 +1,70 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  BellIcon,
-  Bars3Icon,
-  UserIcon,
-  BookmarkIcon,
-  Cog6ToothIcon,
-  QuestionMarkCircleIcon,
-  SparklesIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-} from 'react-native-heroicons/outline';
+import Svg, { Path } from 'react-native-svg';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store/store';
+import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+
+// Pure SVG Icon components
+const BellIcon = ({ size = 20, color = '#4B3034' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+  </Svg>
+);
+
+const Bars3Icon = ({ size = 20, color = '#4B3034' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M4 6h16M4 12h16M4 18h16" />
+  </Svg>
+);
+
+const HeartIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+  </Svg>
+);
+
+const ChatIcon = ({ size = 20, color = '#0284C7' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+  </Svg>
+);
+
+const Cog6ToothIcon = ({ size = 16, color = '#8E7377' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    <Path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </Svg>
+);
+
+const QuestionMarkCircleIcon = ({ size = 16, color = '#8E7377' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+    <Path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" />
+  </Svg>
+);
+
+const SparklesIcon = ({ size = 16, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" />
+  </Svg>
+);
+
+const BookOpenIcon = ({ size = 16, color = '#0284C7' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2V3zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7V3z" />
+  </Svg>
+);
+
+const CheckCircleIcon = ({ size = 16, color = '#16A34A' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+    <Path d="M22 4L12 14.01l-3-3" />
+  </Svg>
+);
 
 const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
 
@@ -25,6 +76,14 @@ const TopHeaderBar: React.FC = () => {
   const [notifVisible, setNotifVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(2);
 
+  const babies = useSelector((state: RootState) => state.baby.babies);
+  const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
+  const selectedBaby = babies.find(b => String(b.id) === String(selectedBabyId)) || babies[0];
+
+  const babyName = selectedBaby ? selectedBaby.name : 'Baby Profile';
+  const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Select baby';
+  const babyColor = selectedBaby?.profileColor || '#FF7A59';
+
   const handleOpenNotification = () => {
     setUnreadCount(0);
     setNotifVisible(true);
@@ -34,76 +93,58 @@ const TopHeaderBar: React.FC = () => {
     <View style={styles.headerContainer}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
       
-      {/* Góc trái: Profile Avatar & Tên người dùng */}
+      {/* Baby Profile Section (Hiển thị Tên Bé & Tuổi Bé theo chỉ đạo của Minh Nguyên) */}
       <TouchableOpacity 
         style={styles.profileSection} 
         onPress={() => navigation.navigate('ProfileTab')}
         activeOpacity={0.8}
       >
-        <View style={styles.avatarBorder}>
-          <Image
-            source={{ uri: 'https://ui-avatars.com/api/?name=Nguyen+Minh&background=FF7A59&color=fff&bold=true' }}
-            style={styles.avatar}
-          />
+        <View style={[styles.avatarBorder, { backgroundColor: babyColor, width: 38, height: 38, borderRadius: 19, justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
+            {babyName.charAt(0).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.greetingText}>Xin chào, Mẹ Bé</Text>
-          <Text style={styles.userName}>Minh Nguyên</Text>
+          <Text style={styles.userName}>{babyName}</Text>
+          <Text style={styles.greetingText}>{babyAgeText}</Text>
         </View>
       </TouchableOpacity>
 
-      {/* Góc phải: Nút Thông báo & Nút 3 gạch */}
+      {/* Header Action Buttons (Instagram & Facebook Style) */}
       <View style={styles.actionSection}>
-        <TouchableOpacity style={styles.iconBtn} onPress={handleOpenNotification} activeOpacity={0.8}>
+        {/* Nút Tim (Instagram Style: Lịch sử thả tim bài viết & công thức) */}
+        <TouchableOpacity 
+          style={styles.iconBtn} 
+          onPress={() => navigation.navigate('FavoriteRecipes')} 
+          activeOpacity={0.8}
+        >
+          <HeartIcon size={20} color="#FF5F70" />
+        </TouchableOpacity>
+
+        {/* Nút Thông báo */}
+        <TouchableOpacity 
+          style={styles.iconBtn} 
+          onPress={handleOpenNotification} 
+          activeOpacity={0.8}
+        >
           <BellIcon size={20} color={colors.text} />
           {unreadCount > 0 && <View style={styles.badgeDot} />}
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.iconBtn} onPress={() => setMenuVisible(true)} activeOpacity={0.8}>
-          <Bars3Icon size={20} color={colors.text} />
-        </TouchableOpacity>
       </View>
 
-      {/* Modal Cửa sổ Danh sách Thông báo */}
+      {/* Notifications Modal (Prioritizing Nutrition Schedule & Baby Profile) */}
       <Modal visible={notifVisible} transparent animationType="fade" onRequestClose={() => setNotifVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setNotifVisible(false)}>
           <View style={styles.notifBox}>
             <View style={styles.notifHeaderRow}>
-              <Text style={styles.notifTitle}>Thông báo mới</Text>
+              <Text style={styles.notifTitle}>🔔 Notifications</Text>
               <TouchableOpacity onPress={() => setNotifVisible(false)}>
-                <Text style={styles.notifCloseText}>Đóng</Text>
+                <Text style={styles.notifCloseText}>Close</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.notifList}>
-              <TouchableOpacity 
-                style={styles.notifItem}
-                onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
-              >
-                <View style={styles.notifIconBadge}>
-                  <SparklesIcon size={16} color="#FF6B4A" />
-                </View>
-                <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>Gợi ý thực đơn ăn dặm mới</Text>
-                  <Text style={styles.notifTextSub}>Đã có 3 gợi ý công thức cháo giàu dinh dưỡng phù hợp cho bé từ 6 - 12 tháng.</Text>
-                  <Text style={styles.notifTime}>10 phút trước</Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.notifItem}
-                onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
-              >
-                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
-                  <BookOpenIcon size={16} color="#0284C7" />
-                </View>
-                <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>Bài viết dinh dưỡng mới</Text>
-                  <Text style={styles.notifTextSub}>Chuyên gia vừa chia sẻ mẹo giúp bé ăn ngon miệng và hấp thu dưỡng chất tốt hơn.</Text>
-                  <Text style={styles.notifTime}>1 giờ trước</Text>
-                </View>
-              </TouchableOpacity>
-
+              {/* 1. ƯU TIÊN HÀNG ĐẦU: Lịch dinh dưỡng Sáng - Trưa - Chiều - Tối */}
               <TouchableOpacity 
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
@@ -112,62 +153,42 @@ const TopHeaderBar: React.FC = () => {
                   <CheckCircleIcon size={16} color="#16A34A" />
                 </View>
                 <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>Lời nhắn từ ứng dụng</Text>
-                  <Text style={styles.notifTextSub}>Đừng quên tham khảo các công thức ăn dặm tuần này cho bé mẹ nhé!</Text>
-                  <Text style={styles.notifTime}>Hôm qua</Text>
+                  <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
+                  <Text style={styles.notifTextSub}>Breakfast (08:00), Lunch (11:30), Snack (15:00) & Dinner (18:00) planned.</Text>
+                  <Text style={styles.notifTime}>Just now</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 2. ƯU TIÊN TIẾP THEO: Thông báo liên quan đến Baby Profile */}
+              <TouchableOpacity 
+                style={styles.notifItem}
+                onPress={() => { setNotifVisible(false); navigation.navigate('ProfileTab'); }}
+              >
+                <View style={styles.notifIconBadge}>
+                  <SparklesIcon size={16} color="#FF6B4A" />
+                </View>
+                <View style={styles.notifContent}>
+                  <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
+                  <Text style={styles.notifTextSub}>Smart allergy ranking is active. Safe recipes prioritized!</Text>
+                  <Text style={styles.notifTime}>5 min ago</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 3. Bài viết & Công thức được đề xuất */}
+              <TouchableOpacity 
+                style={styles.notifItem}
+                onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
+              >
+                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
+                  <BookOpenIcon size={16} color="#0284C7" />
+                </View>
+                <View style={styles.notifContent}>
+                  <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
+                  <Text style={styles.notifTextSub}>Tips to boost appetite & nutrient absorption tailored for {babyAgeText}.</Text>
+                  <Text style={styles.notifTime}>1 hour ago</Text>
                 </View>
               </TouchableOpacity>
             </View>
-          </View>
-        </Pressable>
-      </Modal>
-
-      {/* Modal Menu 3 gạch Side Drawer Menu */}
-      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
-          <View style={styles.menuDrawer}>
-            <Text style={styles.drawerTitle}>Danh mục ứng dụng</Text>
-
-            <TouchableOpacity 
-              style={styles.drawerItem} 
-              onPress={() => { setMenuVisible(false); navigation.navigate('ProfileTab'); }}
-            >
-              <View style={styles.drawerRow}>
-                <UserIcon size={16} color={colors.textSoft} />
-                <Text style={styles.drawerText}>Hồ sơ người dùng</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.drawerItem} onPress={() => { setMenuVisible(false); navigation.navigate('SavedItems'); }}>
-              <View style={styles.drawerRow}>
-                <BookmarkIcon size={16} color="#FF6B4A" />
-                <Text style={[styles.drawerText, { color: '#FF6B4A', fontWeight: '700' }]}>Bài viết & Công thức đã lưu</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.drawerItem} 
-              onPress={() => { setMenuVisible(false); navigation.navigate('AccountSettings'); }}
-            >
-              <View style={styles.drawerRow}>
-                <Cog6ToothIcon size={16} color={colors.textSoft} />
-                <Text style={styles.drawerText}>Cài đặt ứng dụng</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.drawerItem} 
-              onPress={() => { setMenuVisible(false); navigation.navigate('FAQ'); }}
-            >
-              <View style={styles.drawerRow}>
-                <QuestionMarkCircleIcon size={16} color={colors.textSoft} />
-                <Text style={styles.drawerText}>Trợ giúp & Hỏi đáp FAQ</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setMenuVisible(false)}>
-              <Text style={styles.closeText}>Đóng menu</Text>
-            </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
@@ -229,9 +250,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     gap: 8,
   },
   iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
     borderStyle: 'solid',
@@ -242,8 +263,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   badgeDot: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 7,
+    right: 7,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -251,11 +272,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: colors.overlayStrong,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingTop: 50,
-    paddingRight: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   notifBox: {
     width: 300,
@@ -325,7 +344,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     marginTop: 4,
   },
   menuDrawer: {
-    width: 230,
+    width: 240,
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,

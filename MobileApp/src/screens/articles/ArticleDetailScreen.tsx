@@ -2,8 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Alert, Modal, Pressable } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSelector } from 'react-redux';
 import { articleService } from '../../services/article.service';
 import { Article } from '../../types/article';
+import { formatRealTimeAgo } from '../../utils/formatRealTime';
+import type { RootState } from '../../store/Store';
 
 interface CommentItem {
   id: number;
@@ -33,10 +36,17 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [commentInput, setCommentInput] = useState('');
   const [comments, setComments] = useState<CommentItem[]>([]);
 
-  // State cho Modal Sửa Bình Luận (Cross-platform cho Android & iOS)
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
+
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
+  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
+
+  const isCurrentUserAuthor = !article?.author || article.author === 'Parent' || article.author === currentUserName;
+  const displayAuthor = isCurrentUserAuthor ? currentUserName : article?.author;
 
   const loadSavedComments = useCallback(async () => {
     try {
@@ -57,7 +67,6 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Load bài viết và bình luận đã lưu trong AsyncStorage
   useEffect(() => {
     fetchArticleDetail();
     loadSavedComments();
@@ -73,24 +82,36 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   };
 
   const handleAddComment = () => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please sign in to post a comment on this article.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+
     const text = commentInput.trim();
     if (!text) {
-      Alert.alert('Thông báo', 'Vui lòng nhập nội dung bình luận');
+      Alert.alert('Notice', 'Please write a comment first');
       return;
     }
 
     const newComment: CommentItem = {
       id: Date.now(),
-      userName: 'Minh Nguyên',
-      avatar: 'https://ui-avatars.com/api/?name=Minh+Nguyen&background=FF7A59&color=fff&bold=true',
+      userName: currentUserName,
+      avatar: currentUserAvatar,
       content: text,
-      time: 'Vừa xong',
+      time: 'Just now',
     };
 
     const updated = [newComment, ...comments];
     saveCommentsToStorage(updated);
     setCommentInput('');
-    Alert.alert('Thành công', 'Đã đăng bình luận của bạn!');
+    Alert.alert('Success', 'Comment posted successfully!');
   };
 
   const openEditModal = (commentId: number, currentText: string) => {
@@ -102,7 +123,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const handleConfirmEditComment = () => {
     if (!editingText.trim() || !editingCommentId) return;
     const updated = comments.map(c =>
-      c.id === editingCommentId ? { ...c, content: editingText.trim(), time: 'Đã chỉnh sửa' } : c
+      c.id === editingCommentId ? { ...c, content: editingText.trim(), time: 'Edited' } : c
     );
     saveCommentsToStorage(updated);
     setEditModalVisible(false);
@@ -112,12 +133,12 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const handleDeleteComment = (commentId: number) => {
     Alert.alert(
-      'Xóa bình luận',
-      'Bạn có chắc chắn muốn xóa bình luận này không?',
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Xóa',
+          text: 'Delete',
           style: 'destructive',
           onPress: () => {
             const updated = comments.filter(c => c.id !== commentId);
@@ -146,87 +167,85 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         </View>
         <View style={styles.content}>
           <Text style={styles.title}>{article.title}</Text>
-        <Text style={styles.meta}>
-          Tác giả: {article.author || 'Chuyên Gia Dinh Dưỡng'}
-          {article.published_date ? ` · ${new Date(article.published_date).toLocaleDateString('vi-VN')}` : ''}
-        </Text>
-        <Text style={styles.body}>{article.content}</Text>
+          <Text style={styles.meta}>
+            Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
+          </Text>
+          <Text style={styles.body}>{article.content}</Text>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        {/* Khung Bình luận với SVG Icon */}
-        <View style={styles.commentTitleBox}>
-          <CommentIcon size={18} color="#2E2E2E" />
-          <Text style={styles.commentHeader}>Bình luận ({comments.length})</Text>
-        </View>
+          {/* Comments section */}
+          <View style={styles.commentTitleBox}>
+            <CommentIcon size={18} color="#2E2E2E" />
+            <Text style={styles.commentHeader}>Comments ({comments.length})</Text>
+          </View>
 
-        {/* Ô nhập bình luận */}
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Viết bình luận của bạn..."
-            value={commentInput}
-            onChangeText={setCommentInput}
-          />
-          <TouchableOpacity style={styles.sendBtn} onPress={handleAddComment}>
-            <Text style={styles.sendBtnText}>Gửi</Text>
-          </TouchableOpacity>
-        </View>
+          {/* Input box */}
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Write a comment..."
+              value={commentInput}
+              onChangeText={setCommentInput}
+            />
+            <TouchableOpacity style={styles.sendBtn} onPress={handleAddComment}>
+              <Text style={styles.sendBtnText}>Send</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Danh sách bình luận */}
-        {comments.length === 0 ? (
-          <Text style={styles.emptyCommentText}>Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ ý kiến!</Text>
-        ) : (
-          comments.map((item) => (
-            <View key={item.id} style={styles.commentBox}>
-              <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
-              <View style={styles.commentContentBox}>
-                <View style={styles.commentHeaderRow}>
-                  <Text style={styles.commentUser}>{item.userName}</Text>
-                  <Text style={styles.commentTime}>{item.time}</Text>
-                </View>
-                <Text style={styles.commentText}>{item.content}</Text>
+          {/* Comments list */}
+          {comments.length === 0 ? (
+            <Text style={styles.emptyCommentText}>No comments yet. Be the first to share your thoughts!</Text>
+          ) : (
+            comments.map((item) => (
+              <View key={item.id} style={styles.commentBox}>
+                <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
+                <View style={styles.commentContentBox}>
+                  <View style={styles.commentHeaderRow}>
+                    <Text style={styles.commentUser}>{item.userName}</Text>
+                    <Text style={styles.commentTime}>{item.time}</Text>
+                  </View>
+                  <Text style={styles.commentText}>{item.content}</Text>
 
-                {/* Nút Sửa & Xóa Bình luận */}
-                <View style={styles.commentActionRow}>
-                  <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
-                    <Text style={styles.commentActionText}>Sửa</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.dotSeparator}>·</Text>
-                  <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
-                    <Text style={[styles.commentActionText, { color: '#DC2626' }]}>Xóa</Text>
-                  </TouchableOpacity>
+                  <View style={styles.commentActionRow}>
+                    <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
+                      <Text style={styles.commentActionText}>Edit</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.dotSeparator}>·</Text>
+                    <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
+                      <Text style={[styles.commentActionText, { color: '#DC2626' }]}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))
-        )}
-      </View>
+            ))
+          )}
+        </View>
 
-      {/* Modal Sửa Bình luận tương thích 100% Android & iOS */}
-      <Modal visible={editModalVisible} transparent animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setEditModalVisible(false)}>
-          <View style={styles.editModalBox}>
-            <Text style={styles.editModalTitle}>Chỉnh sửa bình luận</Text>
-            <TextInput
-              style={styles.editModalInput}
-              value={editingText}
-              onChangeText={setEditingText}
-              multiline
-              placeholder="Nhập bình luận mới..."
-            />
-            <View style={styles.editModalBtnRow}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleConfirmEditComment}>
-                <Text style={styles.saveBtnText}>Lưu thay đổi</Text>
-              </TouchableOpacity>
+        {/* Modal for editing comment */}
+        <Modal visible={editModalVisible} transparent animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
+          <Pressable style={styles.modalOverlay} onPress={() => setEditModalVisible(false)}>
+            <View style={styles.editModalBox}>
+              <Text style={styles.editModalTitle}>Edit Comment</Text>
+              <TextInput
+                style={styles.editModalInput}
+                value={editingText}
+                onChangeText={setEditingText}
+                multiline
+                placeholder="Enter updated comment..."
+              />
+              <View style={styles.editModalBtnRow}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditModalVisible(false)}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleConfirmEditComment}>
+                  <Text style={styles.saveBtnText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Pressable>
-      </Modal>
-    </ScrollView>
+          </Pressable>
+        </Modal>
+      </ScrollView>
     </View>
   );
 };

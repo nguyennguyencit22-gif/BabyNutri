@@ -24,6 +24,7 @@ import SearchRecipeScreen from '../screens/recipes/SearchRecipeScreen';
 import ArticleDetailScreen from '../screens/articles/ArticleDetailScreen';
 import AddArticleScreen from '../screens/articles/AddArticleScreen';
 import SavedItemsScreen from '../screens/saved/SavedItemsScreen';
+import FavoriteRecipesScreen from '../screens/recipes/FavoriteRecipesScreen';
 
 import { ChildListScreen } from '../screens/children/ChildListScreen';
 import { ChildDetailScreen } from '../screens/children/ChildDetailScreen';
@@ -123,36 +124,41 @@ function AppNavigator() {
         }}
       />
 
-      {/* Screens thuộc Module Công thức & Bài viết */}
+      {/* Recipe & Article Stack Screens */}
       <Stack.Screen
         name="RecipeDetail"
         component={RecipeDetailScreen}
-        options={{ title: 'Chi tiết công thức', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Recipe Details', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="AddRecipe"
         component={AddRecipeScreen}
-        options={{ title: 'Thêm công thức mới', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Add New Recipe', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="EditRecipe"
         component={EditRecipeScreen}
-        options={{ title: 'Chỉnh sửa công thức', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Edit Recipe', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="SearchRecipe"
         component={SearchRecipeScreen}
-        options={{ title: 'Tìm kiếm công thức', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Search Recipes', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="ArticleDetail"
         component={ArticleDetailScreen}
-        options={{ title: 'Chi tiết bài viết', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Article Details', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="AddArticle"
         component={AddArticleScreen}
-        options={{ title: 'Tạo bài viết chia sẻ', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Create Shared Article', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="FavoriteRecipes"
+        component={FavoriteRecipesScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="SavedItems"
@@ -165,36 +171,36 @@ function AppNavigator() {
         options={{ headerShown: false }}
       />
 
-      {/* Screens thuộc Module Quản lý Bé, Thực đơn & FAQ (Member C) */}
+      {/* Child Profile, Meal Plan & FAQ Stack Screens */}
       <Stack.Screen
         name="ChildList"
         component={ChildListScreen}
-        options={{ title: 'Danh sách hồ sơ bé', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Child Profiles List', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="ChildDetail"
         component={ChildDetailScreen}
-        options={{ title: 'Thông tin chi tiết bé', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Child Profile Details', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="AddEditChild"
         component={AddEditChildScreen}
-        options={{ title: 'Hồ sơ bé', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Child Profile', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="MealPlanList"
         component={MealPlanListScreen}
-        options={{ title: 'Kế hoạch thực đơn', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Weaning Meal Plan', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="MealPlanDetail"
         component={MealPlanDetailScreen}
-        options={{ title: 'Chi tiết thực đơn', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Meal Plan Details', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="FAQ"
         component={FAQScreen}
-        options={{ title: 'Hỏi đáp & FAQ', headerTintColor: '#FF5F70' }}
+        options={{ title: 'Help & FAQ', headerTintColor: '#FF5F70' }}
       />
 
       {/* Settings screens (Member A) */}

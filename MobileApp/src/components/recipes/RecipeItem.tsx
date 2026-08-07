@@ -12,7 +12,7 @@ const RecipeItem: React.FC<Props> = ({ recipe, onPress }) => (
     <Image source={{ uri: recipe.image_url }} style={styles.thumb} />
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={1}>{recipe.name}</Text>
-      <Text style={styles.meta}>{recipe.month_age}+ tháng • {recipe.calories} kcal • {recipe.cooking_time} phút</Text>
+      <Text style={styles.meta}>{recipe.month_age}+ months • {recipe.calories} kcal • {recipe.cooking_time} mins</Text>
     </View>
   </TouchableOpacity>
 );

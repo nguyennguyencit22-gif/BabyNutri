@@ -4,15 +4,8 @@ import {
     Text,
     View,
 } from 'react-native';
-
-import {
-    SafeAreaView,
-} from 'react-native-safe-area-context';
-
-import {
-    Icon,
-} from 'react-native-paper';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import {
     useDispatch,
     useSelector,
@@ -20,22 +13,24 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import createStyles from '../../styles/settings/themeSettingsStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 import type {
     AppDispatch,
     RootState,
-} from '../../store/Store';
+} from '../../store/store';
 
 import {
     setThemeMode,
 } from '../../store/settings/themeSlice';
+import type { AppThemeMode } from '../../types/settings/theme';
 
-import type {
-    AppThemeMode,
-} from '../../types/settings/theme';
-
-import createStyles from '../../styles/settings/themeSettingsStyles';
-import { useAppTheme } from '../../theme/useAppTheme';
+const CheckIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M20 6L9 17l-5-5" />
+  </Svg>
+);
 
 type ThemeOption = {
     labelKey: string;
@@ -83,7 +78,6 @@ function ThemeSettingsScreen({
 
     return (
         <SafeAreaView style={styles.safeArea}>
-
             <ProfileHeader
                 title={t('theme.title')}
                 onBack={() =>
@@ -118,9 +112,8 @@ function ThemeSettingsScreen({
                                     styles.radioSelected,
                                 ]}>
                                 {isSelected ? (
-                                    <Icon
-                                        source="check"
-                                        size={20}
+                                    <CheckIcon
+                                        size={16}
                                         color={colors.onPrimary}
                                     />
                                 ) : null}

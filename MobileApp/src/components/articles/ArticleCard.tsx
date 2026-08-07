@@ -6,6 +6,10 @@ import { ArticleListItem } from '../../types/article';
 import { articleService } from '../../services/article.service';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { useArticleStore } from '../../stores/useArticleStore';
+import { formatRealTimeAgo, useRealTimeTicker } from '../../utils/formatRealTime';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState } from '../../store/store';
+import { addActivity } from '../../store/historySlice';
 
 interface Props {
   article: ArticleListItem;
@@ -77,9 +81,9 @@ const TrashIcon = ({ size = 16, color = '#DC2626' }: { size?: number; color?: st
 );
 
 const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
-  const { savedArticleIds, toggleBookmarkArticle } = useBookmarkStore();
+  const { savedArticleIds = [], toggleBookmarkArticle } = useBookmarkStore();
   const { fetchArticles } = useArticleStore();
-  const saved = savedArticleIds.includes(article.id);
+  const saved = Array.isArray(savedArticleIds) ? savedArticleIds.includes(article.id) : false;
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -111,6 +115,8 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
+  const dispatch = useDispatch();
+
   const toggleLike = () => {
     const nextLiked = !liked;
     setLiked(nextLiked);
@@ -121,6 +127,13 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
         Animated.timing(heartScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
         Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 10, speed: 20, useNativeDriver: true }),
       ]).start();
+
+      dispatch(addActivity({
+        type: 'like',
+        title: `Liked article: ${article.title}`,
+        details: 'Added to your activity log',
+        icon: '❤️',
+      }));
     }
   };
 
@@ -216,16 +229,22 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
     Alert.alert('Report Sent', 'Thank you for your feedback. BabyNutri team will review this article soon.');
   };
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author || 'Expert')}&background=FF7A59&color=fff&bold=true`;
+  const user = useSelector((state: RootState) => state.auth.user);
+  const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
+  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
+
+  const isUserArticle = !article.author || article.author === 'Parent' || article.author === 'You (Parent)' || article.author === currentUserName || (user?.email && article.author === user.email.split('@')[0]);
+  const displayAuthor = isUserArticle ? currentUserName : article.author;
+  const avatarUrl = isUserArticle ? currentUserAvatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author)}&background=FF7A59&color=fff&bold=true`;
 
   // Kiểm tra xem bài viết này có phải dạng Bài đăng chia sẻ lồng bài gốc không (Quote Shared Post)
-  const isQuotePost = article.summary?.includes('💬 "') || article.summary?.includes('📌 Shared article');
+  const isQuotePost = article.summary?.includes('💬 "') || article.summary?.includes(' Shared article');
   let userCaption = '';
   let sharedNote = '';
   if (isQuotePost && article.summary) {
-    const parts = article.summary.split('\n\n📌');
+    const parts = article.summary.split('\n\n');
     userCaption = parts[0]?.replace(/^💬 "/, '').replace(/"$/, '') || '';
-    sharedNote = parts[1] ? `📌 ${parts[1]}` : '';
+    sharedNote = parts[1] ? ` ${parts[1]}` : '';
   }
 
   return (
@@ -234,10 +253,10 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       <View style={styles.header}>
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         <View style={styles.headerText}>
-          <Text style={styles.authorName}>{article.author || 'Nutrition Expert'}</Text>
+          <Text style={styles.authorName}>{displayAuthor}</Text>
           <View style={styles.metaRow}>
             <Text style={styles.postMeta}>
-              {article.published_date ? new Date(article.published_date).toLocaleDateString('en-US') : 'Just now'} ·{' '}
+              {formatRealTimeAgo(article.published_date)} ·{' '}
             </Text>
             {privacy === 'public' ? (
               <View style={styles.privacyBox}>
@@ -264,7 +283,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
             {!!userCaption && <Text style={styles.quoteCaptionText}>{userCaption}</Text>}
             {/* Khung bài viết gốc nằm lồng bên trong chuẩn Facebook */}
             <View style={styles.embeddedOriginalCard}>
-              <Text style={styles.embeddedTag}>{sharedNote || '📌 Shared Article'}</Text>
+              <Text style={styles.embeddedTag}>{sharedNote || 'Shared Article'}</Text>
               <Text style={styles.embeddedTitle}>{article.title}</Text>
             </View>
           </View>

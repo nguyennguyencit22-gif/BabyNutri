@@ -1,8 +1,19 @@
 import React, { useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { ClockIcon } from 'react-native-heroicons/outline';
-import { FireIcon } from 'react-native-heroicons/solid';
+import Svg, { Path } from 'react-native-svg';
 import { RecipeListItem } from '../../types/recipe';
+
+const ClockIcon = ({ size = 12, color = '#8E7377' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </Svg>
+);
+
+const FireIcon = ({ size = 12, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12.75 2.25a.75.75 0 00-1.5 0v.916c0 1.257-.59 2.443-1.59 3.204a8.25 8.25 0 00-3.41 6.63c0 4.556 3.694 8.25 8.25 8.25s8.25-3.694 8.25-8.25c0-2.616-1.22-4.949-3.123-6.452a4.98 4.98 0 01-1.377-2.684V2.25z" />
+  </Svg>
+);
 
 interface Props {
   recipe: RecipeListItem;
@@ -42,18 +53,18 @@ const RecipeCard: React.FC<Props> = ({ recipe, onPress }) => {
         <View style={styles.imageContainer}>
           <Image source={{ uri: recipe.image_url }} style={styles.image} />
           <View style={styles.ageBadge}>
-            <Text style={styles.ageText}>{recipe.month_age}+ tháng</Text>
+            <Text style={styles.ageText}>{recipe.month_age}+ months</Text>
           </View>
         </View>
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={2}>{recipe.name}</Text>
           <View style={styles.metaRow}>
             <View style={styles.timeBox}>
-              <ClockIcon size={12} color="#8A8A8A" />
-              <Text style={styles.timeText}>{recipe.cooking_time || 15} phút</Text>
+              <ClockIcon size={12} color="#8E7377" />
+              <Text style={styles.timeText}>{recipe.cooking_time || 15} mins</Text>
             </View>
             <View style={styles.calBox}>
-              <FireIcon size={12} color="#EF4444" />
+              <FireIcon size={12} color="#FF5F70" />
               <Text style={styles.calText}>{recipe.calories} kcal</Text>
             </View>
           </View>

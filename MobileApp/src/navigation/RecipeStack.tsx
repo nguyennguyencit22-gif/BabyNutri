@@ -22,10 +22,10 @@ export default function RecipeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       <Stack.Screen name="RecipeList" component={RecipeListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} options={{ title: 'Chi tiết công thức' }} />
-      <Stack.Screen name="AddRecipe" component={AddRecipeScreen} options={{ title: 'Thêm công thức' }} />
-      <Stack.Screen name="EditRecipe" component={EditRecipeScreen} options={{ title: 'Sửa công thức' }} />
-      <Stack.Screen name="SearchRecipe" component={SearchRecipeScreen} options={{ title: 'Tìm kiếm' }} />
+      <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} options={{ title: 'Recipe Details' }} />
+      <Stack.Screen name="AddRecipe" component={AddRecipeScreen} options={{ title: 'Add Recipe' }} />
+      <Stack.Screen name="EditRecipe" component={EditRecipeScreen} options={{ title: 'Edit Recipe' }} />
+      <Stack.Screen name="SearchRecipe" component={SearchRecipeScreen} options={{ title: 'Search Recipes' }} />
       <Stack.Screen name="SavedItems" component={SavedItemsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );

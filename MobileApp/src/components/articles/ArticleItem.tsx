@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { ArticleListItem } from '../../types/article';
+import { formatRealTimeAgo } from '../../utils/formatRealTime';
 
 interface Props {
   article: ArticleListItem;
@@ -13,7 +14,7 @@ const ArticleItem: React.FC<Props> = ({ article, onPress }) => (
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
       <Text style={styles.date}>
-        {article.author}{article.published_date ? ` · ${new Date(article.published_date).toLocaleDateString('vi-VN')}` : ''}
+        {article.author || 'Nutrition Expert'} · {formatRealTimeAgo(article.published_date)}
       </Text>
     </View>
   </TouchableOpacity>

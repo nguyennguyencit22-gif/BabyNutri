@@ -103,11 +103,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
-      console.error('[API Error]', error.response.status, error.response.data);
+      console.warn('[API Error]', error.response.status, error.response.data);
     } else if (error.request) {
-      console.error('[API Error] Không nhận được phản hồi từ server:', error.message);
+      console.warn('[API Error] No response received from server:', error.message);
     } else {
-      console.error('[API Error]', error.message);
+      console.warn('[API Error]', error.message);
     }
     return Promise.reject(error);
   }

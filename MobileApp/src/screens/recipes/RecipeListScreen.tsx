@@ -2,16 +2,17 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, FlatList, RefreshControl, ActivityIndicator, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
+import { useSelector } from 'react-redux';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
+import type { RootState } from '../../store/store';
+import { useRecipeStore } from '../../stores/useRecipeStore';
 
 const SearchIcon = ({ size = 18, color = '#FF7A59' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
     <Path d="M21 21l-4.35-4.35M19 11a8 8 0 11-16 0 8 8 0 0116 0z" />
   </Svg>
 );
-
-import { useRecipeStore } from '../../stores/useRecipeStore';
 
 const CATEGORIES = ['All', '6-12 months', '12-24 months', '24+ months'];
 
@@ -23,6 +24,16 @@ interface RecipeListScreenProps {
 const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTopHeader = false }) => {
   const { recipes, loading, selectedCategory, setSelectedCategory, fetchRecipes } = useRecipeStore();
   const [refreshing, setRefreshing] = useState(false);
+
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isExpert = authMode === 'authenticated' && user?.role === 'expert';
+
+  const babies = useSelector((state: RootState) => state.baby.babies);
+  const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
+  const selectedBaby = useMemo(() => babies.find(b => String(b.id) === String(selectedBabyId)) || babies[0], [babies, selectedBabyId]);
+
+  const babyAllergies = useMemo(() => selectedBaby?.allergies || [], [selectedBaby]);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,12 +48,31 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
   };
 
   const filteredRecipes = useMemo(() => {
-    if (selectedCategory === 'All') return recipes;
-    if (selectedCategory === '6-12 months') return recipes.filter(r => r.month_age >= 6 && r.month_age <= 12);
-    if (selectedCategory === '12-24 months') return recipes.filter(r => r.month_age > 12 && r.month_age <= 24);
-    if (selectedCategory === '24+ months') return recipes.filter(r => r.month_age > 24);
-    return recipes;
-  }, [recipes, selectedCategory]);
+    let result = [...recipes];
+
+    // 1. Age Category Filter
+    if (selectedCategory === '6-12 months') result = result.filter(r => r.month_age >= 6 && r.month_age <= 12);
+    else if (selectedCategory === '12-24 months') result = result.filter(r => r.month_age > 12 && r.month_age <= 24);
+    else if (selectedCategory === '24+ months') result = result.filter(r => r.month_age > 24);
+
+    // 2. Personalized Smart Ranking (Shopee-Style Recommendation per Leader Minh Nguyen):
+    // Safe recipes are pushed to TOP, recipes with allergens are pushed to BOTTOM.
+    if (babyAllergies && babyAllergies.length > 0) {
+      result.sort((a, b) => {
+        const fullA = `${a.name || ''} ${(a as any).description || ''} ${JSON.stringify((a as any).ingredients || '')}`.toLowerCase();
+        const fullB = `${b.name || ''} ${(b as any).description || ''} ${JSON.stringify((b as any).ingredients || '')}`.toLowerCase();
+
+        const hasAllergenA = babyAllergies.some(allergen => allergen && fullA.includes(allergen.toLowerCase()));
+        const hasAllergenB = babyAllergies.some(allergen => allergen && fullB.includes(allergen.toLowerCase()));
+
+        if (hasAllergenA && !hasAllergenB) return 1; // Push A to bottom
+        if (!hasAllergenA && hasAllergenB) return -1; // Keep B on top
+        return 0;
+      });
+    }
+
+    return result;
+  }, [recipes, selectedCategory, babyAllergies]);
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF5F70" /></View>;
 
@@ -60,7 +90,17 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         </TouchableOpacity>
       </View>
 
-      {/* Thanh chọn danh mục / độ tuổi (Category Chips Scroll) */}
+      {/* Shopee-style Personalized Smart Recommendation Banner */}
+      {selectedBaby && (
+        <View style={styles.allergyBanner}>
+          <Text style={styles.allergyBannerText}>
+            💡 Personalized for {selectedBaby.name}: Safe recipes recommended first.
+            {babyAllergies.length > 0 ? ` Recipes with (${babyAllergies.join(', ')}) moved to bottom.` : ''}
+          </Text>
+        </View>
+      )}
+
+      {/* Category Chips Scroll */}
       <View style={styles.categoryWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
           {CATEGORIES.map((cat) => {
@@ -96,9 +136,11 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
           </View>
         }
       />
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddRecipe')}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {isExpert && (
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddRecipe')}>
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -121,6 +163,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 6,
     elevation: 2,
+  },
+  allergyBanner: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: '#FFF0F2',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  allergyBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF5F70',
+    lineHeight: 16,
   },
   categoryWrapper: { marginBottom: 12 },
   categoryScroll: { paddingHorizontal: 16, gap: 10 },

@@ -5,6 +5,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import {
     Icon,
 } from 'react-native-paper';
@@ -163,11 +164,10 @@ function HomeScreen({ navigation }: any) {
                             key={item}
                             style={styles.featureItem}>
                             <View style={styles.featureIcon}>
-                                <Icon
-                                    source="emoticon-kiss-outline"
-                                    color='#ffe45a'
-                                    size={20}
-                                />
+                                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FF5F70" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <Circle cx="12" cy="12" r="10" />
+                                    <Path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+                                </Svg>
                             </View>
 
                             <Text style={styles.featureText}>
