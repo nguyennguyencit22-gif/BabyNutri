@@ -16,6 +16,7 @@ import SettingsScreen from '../screens/settings/SettingsScreen';
 import ThemeSettingsScreen from '../screens/settings/ThemeSettingsScreen';
 import LanguageSettingsScreen from '../screens/settings/LanguageSettingsScreen';
 import MeasurementSettingsScreen from '../screens/settings/MeasurementSettingsScreen';
+import AboutScreen from '../screens/settings/AboutScreen';
 
 import RecipeDetailScreen from '../screens/recipes/RecipeDetailScreen';
 import AddRecipeScreen from '../screens/recipes/AddRecipeScreen';
@@ -215,6 +216,14 @@ function AppNavigator() {
       <Stack.Screen
         name="MeasurementSettings"
         component={MeasurementSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
         options={{
           headerShown: false,
         }}

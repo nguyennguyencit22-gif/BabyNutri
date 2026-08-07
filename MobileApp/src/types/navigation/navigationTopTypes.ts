@@ -42,6 +42,8 @@ export type RootStackParamList = {
     LanguageSettings: undefined;
 
     MeasurementSettings: undefined;
-    
+
+    About: undefined;
+
 };
 

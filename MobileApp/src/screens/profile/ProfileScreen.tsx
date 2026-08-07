@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text } from 'react-native';
+import { ScrollView, Text, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -63,6 +63,18 @@ function ProfileScreen({ navigation }: any) {
         if (isAdmin) return 'System Admin';
         if (isExpert) return 'Nutrition Expert';
         return 'Parent';
+    };
+
+    const handleShareApp = async () => {
+        try {
+            const appLink = 'https://babynutri.app/download';
+            await Share.share({
+                message: `I recommend BabyNutri. Here is the link:\n${appLink}`,
+                title: 'BabyNutri',
+            });
+        } catch (error) {
+            console.log('Share BabyNutri error:', error);
+        }
     };
 
     return (
@@ -164,15 +176,13 @@ function ProfileScreen({ navigation }: any) {
 
                 <ProfileMenuItem
                     title="Tell your friends"
-                    onPress={() => {
-                        console.log('Share app');
-                    }}
+                    onPress={handleShareApp}
                 />
 
                 <ProfileMenuItem
                     title="About"
                     onPress={() => {
-                        console.log('Open About');
+                        navigation.navigate('About');
                     }}
                 />
 
