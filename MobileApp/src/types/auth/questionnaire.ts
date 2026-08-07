@@ -13,6 +13,13 @@ export type ChildQuestionnaire = {
     childName: string;
     dateOfBirth: string;
     gender: Gender | '';
+
+    weight: number;
+    weightUnit: 'kg' | 'lb';
+
+    height: number;
+    heightUnit: 'cm' | 'in';
+
     allergies: string[];
     nutritionGoal: string;
     foodPreferences: string[];

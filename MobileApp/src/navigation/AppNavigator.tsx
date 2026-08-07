@@ -14,6 +14,8 @@ import EditBabyProfileScreen from '../screens/profile/EditBabyProfileScreen';
 import AccountSettingsScreen from '../screens/settings/AccountSettingsScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import ThemeSettingsScreen from '../screens/settings/ThemeSettingsScreen';
+import LanguageSettingsScreen from '../screens/settings/LanguageSettingsScreen';
+import MeasurementSettingsScreen from '../screens/settings/MeasurementSettingsScreen';
 
 import RecipeDetailScreen from '../screens/recipes/RecipeDetailScreen';
 import AddRecipeScreen from '../screens/recipes/AddRecipeScreen';
@@ -193,6 +195,23 @@ function AppNavigator() {
         name="FAQ"
         component={FAQScreen}
         options={{ title: 'Hỏi đáp & FAQ', headerTintColor: '#FF5F70' }}
+      />
+
+      {/* Settings screens (Member A) */}
+      <Stack.Screen
+        name="LanguageSettings"
+        component={LanguageSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="MeasurementSettings"
+        component={MeasurementSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );

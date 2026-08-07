@@ -1,124 +1,346 @@
+// @ts-nocheck
 const db = require("../db");
 
+function splitTags(value) {
+    return value ? value.split(",") : [];
+}
+
+// The mobile app sends either a plain 'YYYY-MM-DD' (QuestionnaireScreen) or
+// a full ISO datetime via Date.toISOString() (Add/EditBabyProfileScreen).
+// MySQL's DATE column only accepts the former, so always normalize.
+function toDateOnly(value) {
+    if (!value) {
+        return null;
+    }
+
+    return String(value).slice(0, 10);
+}
+
+function toResponseShape(row) {
+    return {
+        id: row.id,
+        name: row.name,
+        dateOfBirth: row.dateOfBirth,
+        gender: row.gender,
+        weight: row.weight,
+        weightUnit: row.weightUnit,
+        height: row.height,
+        heightUnit: row.heightUnit,
+        imageUrl: row.imageUrl,
+        profileColor: row.profileColor,
+        nutritionGoal: row.nutritionGoal,
+        allergies: splitTags(row.allergies),
+        foodPreferences: splitTags(row.foodPreferences),
+    };
+}
+
+const SELECT_CHILDREN = `
+    SELECT
+        cp.id,
+        cp.name,
+        cp.date_of_birth AS dateOfBirth,
+        cp.gender,
+        cp.weight,
+        cp.weight_unit AS weightUnit,
+        cp.height,
+        cp.height_unit AS heightUnit,
+        cp.image_url AS imageUrl,
+        cp.profile_color AS profileColor,
+        cp.nutrition_goal AS nutritionGoal,
+        GROUP_CONCAT(DISTINCT ka.allergy_name) AS allergies,
+        GROUP_CONCAT(DISTINCT fp.food_name) AS foodPreferences
+    FROM child_profiles cp
+    LEFT JOIN child_known_allergies ka ON ka.child_id = cp.id
+    LEFT JOIN child_food_preferences fp ON fp.child_id = cp.id
+`;
+
+async function insertTags(table, column, childId, values) {
+    if (!Array.isArray(values) || values.length === 0) {
+        return;
+    }
+
+    const rows = values.map((value) => [childId, value]);
+
+    await db.query(
+        `INSERT INTO ${table} (child_id, ${column}) VALUES ?`,
+        [rows]
+    );
+}
+
+// ==========================================
+// GET /api/children — every baby profile that
+// belongs to the logged-in parent
+// ==========================================
 exports.getChildren = async (req, res) => {
     try {
-        const parentId = 3; // Mocking parent ID since Auth is not fully integrated
-        const [rows] = await db.execute(`
-            SELECT c.*, 
-                (SELECT GROUP_CONCAT(a.name) 
-                 FROM child_allergies ca 
-                 JOIN allergies a ON ca.allergy_id = a.id 
-                 WHERE ca.child_id = c.id) as allergy_names
-            FROM child_profiles c 
-            WHERE c.parent_id = ?
-        `, [parentId]);
-        
-        // Format for frontend
-        const children = rows.map(row => {
-            // Calculate age from date_of_birth roughly
-            const age = row.date_of_birth ? new Date().getFullYear() - new Date(row.date_of_birth).getFullYear() : 0;
-            return {
-                id: row.id.toString(),
-                name: row.name,
-                age: age,
-                gender: row.gender,
-                height: row.height,
-                weight: row.weight,
-                allergies: row.allergy_names ? row.allergy_names.split(',') : [],
-            };
-        });
+        const parentId = req.user.id;
 
-        res.json(children);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server Error" });
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.parent_id = ? GROUP BY cp.id ORDER BY cp.id ASC`,
+            [parentId]
+        );
+
+        return res.json(rows.map(toResponseShape));
+    } catch (err) {
+        console.error("getChildren error:", err);
+        return res.status(500).json({
+            message: "Failed to fetch baby profiles",
+        });
     }
 };
 
+// ==========================================
+// GET /api/children/:id — single baby profile
+// ==========================================
 exports.getChildById = async (req, res) => {
     try {
-        const [rows] = await db.execute(`
-            SELECT c.*, 
-                (SELECT GROUP_CONCAT(a.name) 
-                 FROM child_allergies ca 
-                 JOIN allergies a ON ca.allergy_id = a.id 
-                 WHERE ca.child_id = c.id) as allergy_names
-            FROM child_profiles c 
-            WHERE c.id = ?
-        `, [req.params.id]);
+        const parentId = req.user.id;
 
-        if (rows.length === 0) return res.status(404).json({ message: "Child not found" });
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.id = ? AND cp.parent_id = ? GROUP BY cp.id`,
+            [req.params.id, parentId]
+        );
 
-        const row = rows[0];
-        const age = row.date_of_birth ? new Date().getFullYear() - new Date(row.date_of_birth).getFullYear() : 0;
-        
-        res.json({
-            id: row.id.toString(),
-            name: row.name,
-            age: age,
-            gender: row.gender,
-            height: row.height,
-            weight: row.weight,
-            allergies: row.allergy_names ? row.allergy_names.split(',') : [],
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "Baby profile not found.",
+            });
+        }
+
+        return res.json(toResponseShape(rows[0]));
+    } catch (err) {
+        console.error("getChildById error:", err);
+        return res.status(500).json({
+            message: "Failed to fetch baby profile",
         });
-    } catch (error) {
-        res.status(500).json({ message: "Server Error" });
     }
 };
 
+// ==========================================
+// POST /api/children — create a baby profile
+// owned by the logged-in parent
+// ==========================================
 exports.createChild = async (req, res) => {
     try {
-        const { name, age, gender, height, weight, allergies } = req.body;
-        const parentId = 3; 
-        // approximate dob from age
-        const dob = new Date();
-        dob.setFullYear(dob.getFullYear() - age);
-        const dobString = dob.toISOString().split('T')[0];
+        const parentId = req.user.id;
+        const {
+            name,
+            dateOfBirth,
+            gender,
+            weight,
+            weightUnit,
+            height,
+            heightUnit,
+            imageUrl,
+            profileColor,
+            nutritionGoal,
+            allergies,
+            foodPreferences,
+        } = req.body;
 
-        const [result] = await db.execute(
-            `INSERT INTO child_profiles (parent_id, name, date_of_birth, gender, height, weight) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [parentId, name, dobString, gender, height, weight]
+        if (!name || !name.trim()) {
+            return res.status(400).json({
+                message: "Baby name is required.",
+            });
+        }
+
+        const [result] = await db.query(
+            `
+            INSERT INTO child_profiles
+                (parent_id, name, date_of_birth, gender, weight, weight_unit,
+                 height, height_unit, image_url, profile_color, nutrition_goal)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            [
+                parentId,
+                name.trim(),
+                toDateOnly(dateOfBirth),
+                gender || null,
+                weight || null,
+                weightUnit || "kg",
+                height || null,
+                heightUnit || "cm",
+                imageUrl || null,
+                profileColor || null,
+                nutritionGoal || null,
+            ]
         );
-        
-        const newChildId = result.insertId;
-        
-        // Handle allergies if needed (simplified: we'll skip inserting to child_allergies to keep it simple, or insert if allergy table has matching names)
-        
-        res.status(201).json({ id: newChildId.toString(), ...req.body });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server Error" });
+
+        const childId = result.insertId;
+
+        await insertTags(
+            "child_known_allergies",
+            "allergy_name",
+            childId,
+            allergies
+        );
+        await insertTags(
+            "child_food_preferences",
+            "food_name",
+            childId,
+            foodPreferences
+        );
+
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.id = ? GROUP BY cp.id`,
+            [childId]
+        );
+
+        return res.status(201).json(toResponseShape(rows[0]));
+    } catch (err) {
+        console.error("createChild error:", err);
+        return res.status(500).json({
+            message: "Failed to create baby profile",
+        });
     }
 };
 
+// ==========================================
+// PUT /api/children/:id — update a baby profile,
+// only if it belongs to the logged-in parent
+// ==========================================
 exports.updateChild = async (req, res) => {
     try {
-        const { name, age, gender, height, weight } = req.body;
-        const dob = new Date();
-        dob.setFullYear(dob.getFullYear() - age);
-        const dobString = dob.toISOString().split('T')[0];
+        const parentId = req.user.id;
+        const childId = req.params.id;
 
-        await db.execute(
-            `UPDATE child_profiles 
-             SET name = ?, date_of_birth = ?, gender = ?, height = ?, weight = ? 
-             WHERE id = ?`,
-            [name, dobString, gender, height, weight, req.params.id]
+        const [owned] = await db.query(
+            `SELECT id FROM child_profiles WHERE id = ? AND parent_id = ?`,
+            [childId, parentId]
         );
-        res.json({ id: req.params.id, ...req.body });
-    } catch (error) {
-        res.status(500).json({ message: "Server Error" });
+
+        if (owned.length === 0) {
+            return res.status(404).json({
+                message: "Baby profile not found.",
+            });
+        }
+
+        const {
+            name,
+            dateOfBirth,
+            gender,
+            weight,
+            weightUnit,
+            height,
+            heightUnit,
+            imageUrl,
+            profileColor,
+            nutritionGoal,
+            allergies,
+            foodPreferences,
+        } = req.body;
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({
+                message: "Baby name is required.",
+            });
+        }
+
+        await db.query(
+            `
+            UPDATE child_profiles
+            SET
+                name = ?,
+                date_of_birth = ?,
+                gender = ?,
+                weight = ?,
+                weight_unit = ?,
+                height = ?,
+                height_unit = ?,
+                image_url = ?,
+                profile_color = ?,
+                nutrition_goal = ?
+            WHERE id = ?
+            `,
+            [
+                name.trim(),
+                toDateOnly(dateOfBirth),
+                gender || null,
+                weight || null,
+                weightUnit || "kg",
+                height || null,
+                heightUnit || "cm",
+                imageUrl || null,
+                profileColor || null,
+                nutritionGoal || null,
+                childId,
+            ]
+        );
+
+        await db.query(
+            `DELETE FROM child_known_allergies WHERE child_id = ?`,
+            [childId]
+        );
+        await insertTags(
+            "child_known_allergies",
+            "allergy_name",
+            childId,
+            allergies
+        );
+
+        await db.query(
+            `DELETE FROM child_food_preferences WHERE child_id = ?`,
+            [childId]
+        );
+        await insertTags(
+            "child_food_preferences",
+            "food_name",
+            childId,
+            foodPreferences
+        );
+
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.id = ? GROUP BY cp.id`,
+            [childId]
+        );
+
+        return res.json(toResponseShape(rows[0]));
+    } catch (err) {
+        console.error("updateChild error:", err);
+        return res.status(500).json({
+            message: "Failed to update baby profile",
+        });
     }
 };
 
+// ==========================================
+// DELETE /api/children/:id — only if it belongs
+// to the logged-in parent
+// ==========================================
 exports.deleteChild = async (req, res) => {
     try {
-        await db.execute(`DELETE FROM child_allergies WHERE child_id = ?`, [req.params.id]);
-        await db.execute(`DELETE FROM meal_plans WHERE child_id = ?`, [req.params.id]);
-        await db.execute(`DELETE FROM child_profiles WHERE id = ?`, [req.params.id]);
-        res.json({ message: "Child deleted successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server Error" });
+        const parentId = req.user.id;
+        const childId = req.params.id;
+
+        const [owned] = await db.query(
+            `SELECT id FROM child_profiles WHERE id = ? AND parent_id = ?`,
+            [childId, parentId]
+        );
+
+        if (owned.length === 0) {
+            return res.status(404).json({
+                message: "Baby profile not found.",
+            });
+        }
+
+        await db.query(`DELETE FROM child_profiles WHERE id = ?`, [
+            childId,
+        ]);
+
+        return res.json({
+            message: "Baby profile deleted.",
+        });
+    } catch (err) {
+        if (err.code === "ER_ROW_IS_REFERENCED_2") {
+            return res.status(409).json({
+                message:
+                    "This baby profile still has related data (e.g. meal plans) and can't be deleted yet.",
+            });
+        }
+
+        console.error("deleteChild error:", err);
+        return res.status(500).json({
+            message: "Failed to delete baby profile",
+        });
     }
 };

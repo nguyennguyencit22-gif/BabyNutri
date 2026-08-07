@@ -21,6 +21,11 @@ const styles = StyleSheet.create({
 
     },
 
+    ageCircleImage: {
+        width: '100%',
+        height: '100%',
+    },
+
     ageNumberText: {
         color: '#FFFFFF',
         fontSize: 20,

@@ -40,6 +40,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         fontSize: 28,
         fontWeight: '700',
     },
+    fieldDescription: {
+        marginBottom: 24,
+        color: colors.textSoft,
+        fontSize: 13,
+        lineHeight: 18,
+    },
     input: {
         borderWidth: 1,
         borderColor: colors.border,
@@ -138,6 +144,33 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         textAlign: 'center',
+    },
+
+    unitRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 24,
+    },
+    unitOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    unitRadio: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    unitRadioSelected: {
+        backgroundColor: colors.primary,
+    },
+    unitLabel: {
+        color: colors.text,
+        fontSize: 16,
     },
 });
 export default createStyles;

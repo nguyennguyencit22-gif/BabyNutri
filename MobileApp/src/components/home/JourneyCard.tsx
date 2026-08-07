@@ -1,14 +1,17 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { Image, ImageSourcePropType, View, Text, StyleSheet } from "react-native";
 import { Button } from 'react-native-paper';
+import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 import styles from '../../styles/home/jouneyCardStyles';
+import { useTranslatedText } from '../../hooks/useTranslatedText';
 
 type JourneyCardProps = {
     age: string;
     title: string;
     description: string;
     colorMonths: string;
+    image?: ImageSourcePropType;
 };
 
 const BLOB_PATH =
@@ -18,43 +21,60 @@ function JourneyCard(
     { age,
         title,
         description,
-        colorMonths, }: JourneyCardProps
+        colorMonths,
+        image, }: JourneyCardProps
 ) {
+    const { t } = useTranslation();
+    // title/description come from the journey_items table, so they go
+    // through the on-demand DB-text translator, not the static UI bundle.
+    const translatedTitle = useTranslatedText(title);
+    const translatedDescription = useTranslatedText(description);
+
     const [ageNumber, ageUnit] = age.split('\n');
 
     return (
         <View style={styles.card}>
             <View style={styles.cardContent}>
                 <View style={styles.ageCircle}>
-                    <Svg
-                        width="100%"
-                        height="100%"
-                        viewBox="0 0 200 200"
-                        style={StyleSheet.absoluteFill}
-                    >
-                        <Path
-                            d={BLOB_PATH}
-                            transform="translate(100 100)"
-                            fill={colorMonths}
-                            stroke="#5B0010"
-                            strokeWidth={5}
+                    {image ? (
+                        <Image
+                            source={image}
+                            style={styles.ageCircleImage}
+                            resizeMode="contain"
                         />
-                    </Svg>
+                    ) : (
+                        <>
+                            <Svg
+                                width="100%"
+                                height="100%"
+                                viewBox="0 0 200 200"
+                                style={StyleSheet.absoluteFill}
+                            >
+                                <Path
+                                    d={BLOB_PATH}
+                                    transform="translate(100 100)"
+                                    fill={colorMonths}
+                                    stroke="#5B0010"
+                                    strokeWidth={5}
+                                />
+                            </Svg>
 
-                    <Text style={styles.ageNumberText}>
-                        {ageNumber}
-                    </Text>
-                    <Text style={styles.ageUnitText}>
-                        {ageUnit}
-                    </Text>
+                            <Text style={styles.ageNumberText}>
+                                {ageNumber}
+                            </Text>
+                            <Text style={styles.ageUnitText}>
+                                {ageUnit}
+                            </Text>
+                        </>
+                    )}
                 </View>
 
                 <Text style={styles.title}>
-                    {title}
+                    {translatedTitle}
                 </Text>
 
                 <Text style={styles.description}>
-                    {description}
+                    {translatedDescription}
                 </Text>
 
                 <Button
@@ -65,7 +85,7 @@ function JourneyCard(
                     buttonColor="#FFC62F"
                     textColor="#5B0010"
                 >
-                    Let&apos;s go!
+                    {t('home.letsGo')}
                 </Button>
             </View>
         </View>

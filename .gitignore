@@ -33,6 +33,11 @@ yarn-error.log*
 .env
 .env.*
 
+# Firebase service account credentials (never commit these)
+backend/config/firebase-service-account.json
+*firebase-adminsdk*.json
+*service-account*.json
+
 # Temporary Office files
 ~$*.docx
 ~$*.xlsx

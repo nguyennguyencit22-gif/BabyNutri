@@ -12,6 +12,10 @@ import ProfileColorPicker from '../../components/profile/ProfileColorPicker';
 import DateOfBirthRow from '../../components/profile/DateOfBirthRow';
 import OptionSelector from '../../components/profile/OptionSelector';
 import BabyNameInput from '@/components/profile/BabyNameInput';
+import WeightHeightFields, {
+    HeightUnit,
+    WeightUnit,
+} from '../../components/profile/WeightHeightFields';
 import { PROFILE_COLORS, } from '../../constants/profile/babyProfileData';
 import GenderSelector, { BabyGender, } from '../../components/profile/GenderSelector';
 import DateTimePicker, { DateTimePickerEvent, } from '@react-native-community/datetimepicker';
@@ -23,9 +27,10 @@ import {
 } from '../../constants/profile/babyProfileData';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import { useDispatch } from 'react-redux';
-import { addBaby } from '../../store/babySlice';
+import { saveBaby } from '../../store/babySlice';
 import { useAppTheme } from '@/theme/useAppTheme';
 import type { AppColors } from '@/theme/colors';
+import type { AppDispatch } from '@/store/Store';
 
 function AddBabyProfileScreen({ navigation }: any) {
     const { colors } = useAppTheme();
@@ -40,6 +45,11 @@ function AddBabyProfileScreen({ navigation }: any) {
 
     const [dateOfBirth, setDateOfBirth] = React.useState(new Date());
     const [showDatePicker, setShowDatePicker] = React.useState(false);
+
+    const [weightText, setWeightText] = React.useState('');
+    const [weightUnit, setWeightUnit] = React.useState<WeightUnit>('lb');
+    const [heightText, setHeightText] = React.useState('');
+    const [heightUnit, setHeightUnit] = React.useState<HeightUnit>('in');
 
     const handleDateChange = (
         event: DateTimePickerEvent,
@@ -116,16 +126,16 @@ function AddBabyProfileScreen({ navigation }: any) {
         setNameError('');
         return true;
     };
-    const dispatch = useDispatch();
-    const handleSave = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const handleSave = async () => {
         const isValid = validateForm();
 
         if (!isValid) {
             return;
         }
 
-        dispatch(
-            addBaby({
+        const result = await dispatch(
+            saveBaby({
                 id: Date.now().toString(),
                 name: babyName.trim(),
                 profileColor: selectedColor,
@@ -134,8 +144,20 @@ function AddBabyProfileScreen({ navigation }: any) {
                 allergies: selectedAllergies,
                 nutritionGoal: selectedNutritionGoal,
                 foodPreferences: selectedFoodPreferences,
+                weight: Number(weightText) || undefined,
+                weightUnit,
+                height: Number(heightText) || undefined,
+                heightUnit,
             }),
         );
+
+        if (saveBaby.rejected.match(result)) {
+            Alert.alert(
+                'Error',
+                'Could not save the baby profile. Please try again.',
+            );
+            return;
+        }
 
         Alert.alert(
             'Success',
@@ -205,6 +227,17 @@ function AddBabyProfileScreen({ navigation }: any) {
                         onChange={handleDateChange}
                     />
                 )}
+
+                <WeightHeightFields
+                    weightText={weightText}
+                    weightUnit={weightUnit}
+                    onChangeWeightText={setWeightText}
+                    onChangeWeightUnit={setWeightUnit}
+                    heightText={heightText}
+                    heightUnit={heightUnit}
+                    onChangeHeightText={setHeightText}
+                    onChangeHeightUnit={setHeightUnit}
+                />
 
                 <OptionSelector
                     label="Allergies"

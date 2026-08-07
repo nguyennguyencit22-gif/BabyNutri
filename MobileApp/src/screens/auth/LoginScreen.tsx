@@ -27,6 +27,12 @@ import {
     loginWithGoogle,
 } from '../../services/firebaseAuthService';
 
+import {
+    loginWithFirebaseToken,
+} from '../../services/auth.service';
+
+import { loadBabies } from '../../store/babySlice';
+
 import createStyles from '../../styles/auth/loginStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
@@ -63,25 +69,40 @@ function LoginScreen({ navigation }: any) {
                 firebaseIdToken,
             } = await loginWithGoogle();
 
+            // Exchanges the Firebase ID token for our own backend JWT.
+            // The backend is the only source of truth for role — a brand
+            // new account always comes back as Parent; Expert/Admin only
+            // ever come from a row an admin already created.
+            const {
+                user: backendUser,
+            } = await loginWithFirebaseToken(firebaseIdToken);
+
             dispatch(
                 loginSucceeded({
                     firebaseIdToken,
                     user: {
                         uid: user.uid,
-                        email: user.email ?? '',
+                        email: backendUser.email,
                         displayName:
-                            user.displayName ??
+                            backendUser.fullName ||
+                            user.displayName ||
                             'BabyNutri User',
                         photoURL:
+                            backendUser.avatar ??
                             user.photoURL ??
                             undefined,
 
-                        // Tạm thời dùng parent.
-                        // Sau này role phải lấy từ backend.
-                        role: 'parent',
+                        role: backendUser.role.toLowerCase() as
+                            | 'parent'
+                            | 'expert'
+                            | 'admin',
                     },
                 }),
             );
+
+            // Now that state.auth.mode === 'authenticated', pull this
+            // parent's real baby profiles from MySQL into Redux.
+            await dispatch(loadBabies());
 
             navigation.reset({
                 index: 0,
