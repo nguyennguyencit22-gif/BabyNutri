@@ -30,6 +30,10 @@ import {
     deleteBaby,
 } from '../../store/babySlice';
 
+import {
+    Share,
+} from 'react-native';
+
 function ProfileScreen({
     navigation,
 }: any) {
@@ -91,6 +95,24 @@ function ProfileScreen({
                 babyId: selectedBabyId,
             },
         );
+    };
+
+    const handleShareApp = async () => {
+        try {
+            const appLink =
+                'https://babynutri.app/download';
+
+            await Share.share({
+                message:
+                    `I recommend BabyNutri. Here is the link:\n${appLink}`,
+                title: 'BabyNutri',
+            });
+        } catch (error) {
+            console.log(
+                'Share BabyNutri error:',
+                error,
+            );
+        }
     };
 
     return (
@@ -212,19 +234,13 @@ function ProfileScreen({
 
                 <ProfileMenuItem
                     title="Tell your friends"
-                    onPress={() => {
-                        console.log(
-                            'Share app',
-                        );
-                    }}
+                    onPress={handleShareApp}
                 />
 
                 <ProfileMenuItem
                     title="About"
                     onPress={() => {
-                        console.log(
-                            'Open About',
-                        );
+                        navigation.navigate('About');
                     }}
                 />
 

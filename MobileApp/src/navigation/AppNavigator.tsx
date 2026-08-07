@@ -17,6 +17,7 @@ import SettingsScreen from '@/screens/settings/SettingsScreen';
 import ThemeSettingsScreen from '@/screens/settings/ThemeSettingsScreen';
 import LanguageSettingsScreen from '@/screens/settings/LanguageSettingsScreen';
 import MeasurementSettingsScreen from '@/screens/settings/MeasurementSettingsScreen';
+import AboutScreen from '@/screens/settings/AboutScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
@@ -119,6 +120,14 @@ function AppNavigator() {
       <Stack.Screen
         name="MeasurementSettings"
         component={MeasurementSettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
         options={{
           headerShown: false,
         }}
