@@ -142,6 +142,24 @@ function LoginScreen({ navigation }: any) {
                     </Text>
                 </Pressable>
 
+                {/* TEMPORARY BYPASS BUTTON FOR DEV */}
+                <Pressable
+                    onPress={() => {
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Home' }],
+                        });
+                    }}
+                    style={({ pressed }) => [
+                        styles.googleButton,
+                        { marginTop: 15, backgroundColor: '#f0f0f0' },
+                        pressed && styles.buttonPressed,
+                    ]}>
+                    <Text style={[styles.googleButtonText, { color: 'red' }]}>
+                        [DEV] Skip Login
+                    </Text>
+                </Pressable>
+
                 <View style={styles.agreement}>
                     <Text style={styles.agreementText}>
                         By signing, you agree to our:

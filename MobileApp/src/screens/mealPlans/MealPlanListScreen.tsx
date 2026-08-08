@@ -1,138 +1,97 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
-import { mealPlanService } from '../../services/mealPlanService';
-import { MealPlan, Meal } from '../../types/meal-plan';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 
 export const MealPlanListScreen = ({ route, navigation }: any) => {
   const { childId } = route.params || {};
-  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
   const [weekDays, setWeekDays] = useState<Date[]>([]);
 
   useEffect(() => {
-    // Generate current week (Mon - Sun)
+    // Khởi tạo tuần hiện tại (bắt đầu từ Thứ 2)
     const today = new Date();
     const currentDay = today.getDay();
     const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
     const monday = new Date(today.setDate(diff));
-    
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      days.push(d);
-    }
-    setWeekDays(days);
-    
-    // Reset selected date to today if we just mounted
-    setSelectedDate(new Date());
-    
-    loadMealPlans();
-  }, [childId]);
+    setCurrentWeekStart(monday);
+  }, []);
 
-  const loadMealPlans = async () => {
-    setLoading(true);
-    try {
-      // Get all meal plans. The backend should ideally return the current week's plans
-      const data = await mealPlanService.getMealPlans(childId);
-      setMealPlans(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (currentWeekStart) {
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(currentWeekStart.getDate() + i);
+        days.push(d);
+      }
+      setWeekDays(days);
     }
+  }, [currentWeekStart]);
+
+  const goToPreviousWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() - 7);
+    setCurrentWeekStart(newStart);
   };
 
-  const getSelectedDayMealPlan = () => {
-    const selectedDateStr = selectedDate.toISOString().split('T')[0];
-    return mealPlans.find(plan => plan.date === selectedDateStr);
+  const goToNextWeek = () => {
+    const newStart = new Date(currentWeekStart);
+    newStart.setDate(newStart.getDate() + 7);
+    setCurrentWeekStart(newStart);
   };
 
-  const selectedPlan = getSelectedDayMealPlan();
+  const monthYearStr = currentWeekStart.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header Điều Hướng Lịch */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Thực Đơn Tuần</Text>
-        <Text style={styles.headerSubtitle}>Lịch ăn dinh dưỡng cho bé</Text>
+        <TouchableOpacity onPress={goToPreviousWeek} style={styles.navButton}>
+          <Text style={styles.navButtonText}>{"<"}</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Thực Đơn Tuần</Text>
+          <Text style={styles.headerSubtitle}>{monthYearStr}</Text>
+        </View>
+
+        <TouchableOpacity onPress={goToNextWeek} style={styles.navButton}>
+          <Text style={styles.navButtonText}>{">"}</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.calendarWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.calendarContainer}>
-          {weekDays.map((d, index) => {
-            const isSelected = selectedDate.toDateString() === d.toDateString();
-            const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-            return (
-              <TouchableOpacity 
-                key={index} 
-                style={[styles.dayButton, isSelected && styles.dayButtonSelected]}
-                onPress={() => setSelectedDate(d)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.dayName, isSelected && styles.dayTextSelected]}>
-                  {dayNames[d.getDay()]}
-                </Text>
-                <View style={[styles.dayNumberCircle, isSelected && styles.dayNumberCircleSelected]}>
-                  <Text style={[styles.dayNumber, isSelected && styles.dayTextSelected]}>
-                    {d.getDate()}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
+      {/* Danh sách các ngày trong tuần */}
+      <ScrollView contentContainerStyle={styles.listContainer}>
+        {weekDays.map((d, index) => {
+          const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+          const dayName = dayNames[d.getDay()];
+          const dateStr = d.toLocaleDateString('vi-VN');
+          
+          const isToday = d.toDateString() === new Date().toDateString();
 
-      <View style={styles.mealsContainer}>
-        {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color="#FF6B6B" />
-          </View>
-        ) : selectedPlan ? (
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.planSummary}>
-              <Text style={styles.caloriesText}>Tổng Calories: <Text style={styles.caloriesHighlight}>{selectedPlan.totalCalories} kcal</Text></Text>
-            </View>
-            
-            {selectedPlan.meals.map((meal, index) => (
-              <TouchableOpacity 
-                key={meal.id || index} 
-                style={styles.mealCard}
-                onPress={() => navigation.navigate('MealPlanDetail', { mealPlanId: selectedPlan.id })}
-                activeOpacity={0.9}
-              >
-                <View style={styles.mealTimeContainer}>
-                  <Text style={styles.mealTime}>{meal.time}</Text>
-                  <View style={styles.timeLine} />
-                </View>
-                <View style={styles.mealContent}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
-                  <Text style={styles.mealDesc} numberOfLines={2}>{meal.description}</Text>
-                  <View style={styles.mealFooter}>
-                    <Text style={styles.mealCalories}>🔥 {meal.calories} kcal</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-            <View style={{height: 40}} />
-          </ScrollView>
-        ) : (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🍽️</Text>
-            <Text style={styles.emptyText}>Chưa có thực đơn cho ngày này.</Text>
+          return (
             <TouchableOpacity 
-              style={styles.addButton}
-              onPress={() => navigation.navigate('Recipes', { 
-                action: 'select_meal',
-                date: selectedDate.toISOString() 
+              key={index} 
+              style={[styles.dayCard, isToday && styles.dayCardToday]}
+              onPress={() => navigation.navigate('MealPlanDetail', { 
+                date: d.toISOString(), 
+                dayName, 
+                dateStr 
               })}
+              activeOpacity={0.8}
             >
-              <Text style={styles.addButtonText}>+ Thêm món (Sáng, Trưa, Tối)</Text>
+              <View style={styles.dayInfo}>
+                <Text style={[styles.dayName, isToday && styles.textToday]}>{dayName}</Text>
+                <Text style={styles.dateStr}>{dateStr}</Text>
+              </View>
+              
+              <View style={styles.addButtonCircle}>
+                <Text style={styles.addButtonIcon}>+</Text>
+              </View>
             </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          );
+        })}
+        <View style={{height: 40}} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -140,183 +99,99 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFF2EC', // Nền hồng nhạt
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 15,
-    backgroundColor: '#fff',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 4,
-  },
-  calendarWrapper: {
-    backgroundColor: '#fff',
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  calendarContainer: {
-    paddingHorizontal: 15,
-  },
-  dayButton: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginHorizontal: 4,
-    borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-    minWidth: 55,
-  },
-  dayButtonSelected: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#FF6B6B', // Đỏ san hô
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#FF6B6B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 6,
+    marginBottom: 15,
   },
-  dayName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 8,
+  navButton: {
+    padding: 10,
   },
-  dayNumberCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  dayNumberCircleSelected: {
-    backgroundColor: 'transparent',
-  },
-  dayNumber: {
-    fontSize: 16,
+  navButtonText: {
+    fontSize: 24,
+    color: '#FFF',
     fontWeight: 'bold',
-    color: '#333',
   },
-  dayTextSelected: {
+  headerTitleContainer: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
     color: '#FFF',
   },
-  mealsContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  planSummary: {
-    marginBottom: 20,
-    paddingHorizontal: 5,
-  },
-  caloriesText: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-  },
-  caloriesHighlight: {
-    color: '#FF6B6B',
-    fontWeight: 'bold',
-  },
-  mealCard: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  mealTimeContainer: {
-    width: 70,
-    alignItems: 'center',
-  },
-  mealTime: {
+  headerSubtitle: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: '#FFE0E0',
+    marginTop: 4,
   },
-  timeLine: {
-    flex: 1,
-    width: 2,
-    backgroundColor: '#FFD8D8',
-    marginTop: 8,
-    borderRadius: 1,
+  listContainer: {
+    paddingHorizontal: 16,
   },
-  mealContent: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+  dayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9F43',
   },
-  mealName: {
+  dayCardToday: {
+    borderLeftColor: '#FF6B6B',
+    backgroundColor: '#FFF9F9',
+  },
+  dayInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  dayName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 6,
+    width: 40,
   },
-  mealDesc: {
+  textToday: {
+    color: '#FF6B6B',
+  },
+  dateStr: {
     fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
+    color: '#888',
+    marginLeft: 10,
   },
-  mealFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
-  mealCalories: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FF9F43',
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  emptyState: {
-    flex: 1,
+  addButtonCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFD3D8',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 50,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 15,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#888',
-    marginBottom: 25,
-  },
-  addButton: {
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  addButtonIcon: {
+    fontSize: 20,
     fontWeight: 'bold',
-  }
+    color: '#FF6B6B',
+  },
 });

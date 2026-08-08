@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { mealPlanService } from '../../services/mealPlanService';
-import { MealPlan } from '../../types/meal-plan';
+import { MealPlan, Meal } from '../../types/meal-plan';
 
-export const MealPlanDetailScreen = ({ route }: any) => {
-  const { mealPlanId } = route.params || {};
+export const MealPlanDetailScreen = ({ route, navigation }: any) => {
+  // Nhận tham số từ màn hình trước
+  const { date, dayName, dateStr } = route.params || {};
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (mealPlanId) {
-      loadMealPlan();
-    } else {
-      setLoading(false);
-    }
-  }, [mealPlanId]);
+    loadMealPlan();
+  }, [date]);
 
   const loadMealPlan = async () => {
+    setLoading(true);
     try {
-      const data = await mealPlanService.getMealPlanById(mealPlanId);
-      if (data) setMealPlan(data);
+      const plan = await mealPlanService.getMealPlanForDate(dateStr, dayName);
+      if (plan) {
+        setMealPlan(plan);
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -27,116 +27,194 @@ export const MealPlanDetailScreen = ({ route }: any) => {
     }
   };
 
+  const navigateToRecipes = (mealType: string) => {
+    // Gọi màn hình Recipes của Member B (hiện tại hiển thị Alert vì chưa có trang)
+    Alert.alert(
+      "Chuyển sang trang Công thức", 
+      `Bạn đang muốn chọn món cho bữa [${mealType}].\nTính năng này sẽ gọi sang trang Recipes của Member B.`
+    );
+  };
+
+  const renderMealSection = (mealType: string) => {
+    // Lọc ra món ăn thuộc bữa này
+    const mealsForType = mealPlan?.meals.filter(m => m.type === mealType) || [];
+
+    return (
+      <View style={styles.mealSection}>
+        <View style={styles.mealHeader}>
+          <Text style={styles.mealTitle}>Bữa {mealType}</Text>
+        </View>
+
+        {mealsForType.length > 0 ? (
+          mealsForType.map(meal => (
+            <View key={meal.id} style={styles.foodItem}>
+              <View style={styles.foodInfo}>
+                <Text style={styles.foodName}>{meal.name}</Text>
+                <Text style={styles.foodCalories}>{meal.calories} kcal</Text>
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.changeButton} 
+                onPress={() => navigateToRecipes(mealType)}
+              >
+                <Text style={styles.changeButtonText}>Thay đổi (+)</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyFoodItem}>
+            <Text style={styles.emptyText}>Chưa có món ăn</Text>
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={() => navigateToRecipes(mealType)}
+            >
+              <Text style={styles.addButtonText}>Thêm món (+)</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  if (!mealPlan) {
-    return (
-      <View style={styles.center}>
-        <Text>Meal Plan not found</Text>
+        <ActivityIndicator size="large" color="#FF6B6B" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerCard}>
-        <Text style={styles.title}>Date: {mealPlan.date}</Text>
-        <Text style={styles.totalCalories}>Total: {mealPlan.totalCalories} kcal</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{dayName}</Text>
+        <Text style={styles.headerSubtitle}>{dateStr}</Text>
       </View>
-      
-      <Text style={styles.mealsTitle}>Meals</Text>
-      <FlatList
-        data={mealPlan.meals}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.mealCard}>
-            <View style={styles.mealHeader}>
-              <Text style={styles.mealName}>{item.name}</Text>
-              <Text style={styles.mealTime}>{item.time}</Text>
-            </View>
-            <Text style={styles.mealDescription}>{item.description}</Text>
-            <Text style={styles.mealCalories}>{item.calories} kcal</Text>
-          </View>
-        )}
-      />
-    </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {renderMealSection('Sáng')}
+        {renderMealSection('Trưa')}
+        {renderMealSection('Chiều')}
+        {renderMealSection('Tối')}
+        <View style={{height: 40}} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFF2EC',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFF2EC',
   },
-  headerCard: {
-    backgroundColor: '#4CAF50',
+  header: {
     padding: 20,
-    borderRadius: 12,
-    marginBottom: 20,
+    backgroundColor: '#FF6B6B',
+    alignItems: 'center',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+    marginBottom: 15,
   },
-  title: {
-    fontSize: 20,
+  headerTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
+    color: '#FFF',
   },
-  totalCalories: {
+  headerSubtitle: {
     fontSize: 16,
-    color: '#fff',
+    color: '#FFE0E0',
+    marginTop: 4,
   },
-  mealsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-    marginLeft: 4,
+  scrollContent: {
+    paddingHorizontal: 16,
   },
-  mealCard: {
-    backgroundColor: '#fff',
-    padding: 16,
+  mealSection: {
+    backgroundColor: '#FFF',
     borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   mealHeader: {
+    backgroundColor: '#FF9F43',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  mealTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  foodItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  mealName: {
+  foodInfo: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  foodName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  mealTime: {
-    fontSize: 14,
-    color: '#666',
-  },
-  mealDescription: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 8,
-  },
-  mealCalories: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#E91E63',
+    color: '#333',
+    marginBottom: 4,
+  },
+  foodCalories: {
+    fontSize: 14,
+    color: '#888',
+  },
+  changeButton: {
+    backgroundColor: '#FFD3D8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  changeButtonText: {
+    color: '#FF6B6B',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  emptyFoodItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#AAA',
+    fontStyle: 'italic',
+  },
+  addButton: {
+    backgroundColor: '#FFF2EC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+  },
+  addButtonText: {
+    color: '#FF6B6B',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });

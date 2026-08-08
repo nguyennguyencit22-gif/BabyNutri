@@ -48,6 +48,7 @@ exports.getMealPlanById = async (req, res) => {
 
         const meals = items.map(item => ({
             id: item.id.toString(),
+            day_of_week: item.day_of_week,
             name: item.meal_type_name,
             time: item.meal_type_name === 'Breakfast' ? '08:00 AM' : (item.meal_type_name === 'Lunch' ? '12:00 PM' : '18:00 PM'),
             description: item.recipe_name,
