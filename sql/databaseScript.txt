@@ -21,8 +21,9 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL,
     role_id INT NOT NULL,
+    firebase_uid VARCHAR(255) NULL UNIQUE,
 
     FOREIGN KEY (role_id) REFERENCES roles(id)
 );
@@ -60,15 +61,38 @@ CREATE TABLE child_profiles (
     name VARCHAR(255),
     date_of_birth DATE,
     weight FLOAT,
+    weight_unit VARCHAR(10) DEFAULT 'kg',
     height FLOAT,
+    height_unit VARCHAR(10) DEFAULT 'cm',
     gender VARCHAR(20),
     image_url VARCHAR(500),
+    profile_color VARCHAR(20),
+    nutrition_goal VARCHAR(255),
 
     FOREIGN KEY (parent_id) REFERENCES users(id)
 );
 
 INSERT INTO child_profiles
+    (id,parent_id,name,date_of_birth,weight,height,gender,image_url)
 VALUES (1,3,'Emma','2024-05-01',8.5,72,'Female','/images/child1.webp');
+
+-- App-specific tags, decoupled from the recipe-filtering `allergies` table
+-- below (different vocabulary, different purpose — see migration notes).
+CREATE TABLE child_known_allergies (
+    child_id INT NOT NULL,
+    allergy_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, allergy_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE child_food_preferences (
+    child_id INT NOT NULL,
+    food_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, food_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
 
 -- ==========================================
 -- MEAL TYPES
@@ -253,7 +277,7 @@ CREATE TABLE favorite_recipes (
 );
 
 INSERT INTO favorite_recipes(user_id,recipe_id)
-VALUES (3,1);
+VALUES (3,1),(3,2),(3,4),(3,5);
 
 -- ==========================================
 -- MEAL PLANS
@@ -414,3 +438,113 @@ CREATE TABLE child_allergies (
 );
 ALTER TABLE users
 ADD COLUMN avatar VARCHAR(500) DEFAULT NULL;
+
+-- ==========================================
+-- HOME PAGE CONTENT
+-- ==========================================
+CREATE TABLE journey_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    age_label VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    color_month VARCHAR(20),
+    image_key VARCHAR(50),
+    sort_order INT DEFAULT 0
+);
+
+-- ==========================================
+-- user_settings
+-- ==========================================
+
+CREATE TABLE user_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    use_metric BOOLEAN DEFAULT TRUE,
+
+    weight_unit ENUM('kg','lb') DEFAULT 'kg',
+
+    volume_unit ENUM('ml','us_fl_oz','uk_fl_oz') DEFAULT 'ml',
+
+    length_unit ENUM('cm','in') DEFAULT 'cm',
+
+    temperature_unit ENUM('c','f') DEFAULT 'c',
+
+    language VARCHAR(10) DEFAULT 'en',
+
+    theme ENUM('system','light','dark') DEFAULT 'system',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+
+-- image_key matches a badge image bundled in MobileApp/public/images
+INSERT INTO journey_items(age_label,title,description,color_month,image_key,sort_order)
+VALUES
+('Starting\nsoon','Starting soon','Getting ready for weaning tips, a handy checklist and more.','#1F8FC4','startingSoon-Seedstick',1),
+('First\ntastes','First tastes','Getting ready for weaning tips, a handy checklist and more.','#C4265E','firstTastes-Seedstick',2),
+('6+\nmonths','From 6 months','Getting ready for weaning tips, a handy checklist and more.','#A31578','6Months-Seedstick',3),
+('7+\nmonths','From 7 months','Getting ready for weaning tips, a handy checklist and more.','#7C63A3','7Months-Seedstick',4),
+('10+\nmonths','From 10 months','Getting ready for weaning tips, a handy checklist and more.','#1F7A3D','10Months-Seedstick',5),
+('12+\nmonths','From 12 months','Getting ready for weaning tips, a handy checklist and more.','#80C700','12Months-Seedstick',6);
+
+CREATE TABLE weaning_features (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    sort_order INT DEFAULT 0
+);
+
+INSERT INTO weaning_features(text,sort_order)
+VALUES
+('What to expect at every stage',1),
+('Top tips from nutritionists',2),
+('Yummy recipes',3),
+('...and much more!',4);
+
+-- Extra verified experts so the home page has more than one card
+INSERT INTO users(full_name,email,password,role_id)
+VALUES
+('Troyan Smith','troyan.smith@babynutri.com','123456',2),
+('James Wolden','james.wolden@babynutri.com','123456',2),
+('Niki Samantha','niki.samantha@babynutri.com','123456',2);
+
+INSERT INTO expert_profiles(expert_id,information,certificate,specialization,experience_year,is_verified)
+VALUES
+(4,'Registered dietitian focused on infant nutrition','Registered Dietitian','Nutritionist',6,TRUE),
+(5,'Pediatrician specializing in early childhood health','Board Certified Pediatrician','Pediatrician',10,TRUE),
+(6,'Helps families build healthy weaning routines','Certified Nutrition Coach','Dietitian',5,TRUE);
+
+UPDATE expert_profiles SET is_verified = TRUE WHERE expert_id = 2;
+
+UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=68' WHERE id = 2;
+UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=12' WHERE id = 4;
+UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=11' WHERE id = 5;
+UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=47' WHERE id = 6;
+
+-- Replace placeholder local image paths with real hosted images
+UPDATE recipes SET image_url = 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624' WHERE id IN (1,4);
+UPDATE recipes SET image_url = 'https://images.unsplash.com/photo-1547592180-85f173990554' WHERE id IN (2,5);
+UPDATE recipes SET image_url = 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398' WHERE id IN (3,6);
+
+-- ==========================================
+-- MEASUREMENT SETTINGS (per user)
+-- ==========================================
+CREATE TABLE measurement_settings (
+    user_id INT PRIMARY KEY,
+    use_metric BOOLEAN DEFAULT TRUE,
+    weight_unit VARCHAR(10) DEFAULT 'kg',
+    volume_unit VARCHAR(10) DEFAULT 'ml',
+    length_unit VARCHAR(10) DEFAULT 'cm',
+    temperature_unit VARCHAR(10) DEFAULT 'C',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

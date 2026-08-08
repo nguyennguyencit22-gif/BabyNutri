@@ -1,68 +1,364 @@
 import React from 'react';
 import {
-    Button,
-    SafeAreaView,
-    StyleSheet,
+    ActivityIndicator,
+    ScrollView,
     Text,
     View,
 } from 'react-native';
+import {
+    Icon,
+} from 'react-native-paper';
+import { SafeAreaView, } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
-function HomeScreen({ navigation }: any) {
+// import {
+//     categories,
+// } from '../../constants/sampleData/homeData';
+
+import createStyles from '../../styles/home/homeStyles'
+import { FlatList, Pressable } from "react-native";
+import JourneyCard from '@/components/home/JourneyCard';
+import ExpertCard from '../../components/home/ExpertCard';
+import RecipeCard from '../../components/home/RecipeCard';
+import HomeBabyHeader from '@/components/home/HomeBabyHeader';
+import { useAppTheme } from '../../theme/useAppTheme';
+import {
+    fetchHomeData,
+    HomeData,
+} from '../../services/home.service';
+import { getJourneyImage } from '../../constants/home/journeyImages';
+import { getRecipeImage } from '../../constants/home/recipeImages';
+
+const EMPTY_HOME_DATA: HomeData = {
+    popularCategories: [],
+    popularRecipes: [],
+    experts: [],
+    journeyItems: [],
+    weaningFeatures: [],
+};
+
+function HomeScreen() {
+    const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
+    const [homeData, setHomeData] = React.useState<HomeData>(EMPTY_HOME_DATA);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    const { t } = useTranslation();
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
+    const loadHomeData = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await fetchHomeData();
+            setHomeData(data);
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to load home data',
+            );
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        loadHomeData();
+    }, [loadHomeData]);
+
+    const {
+        popularCategories,
+        popularRecipes,
+        experts,
+        journeyItems,
+        weaningFeatures,
+    } = homeData;
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator
+                        size="large"
+                        color={colors.primary}
+                    />
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (error) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.weaningDescription}>
+                        {error}
+                    </Text>
+                    <Pressable
+                        onPress={loadHomeData}
+                        style={styles.expertButton}>
+                        <Text style={styles.expertButtonText}>
+                            Try again
+                        </Text>
+                    </Pressable>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.content}>
-                <Text style={styles.title}>BabyNutri Home</Text>
 
-                <Button
-                    title="Open Profile"
-                    onPress={() => navigation.navigate('Profile')}
-                />
 
-                <View style={styles.divider} />
-                <Text style={{fontWeight: 'bold', color: 'red'}}>Member C Features:</Text>
-                
-                <Button
-                    title="Child Profile"
-                    color="#f4511e"
-                    onPress={() => navigation.navigate('ChildList')}
-                />
-                
-                <Button
-                    title="Meal Plans"
-                    color="#f4511e"
-                    onPress={() => navigation.navigate('MealPlanList')}
-                />
+            <HomeBabyHeader />
 
-                <Button
-                    title="FAQ"
-                    color="#f4511e"
-                    onPress={() => navigation.navigate('FAQ')}
-                />
-            </View>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}>
+
+                {/* <FlatList
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={categories}
+                    keyExtractor={(item) => item}
+                    contentContainerStyle={styles.categoryList}
+                    renderItem={({ item }) => (
+                        <Pressable
+                            onPress={() => setSelectedCategory(item)}
+                            style={[
+                                styles.categoryButton,
+                                selectedCategory === item &&
+                                styles.categoryButtonActive,
+                            ]}>
+
+                            <Text
+                                style={[
+                                    styles.categoryText,
+                                    selectedCategory === item &&
+                                    styles.categoryTextActive,
+                                ]}>
+                                {item}
+                            </Text>
+
+                        </Pressable>
+                    )}
+                /> */}
+
+                <View style={styles.weaningSection}>
+
+                    <Text style={styles.weaningTitle}>
+                        {t('home.weaningTitle')}
+                    </Text>
+
+                    <Text style={styles.weaningDescription}>
+                        {t('home.weaningDescription')}
+                    </Text>
+
+                    {weaningFeatures.map(item => (
+                        <View
+                            key={item}
+                            style={styles.featureItem}>
+                            <View style={styles.featureIcon}>
+                                <Icon
+                                    source="emoticon-kiss-outline"
+                                    color='#ffe45a'
+                                    size={20}
+                                />
+                            </View>
+
+                            <Text style={styles.featureText}>
+                                {item}
+                            </Text>
+
+                        </View>
+                    ))}
+
+                </View>
+
+                <View style={styles.journeySection}>
+                    <Text style={styles.journeyTitle}>
+                        {t('home.journeyTitle')}
+                    </Text>
+
+                    <FlatList
+                        horizontal
+                        data={journeyItems}
+                        keyExtractor={(item) => String(item.id)}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.journeyListContent}
+
+                        renderItem={({ item }) => (
+                            <JourneyCard
+                                age={item.age}
+                                title={item.title}
+                                description={item.description}
+                                colorMonths={item.colorMonth}
+                                image={getJourneyImage(item.imageKey)}
+                            />
+                        )}
+                    />
+                </View>
+
+                <View style={styles.expertSection}>
+                    <Text style={styles.expertSectionTitle}>
+                        {t('home.expertSectionTitle')}
+                    </Text>
+
+                    <FlatList
+                        horizontal
+                        data={experts}
+                        keyExtractor={item => String(item.id)}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.expertList}
+                        renderItem={({ item }) => (
+                            <ExpertCard
+                                name={item.name}
+                                role={item.role}
+                                image={{ uri: item.image }}
+                            />
+                        )}
+                    />
+
+                    <Text style={styles.expertDescription}>
+                        {t('home.expertDescription')}
+                    </Text>
+
+                    <Pressable style={styles.expertButton}>
+                        <Text style={styles.expertButtonText}>
+                            {t('home.expertButton')}
+                        </Text>
+                    </Pressable>
+                </View>
+
+                <View style={styles.popularSection}>
+                    <Text style={styles.popularTitle}>
+                        {t('home.popularCategoryTitle')}
+                    </Text>
+
+                    <FlatList
+                        horizontal
+                        data={popularCategories}
+                        keyExtractor={item => item}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.popularCategoryList}
+                        renderItem={({ item }) => (
+                            <Pressable
+                                onPress={() =>
+                                    setSelectedCategory(item)
+                                }
+                                style={[
+                                    styles.popularChip,
+                                    selectedCategory === item &&
+                                    styles.popularChipActive,
+                                ]}>
+
+                                <Text
+                                    style={[
+                                        styles.popularChipText,
+                                        selectedCategory === item &&
+                                        styles.popularChipTextActive,
+                                    ]}>
+                                    {item}
+                                </Text>
+                            </Pressable>
+                        )}
+                    />
+
+                    <FlatList
+                        horizontal
+                        data={popularRecipes}
+                        keyExtractor={item => String(item.id)}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.recipeList}
+                        renderItem={({ item }) => (
+                            <RecipeCard
+                                title={item.title}
+                                time={item.time}
+                                image={getRecipeImage(item.id, item.image)}
+                                rating={item.rating}
+                                ratingCount={item.ratingCount}
+                                onPress={() =>
+                                    console.log(
+                                        'Recipe selected:',
+                                        item.title,
+                                    )
+                                }
+                            />
+                        )}
+                    />
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        gap: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-    },
-    divider: {
-        height: 1,
-        width: '80%',
-        backgroundColor: '#ccc',
-        marginVertical: 10,
-    }
-});
+
+// const styles = StyleSheet.create({
+//     scrollContent: {
+//         paddingBottom: 120,
+//     },
+//     header: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         justifyContent: 'space-between',
+//         paddingHorizontal: 20,
+//         paddingTop: 22,
+//         paddingBottom: 18,
+//     },
+//     userInfo: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         flex: 1,
+//     },
+//     avatar: {
+//         backgroundColor: HomeColors.primary,
+//     },
+//     babyName: {
+//         marginLeft: 12,
+//         color: HomeColors.primary,
+//         fontSize: 22,
+//         fontWeight: '700',
+//     },
+//     babyAge: {
+//         marginTop: 2,
+//         marginLeft: 12,
+//         color: HomeColors.textSoft,
+//         fontSize: 13,
+//     },
+//     headerActions: {
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//     },
+//     profileDot: {
+//         width: 36,
+//         height: 36,
+//         borderRadius: 18,
+//         backgroundColor: '#FFC6D0',
+//     },
+//     placeholderSection: {
+//         marginHorizontal: 20,
+//         marginTop: 28,
+//         borderRadius: 24,
+//         padding: 24,
+//         backgroundColor: HomeColors.surface,
+//     },
+//     placeholderTitle: {
+//         color: HomeColors.text,
+//         fontSize: 22,
+//         fontWeight: '700',
+//     },
+//     placeholderText: {
+//         marginTop: 10,
+//         color: HomeColors.textSoft,
+//         fontSize: 15,
+//         lineHeight: 22,
+//     },
+// });
+// });
 
 export default HomeScreen;

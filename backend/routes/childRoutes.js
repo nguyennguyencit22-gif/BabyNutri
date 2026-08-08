@@ -1,11 +1,20 @@
-const express = require('express');
-const router = express.Router();
-const childController = require('../controllers/childController');
 
-router.get('/', childController.getChildren);
-router.get('/:id', childController.getChildById);
-router.post('/', childController.createChild);
-router.put('/:id', childController.updateChild);
-router.delete('/:id', childController.deleteChild);
+const express = require("express");
+const router = express.Router();
+
+const auth = require("../middleware/auth");
+
+const {
+    getChildren,
+    createChild,
+    updateChild,
+    deleteChild,
+} = require("../controllers/childController");
+
+router.get("/", auth, getChildren);
+router.post("/", auth, createChild);
+router.put("/:id", auth, updateChild);
+router.delete("/:id", auth, deleteChild);
+
 
 module.exports = router;

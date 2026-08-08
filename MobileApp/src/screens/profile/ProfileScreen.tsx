@@ -1,46 +1,302 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from 'react-native-paper';
 import {
-    Button,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
+    useDispatch,
+    useSelector,
+} from 'react-redux';
+
+import ProfileHeader from '../../components/profile/ProfileHeader';
+import ProfileSummaryCard from '../../components/profile/ProfileSummaryCard';
+import ProfileMenuItem from '../../components/profile/ProfileMenuItem';
+import BabyProfileItem from '../../components/profile/BabyProfileItem';
+import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
+import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
+
+import createStyles from '../../styles/profile/profileStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
+
+import {
+    calculateBabyAgeInMonths,
+} from '../../utils/calculateBabyAge';
+
+import type {
+    AppDispatch,
+    RootState,
+} from '../../store/Store';
+
+import {
+    deleteBaby,
+} from '../../store/babySlice';
+
+import {
+    Share,
 } from 'react-native';
 
-function ProfileScreen({ navigation }: any) {
+function ProfileScreen({
+    navigation,
+}: any) {
+    const dispatch =
+        useDispatch<AppDispatch>();
+
+    const { colors } = useAppTheme();
+    const styles = React.useMemo(
+        () => createStyles(colors),
+        [colors],
+    );
+
+    const babies = useSelector(
+        (state: RootState) =>
+            state.baby.babies,
+    );
+
+    const sessionMode = useSelector(
+        (state: RootState) =>
+            state.auth.mode,
+    );
+
+    const user = useSelector(
+        (state: RootState) =>
+            state.auth.user,
+    );
+
+    const [selectedBabyId, setSelectedBabyId] =
+        React.useState<string | null>(null);
+
+    const [showBabyActions, setShowBabyActions] =
+        React.useState(false);
+
+    const isAuthenticated =
+        sessionMode === 'authenticated' &&
+        user !== null;
+
+    const handleOpenBabyActions = (
+        babyId: string,
+    ) => {
+        setSelectedBabyId(babyId);
+        setShowBabyActions(true);
+    };
+
+    const handleCloseBabyActions = () => {
+        setShowBabyActions(false);
+    };
+
+    const handleEditBaby = () => {
+        if (!selectedBabyId) {
+            return;
+        }
+
+        handleCloseBabyActions();
+
+        navigation.navigate(
+            'EditBabyProfile',
+            {
+                babyId: selectedBabyId,
+            },
+        );
+    };
+
+    const handleShareApp = async () => {
+        try {
+            const appLink =
+                'https://babynutri.app/download';
+
+            await Share.share({
+                message:
+                    `I recommend BabyNutri. Here is the link:\n${appLink}`,
+                title: 'BabyNutri',
+            });
+        } catch (error) {
+            console.log(
+                'Share BabyNutri error:',
+                error,
+            );
+        }
+    };
+
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.content}>
-                <Text style={styles.title}>Profile Screen</Text>
+        <SafeAreaView style={styles.safeArea}>
+            <ProfileHeader
+                title="My Profile"
+                onBack={() =>
+                    navigation.goBack()
+                }
+            />
 
-                <Button
-                    title="Back to Home"
-                    onPress={() => navigation.goBack()}
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={
+                    styles.scrollContent
+                }>
+
+                {isAuthenticated ? (
+                    <ProfileSummaryCard
+                        name={
+                            user.displayName ||
+                            'BabyNutri Parent'
+                        }
+                        email={user.email}
+                        imageUrl={
+                            user.photoURL
+                        }
+                        onChangePhoto={() => {
+                            console.log(
+                                'Change profile photo',
+                            );
+                        }}
+                        onPress={() => {
+                            navigation.navigate(
+                                'AccountSettings',
+                            );
+                        }}
+                    />
+                ) : (
+                    <GuestProfileBanner
+                        onLogin={() => {
+                            navigation.navigate(
+                                'Login',
+                            );
+                        }}
+                    />
+                )}
+
+                <Text style={styles.sectionLabel}>
+                    PROFILES
+                </Text>
+
+                {babies.map(baby => (
+                    <BabyProfileItem
+                        key={baby.id}
+                        name={baby.name}
+                        profileColor={
+                            baby.profileColor
+                        }
+                        ageInMonths={
+                            calculateBabyAgeInMonths(
+                                baby.dateOfBirth,
+                            )
+                        }
+                        onPress={() =>
+                            handleOpenBabyActions(
+                                baby.id,
+                            )
+                        }
+                        onEdit={() =>
+                            handleOpenBabyActions(
+                                baby.id,
+                            )
+                        }
+                        onDelete={() => {
+                            dispatch(
+                                deleteBaby(
+                                    baby.id,
+                                ),
+                            );
+                        }}
+                    />
+                ))}
+
+                <ProfileMenuItem
+                    title="Add baby profile"
+                    leftIcon="plus"
+                    onPress={() => {
+                        navigation.navigate(
+                            'AddBabyProfile',
+                        );
+                    }}
                 />
 
-                <Button
-                    title="Logout temporarily"
-                    onPress={() => navigation.replace('Login')}
+                <ProfileMenuItem
+                    title="Enter invitation code"
+                    leftIcon="message-text-outline"
+                    onPress={() => {
+                        navigation.navigate(
+                            'InvitationCode',
+                        );
+                    }}
                 />
-            </View>
+
+                <Text
+                    style={
+                        styles.otherSettingLabel
+                    }>
+                    OTHER SETTING
+                </Text>
+
+                <ProfileMenuItem
+                    title="Settings"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('Settings');
+                    }}
+                />
+
+                <ProfileMenuItem
+                    title="Tell your friends"
+                    onPress={handleShareApp}
+                />
+
+                <ProfileMenuItem
+                    title="About"
+                    onPress={() => {
+                        navigation.navigate('About');
+                    }}
+                />
+
+            </ScrollView>
+
+            <BabyProfileActionsModal
+                visible={showBabyActions}
+                onClose={
+                    handleCloseBabyActions
+                }
+                onEditBaby={
+                    handleEditBaby
+                }
+                onAddCaregiver={() => {
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Add caregiver:',
+                        selectedBabyId,
+                    );
+                }}
+                onEditEvents={() => {
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Edit events:',
+                        selectedBabyId,
+                    );
+                }}
+                onConfigureMainScreen={() => {
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Configure main screen:',
+                        selectedBabyId,
+                    );
+                }}
+                onReminders={() => {
+                    if (!selectedBabyId) {
+                        return;
+                    }
+
+                    console.log(
+                        'Reminders:',
+                        selectedBabyId,
+                    );
+                }}
+            />
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        gap: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-    },
-});
 
 export default ProfileScreen;
