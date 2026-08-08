@@ -1,0 +1,415 @@
+=== Member B - Nutrition Content Developer.docx ===
+Member B – Nutrition Content Developer
+1. Vai trò chính
+Member B chịu trách nhiệm xây dựng toàn bộ chức năng liên quan đến công thức dinh dưỡng và bài viết.
+Bao gồm:
+Quản lý Recipe 
+Quản lý Nutrition Articles 
+Tìm kiếm và lọc 
+Kết nối API Recipe & Article 
+Thiết kế giao diện các màn hình liên quan 
+Kiểm thử module của mình 
+2. Các màn hình cần làm
+Khoảng 7 màn hình
+Folder phụ trách
+src/
+screens/
+│
+├── recipes/
+│     RecipeListScreen.tsx
+│     RecipeDetailScreen.tsx
+│     AddRecipeScreen.tsx
+│     EditRecipeScreen.tsx
+│     SearchRecipeScreen.tsx
+│
+└── articles/
+      ArticleListScreen.tsx
+      ArticleDetailScreen.tsx
+components/
+├── recipes/
+│      RecipeCard.tsx
+│      RecipeItem.tsx
+│      CategoryChip.tsx
+│      IngredientItem.tsx
+│
+└── articles/
+       ArticleCard.tsx
+       ArticleItem.tsx
+services/
+recipeService.ts
+articleService.ts
+types/
+recipe.ts
+article.ts
+4. Chức năng chi tiết
+Recipe List
+Hiển thị
+Hình ảnh 
+Tên món 
+Độ tuổi phù hợp 
+Calories 
+Thời gian nấu 
+Có
+Search 
+Filter 
+Pull to Refresh 
+Recipe Detail
+Hiển thị đầy đủ
+Ảnh món ăn 
+Tên món 
+Thành phần 
+Hướng dẫn nấu 
+Calories 
+Protein 
+Fat 
+Carbohydrate 
+Độ tuổi phù hợp 
+Add Recipe
+Cho phép nhập
+Tên 
+Mô tả 
+Thành phần 
+Các bước nấu 
+Calories 
+Hình ảnh 
+Độ tuổi 
+Sau đó gọi API
+Create Recipe
+Edit Recipe
+Cho phép
+sửa tên 
+sửa mô tả 
+sửa nguyên liệu 
+sửa ảnh 
+sửa calories 
+Search Recipe
+Cho phép
+tìm theo tên 
+lọc theo độ tuổi 
+lọc theo category
+Ví dụ
+Article List
+Hiển thị
+Hình 
+Tiêu đề 
+Tóm tắt 
+Ngày đăng 
+Article Detail
+Hiển thị
+Hình 
+Tiêu đề 
+Nội dung 
+Tác giả 
+Ngày đăng
+API phụ trách
+Component cần xây
+7. TypeScript Models
+Recipe
+8. Services
+Member B sẽ tạo
+9. Test Cases
+Recipe
+✓ Load Recipe List
+✓ Search Recipe
+✓ Filter Recipe
+✓ View Detail
+✓ Add Recipe
+✓ Edit Recipe
+✓ Delete Recipe
+Article
+✓ Load Articles
+✓ View Article Detail
+✓ API Error
+✓ Empty Data
+10. Giai đoạn phát triển
+Phase 1
+Tạo
+11. Member B cần phối hợp với Member A
+Member B sẽ không làm Navigation. Thay vào đó:
+Member A tạo các route trong MainNavigator. 
+Member B chỉ cần export các màn hình (RecipeListScreen, RecipeDetailScreen, ArticleListScreen, ArticleDetailScreen,...) để Member A thêm vào navigation. 
+Sau khi API hoàn thành, Member B thông báo endpoint cho Member A để liên kết từ Home Screen sang các màn hình Recipes và Articles. 
+Như vậy, ranh giới công việc sẽ rõ ràng: A phụ trách khung ứng dụng và điều hướng, còn B phụ trách toàn bộ logic và giao diện của module Recipes & Articles.
+
+=== Requirement.docx ===
+-1059180-13970
+
+=== Member_C_Task_Analysis_BabyNutri.docx ===
+Member C – Child & Meal Management Developer
+Role: Develop features related to child profile management, meal planning, and FAQ/Q&A. Member C is also responsible for integrating APIs for these modules and testing their functionality.
+1. Main Responsibilities
+No.
+Screen
+Function
+1
+Child List
+Display all child profiles
+2
+Child Detail
+View detailed child information
+3
+Add Child
+Create a new child profile
+4
+Edit Child
+Update child information
+5
+Meal Plan List
+Display meal plans
+6
+Meal Plan Detail
+View meal plan details
+7
+FAQ / Questions
+Display common nutrition questions and answers
+2. Suggested Folder Structure
+src/├── screens/│   ├── children/│   ├── mealPlans/│   └── questions/├── components/│   ├── children/│   ├── mealPlans/│   └── questions/├── services/│   ├── childService.ts│   ├── mealPlanService.ts│   └── questionService.ts└── types/    ├── child.ts    └── mealPlan.ts
+3. Features
+Manage child profiles (create, update, view, delete).
+Store child information such as name, age, gender, height, weight and allergies.
+Create and manage meal plans.
+Display meal plan details by day or week.
+Display Frequently Asked Questions (FAQ) related to child nutrition.
+Connect all screens with backend APIs.
+4. APIs
+Method
+Endpoint
+Description
+GET
+/children
+Get child list
+GET
+/children/{id}
+Get child details
+POST
+/children
+Create child
+PUT
+/children/{id}
+Update child
+DELETE
+/children/{id}
+Delete child
+GET
+/mealplans
+Get meal plans
+GET
+/mealplans/{id}
+Get meal plan details
+POST
+/mealplans
+Create meal plan
+PUT
+/mealplans/{id}
+Update meal plan
+DELETE
+/mealplans/{id}
+Delete meal plan
+GET
+/questions
+Get FAQ
+5. Test Cases
+Verify child list loads correctly.
+Verify add/edit/delete child profile.
+Verify meal plans can be created and updated.
+Verify FAQ screen displays data correctly.
+Verify API error handling.
+Verify empty data state.
+6. Development Phases
+Phase 1: Create Child and Meal Plan screens.
+Phase 2: Develop reusable components.
+Phase 3: Integrate Child and Meal Plan APIs.
+Phase 4: Implement FAQ module.
+Phase 5: Testing and integration with Member A navigation.
+
+=== Công việc của Member A.docx ===
+Công việc của Member A
+1. Vai trò chính
+Leader / Core Frontend / Authentication
+Bạn chịu trách nhiệm:
+Thiết lập cấu trúc ứng dụng mobile. 
+Navigation giữa các màn hình. 
+Đăng ký, đăng nhập và đăng xuất. 
+Trang chủ. 
+Hồ sơ người dùng. 
+Các component giao diện dùng chung. 
+Kết nối API Auth và User. 
+Hỗ trợ tích hợp code của Member B và Member C. 
+2. Các màn hình cần làm
+Bạn có thể phụ trách khoảng 7 màn hình:
+Nếu nhóm không làm Splash Screen thì có thể thay bằng:
+About Screen; 
+Change Password Screen; 
+Logout Confirmation Screen. 
+3. Folder bạn phụ trách
+Trong MobieReport#/src/, bạn nên tạo:
+src/
+├── assets/
+│   ├── images/
+│   └── icons/
+│
+├── components/
+│   └── common/
+│       ├── AppButton.tsx
+│       ├── AppInput.tsx
+│       ├── Header.tsx
+│       ├── Loading.tsx
+│       └── EmptyState.tsx
+│
+├── navigation/
+│   ├── AppNavigator.tsx
+│   ├── AuthNavigator.tsx
+│   ├── MainNavigator.tsx
+│   └── navigationTypes.ts
+│
+├── screens/
+│   ├── auth/
+│   │   ├── LoginScreen.tsx
+│   │   └── RegisterScreen.tsx
+│   │
+│   ├── home/
+│   │   └── HomeScreen.tsx
+│   │
+│   ├── profile/
+│   │   ├── ProfileScreen.tsx
+│   │   └── EditProfileScreen.tsx
+│   │
+│   └── settings/
+│       └── SettingsScreen.tsx
+│
+├── services/
+│   ├── apiClient.ts
+│   ├── authService.ts
+│   └── userService.ts
+│
+├── context/
+│   └── AuthContext.tsx
+│
+├── constants/
+│   ├── colors.ts
+│   ├── routes.ts
+│   └── api.ts
+│
+├── types/
+│   ├── auth.ts
+│   └── user.ts
+│
+└── utils/
+    ├── validation.ts
+└── storage.ts
+4. Chức năng chi tiết
+Authentication
+Login
+Nhập email. 
+Nhập mật khẩu. 
+Kiểm tra ô trống. 
+Kiểm tra định dạng email. 
+Gọi Login API. 
+Lưu token. 
+Chuyển sang Home sau khi đăng nhập thành công. 
+Hiển thị lỗi khi đăng nhập thất bại. 
+Register
+Nhập họ tên. 
+Nhập email. 
+Nhập mật khẩu. 
+Xác nhận mật khẩu. 
+Kiểm tra dữ liệu nhập. 
+Gọi Register API. 
+Chuyển về Login hoặc tự động đăng nhập. 
+Logout
+Hiển thị hộp thoại xác nhận. 
+Xóa token. 
+Xóa thông tin đăng nhập tạm. 
+Chuyển về Login. 
+Home Screen
+Trang Home nên có:
+Lời chào người dùng. 
+Thông tin ngắn về BabyNutri. 
+Menu chuyển đến: 
+Recipes; 
+Articles; 
+Child Profiles; 
+Meal Plans; 
+Questions/FAQ. 
+Có thể thêm một số recipe hoặc article nổi bật. 
+Member A chỉ làm phần layout và navigation. Dữ liệu Recipe, Article, Child hoặc Meal Plan sẽ do các thành viên khác cung cấp.
+Profile
+Profile Screen
+Hiển thị tên. 
+Email. 
+Ảnh đại diện. 
+Nút Edit Profile. 
+Nút Settings. 
+Nút Logout. 
+Edit Profile Screen
+Chỉnh sửa tên. 
+Chỉnh sửa email hoặc số điện thoại nếu có. 
+Chọn ảnh đại diện nếu nhóm làm chức năng upload. 
+Gọi Update Profile API. 
+Hiển thị thông báo thành công hoặc thất bại.
+5. API bạn phụ trách
+Theo yêu cầu đề bài, nhóm phải có API đăng nhập, đăng ký, lấy và cập nhật hồ sơ. Đây chính là phần API phù hợp với Member A. 
+Response nên ở dạng JSON, ví dụ:
+6. Navigation cần thiết kế
+Luồng cơ bản:
+Bạn nên tạo hai luồng:
+Sau đó AppNavigator kiểm tra:
+7. Thứ tự làm việc đề xuất
+Giai đoạn 1 — Setup
+Kiểm tra ứng dụng React Native chạy được. 
+Cài navigation. 
+Tạo các folder cần thiết. 
+Tạo constants và navigation types. 
+Tạo các màn hình rỗng để kiểm tra chuyển trang. 
+Commit gợi ý: setup project structure and navigation
+Giai đoạn 2 — Authentication UI
+Tạo AppInput. 
+Tạo AppButton. 
+Làm Login Screen. 
+Làm Register Screen. 
+Thêm validation. 
+Commit: add login and register screens
+Giai đoạn 3 — Authentication logic
+Tạo apiClient.ts. 
+Tạo authService.ts. 
+Tạo AuthContext. 
+Lưu token. 
+Xử lý login/logout. 
+Commit: integrate authentication APIs
+Giai đoạn 4 — Home và Profile
+Home Screen. 
+Profile Screen. 
+Edit Profile Screen. 
+Settings và Logout. 
+Commit: add home and user profile features
+Giai đoạn 5 — Testing và tích hợp
+Kiểm tra navigation. 
+Test nhập sai email/mật khẩu. 
+Test API thất bại. 
+Test logout. 
+Kết nối màn hình của B và C vào navigation. 
+Sửa conflict khi merge. 
+Commit: test and integrate main application modules
+8. Test case bạn cần chuẩn bị
+9. Phần tài liệu bạn viết
+Trong report, bạn phụ trách:
+Project structure. 
+Mobile navigation design. 
+Authentication flow. 
+Login và Register UI. 
+Home Screen. 
+User Profile. 
+API Auth/User. 
+Test cases của phần mình. 
+Screenshots kết quả. 
+Những khó khăn và cách giải quyết. 
+Trong presentation, bạn có thể trình bày:
+Công nghệ React Native. 
+Cấu trúc frontend. 
+Navigation. 
+Demo Login/Register. 
+Demo Home/Profile. 
+Cách tích hợp các module.
+10. Việc bạn nên làm ngay bây giờ
+Trước khi code, kiểm tra branch hiện tại trong GitHub Desktop phải là:
+

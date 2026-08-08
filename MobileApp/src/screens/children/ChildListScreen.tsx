@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
-import { ChildCard } from '../../components/children/ChildCard';
 
 export const ChildListScreen = ({ navigation }: any) => {
   const [children, setChildren] = useState<Child[]>([]);
@@ -31,7 +30,7 @@ export const ChildListScreen = ({ navigation }: any) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#FF5F70" />
       </View>
     );
   }
@@ -42,15 +41,25 @@ export const ChildListScreen = ({ navigation }: any) => {
         data={children}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ChildCard 
-            child={item} 
-            onPress={() => navigation.navigate('ChildDetail', { childId: item.id })} 
-          />
+          <TouchableOpacity 
+            style={styles.card} 
+            onPress={() => navigation.navigate('ChildDetail', { childId: item.id })}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.childName}>👶 {item.name}</Text>
+            <Text style={styles.childDetails}>{item.age} yrs old · {String(item.gender) === 'Male' || String(item.gender) === 'Nam' ? 'Boy' : 'Girl'}</Text>
+            <Text style={styles.childStats}>Height: {item.height}cm · Weight: {item.weight}kg</Text>
+          </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No children found.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No child profiles added yet.</Text>
+            <Text style={styles.emptySubText}>Tap (+) button below to create a new profile!</Text>
+          </View>
+        }
         contentContainerStyle={styles.listContainer}
       />
-      <TouchableOpacity style={styles.fab} onPress={handleAddPress}>
+      <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.9}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </View>
@@ -60,41 +69,83 @@ export const ChildListScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFDF9',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFDF9',
   },
   listContainer: {
-    paddingVertical: 8,
+    paddingVertical: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFEFEA',
+    elevation: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  childName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#4B3034',
+    marginBottom: 4,
+  },
+  childDetails: {
+    fontSize: 13,
+    color: '#FF5F70',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  childStats: {
+    fontSize: 12,
+    color: '#8E7377',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    paddingHorizontal: 20,
   },
   emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
     fontSize: 16,
-    color: '#888',
+    fontWeight: '700',
+    color: '#4B3034',
+    marginBottom: 6,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#8E7377',
+    textAlign: 'center',
   },
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
-    backgroundColor: '#2196F3',
+    bottom: 24,
+    backgroundColor: '#FF5F70',
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   fabText: {
-    color: '#fff',
-    fontSize: 24,
+    color: '#FFFFFF',
+    fontSize: 28,
     fontWeight: 'bold',
+    lineHeight: 30,
   },
 });

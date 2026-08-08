@@ -33,6 +33,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     },
     avatar: {
         backgroundColor: colors.primary,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
     },
     babyName: {
         marginLeft: 12,
@@ -55,6 +58,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         height: 36,
         borderRadius: 18,
         backgroundColor: colors.primarySoft,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
     },
     placeholderSection: {
         marginHorizontal: 20,
@@ -62,6 +68,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         borderRadius: 24,
         padding: 24,
         backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
     },
     placeholderTitle: {
         color: colors.text,
@@ -87,16 +96,21 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 20,
         marginRight: 12,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
+        backgroundColor: colors.surface,
     },
 
     categoryButtonActive: {
         backgroundColor: colors.primary,
+        borderColor: colors.primary,
     },
 
     categoryText: {
         color: colors.primary,
         fontSize: 15,
-        fontWeight: "500",
+        fontWeight: "600",
     },
 
     categoryTextActive: {
@@ -145,6 +159,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         marginTop: 28,
         paddingTop: 28,
         paddingBottom: 32,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#5B0010',
     },
 
     journeyTitle: {
@@ -200,6 +218,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingHorizontal: 26,
         paddingVertical: 12,
         backgroundColor: '#FFD34E',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#5B0010',
     },
 
     expertButtonText: {
@@ -213,6 +234,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingTop: 24,
         paddingBottom: 34,
         backgroundColor: '#A896F4',
+        borderTopWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#FFFFFF',
     },
 
     popularTitle: {
@@ -234,10 +258,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         paddingHorizontal: 15,
         paddingVertical: 10,
         backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: '#8C44ED',
     },
 
     popularChipActive: {
         backgroundColor: '#8C44ED',
+        borderColor: '#FFFFFF',
     },
 
     popularChipText: {

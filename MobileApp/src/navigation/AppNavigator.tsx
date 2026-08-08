@@ -3,36 +3,43 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
-// import ProfileScreen from '../screens/profile/ProfileScreen';
 import { RootStackParamList } from '../types/navigation/navigationTopTypes';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
-// Member C Screens
+import QuestionnaireScreen from '@/screens/questions/QuestionnaireScreen';
+import MainTabNavigator from './MainTabNavigator';
+import FeatureIntroScreen from '../screens/onboarding/FeatureIntroScreen';
+import AddBabyProfileScreen from '../screens/profile/AddBabyProfileScreen';
+import InvitationCodeScreen from '../screens/profile/InvitationCodeScreen';
+import EditBabyProfileScreen from '../screens/profile/EditBabyProfileScreen';
+import AccountSettingsScreen from '../screens/settings/AccountSettingsScreen';
+import SettingsScreen from '../screens/settings/SettingsScreen';
+import ThemeSettingsScreen from '../screens/settings/ThemeSettingsScreen';
+import LanguageSettingsScreen from '../screens/settings/LanguageSettingsScreen';
+import MeasurementSettingsScreen from '../screens/settings/MeasurementSettingsScreen';
+import AboutScreen from '../screens/settings/AboutScreen';
+
+import RecipeDetailScreen from '../screens/recipes/RecipeDetailScreen';
+import AddRecipeScreen from '../screens/recipes/AddRecipeScreen';
+import EditRecipeScreen from '../screens/recipes/EditRecipeScreen';
+import SearchRecipeScreen from '../screens/recipes/SearchRecipeScreen';
+import ArticleDetailScreen from '../screens/articles/ArticleDetailScreen';
+import AddArticleScreen from '../screens/articles/AddArticleScreen';
+import SavedItemsScreen from '../screens/saved/SavedItemsScreen';
+import FavoriteRecipesScreen from '../screens/recipes/FavoriteRecipesScreen';
+
 import { ChildListScreen } from '../screens/children/ChildListScreen';
 import { ChildDetailScreen } from '../screens/children/ChildDetailScreen';
 import { AddEditChildScreen } from '../screens/children/AddEditChildScreen';
 import { MealPlanListScreen } from '../screens/mealPlans/MealPlanListScreen';
 import { MealPlanDetailScreen } from '../screens/mealPlans/MealPlanDetailScreen';
 import { FAQScreen } from '../screens/questions/FAQScreen';
+import MealSchedulerScreen from '../screens/recipes/MealSchedulerScreen';
 
-// Member A Screens
-import QuestionnaireScreen from '@/screens/questions/QuestionnaireScreen';
-import MainTabNavigator from './MainTabNavigator';
-import FeatureIntroScreen from '../screens/onboarding/FeatureIntroScreen';
-import AddBabyProfileScreen from '@/screens/profile/AddBabyProfileScreen';
-import InvitationCodeScreen from '../screens/profile/InvitationCodeScreen';
-import EditBabyProfileScreen from '@/screens/profile/EditBabyProfileScreen';
-import AccountSettingsScreen from '@/screens/settings/AccountSettingsScreen';
-import SettingsScreen from '@/screens/settings/SettingsScreen';
-import ThemeSettingsScreen from '@/screens/settings/ThemeSettingsScreen';
-import LanguageSettingsScreen from '@/screens/settings/LanguageSettingsScreen';
-import MeasurementSettingsScreen from '@/screens/settings/MeasurementSettingsScreen';
-import AboutScreen from '@/screens/settings/AboutScreen';
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<any>();
 
 function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="Welcome">
-
       <Stack.Screen
         name="Welcome"
         component={WelcomeScreen}
@@ -58,15 +65,12 @@ function AppNavigator() {
         }}
       />
 
-      {/* <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-      /> */}
       <Stack.Screen
         name="AddBabyProfile"
         component={AddBabyProfileScreen}
         options={{ headerShown: false }}
       />
+      
       <Stack.Screen
         name="Questionnaire"
         component={QuestionnaireScreen}
@@ -80,6 +84,7 @@ function AppNavigator() {
         component={FeatureIntroScreen}
         options={{ headerShown: false }}
       />
+
       <Stack.Screen
         name="InvitationCode"
         component={InvitationCodeScreen}
@@ -87,6 +92,7 @@ function AppNavigator() {
           headerShown: false,
         }}
       />
+
       <Stack.Screen
         name="EditBabyProfile"
         component={EditBabyProfileScreen}
@@ -102,6 +108,7 @@ function AppNavigator() {
           headerShown: false,
         }}
       />
+
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
@@ -118,6 +125,86 @@ function AppNavigator() {
         }}
       />
 
+      {/* Recipe & Article Stack Screens */}
+      <Stack.Screen
+        name="RecipeDetail"
+        component={RecipeDetailScreen}
+        options={{ title: 'Recipe Details', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="AddRecipe"
+        component={AddRecipeScreen}
+        options={{ title: 'Add New Recipe', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="EditRecipe"
+        component={EditRecipeScreen}
+        options={{ title: 'Edit Recipe', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="SearchRecipe"
+        component={SearchRecipeScreen}
+        options={{ title: 'Search Recipes', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetailScreen}
+        options={{ title: 'Article Details', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="AddArticle"
+        component={AddArticleScreen}
+        options={{ title: 'Create Shared Article', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="FavoriteRecipes"
+        component={FavoriteRecipesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SavedItems"
+        component={SavedItemsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MealScheduler"
+        component={MealSchedulerScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Child Profile, Meal Plan & FAQ Stack Screens */}
+      <Stack.Screen
+        name="ChildList"
+        component={ChildListScreen}
+        options={{ title: 'Child Profiles List', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="ChildDetail"
+        component={ChildDetailScreen}
+        options={{ title: 'Child Profile Details', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="AddEditChild"
+        component={AddEditChildScreen}
+        options={{ title: 'Child Profile', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="MealPlanList"
+        component={MealPlanListScreen}
+        options={{ title: 'Weaning Meal Plan', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="MealPlanDetail"
+        component={MealPlanDetailScreen}
+        options={{ title: 'Meal Plan Details', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="FAQ"
+        component={FAQScreen}
+        options={{ title: 'Help & FAQ', headerTintColor: '#FF5F70' }}
+      />
+
+      {/* Settings screens (Member A) */}
       <Stack.Screen
         name="LanguageSettings"
         component={LanguageSettingsScreen}
@@ -142,15 +229,6 @@ function AppNavigator() {
         }}
       />
 
-      {/* Member C Screens */}
-      <Stack.Screen name="ChildList" component={ChildListScreen} options={{ title: 'Children' }} />
-      <Stack.Screen name="ChildDetail" component={ChildDetailScreen} options={{ title: 'Child Details' }} />
-      <Stack.Screen name="AddEditChild" component={AddEditChildScreen} options={{ title: 'Edit Child' }} />
-      
-      <Stack.Screen name="MealPlanList" component={MealPlanListScreen} options={{ title: 'Meal Plans' }} />
-      <Stack.Screen name="MealPlanDetail" component={MealPlanDetailScreen} options={{ title: 'Meal Plan Details' }} />
-      
-      <Stack.Screen name="FAQ" component={FAQScreen} options={{ title: 'FAQ' }} />
 
     </Stack.Navigator>
   );

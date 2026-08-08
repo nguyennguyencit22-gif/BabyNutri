@@ -1,38 +1,33 @@
 const express = require("express");
 const router = express.Router();
-
 const {
     getRecipes,
     getRecipeById,
+    createRecipe,
+    updateRecipe,
+    deleteRecipe,
+    searchRecipes,
     getRecipeComments,
     getRecipeRatings,
     getRecipeRatingSummary,
     createComment,
     createOrUpdateRating
 } = require("../controllers/recipeController");
-
 const auth = require("../middleware/auth");
 
-// ==========================================
-// ROUTES
-// ==========================================
+// Search đặt TRƯỚC "/:id" để không bị nuốt route
+router.get("/search", searchRecipes);
 
 router.get("/", getRecipes);
+router.post("/", auth, createRecipe);
 router.get("/:id", getRecipeById);
+router.put("/:id", auth, updateRecipe);
+router.delete("/:id", auth, deleteRecipe);
 
-// COMMENTS
 router.get("/:id/comments", getRecipeComments);
-
 router.post("/:id/comments", auth, createComment);
-
-// RATINGS
 router.get("/:id/ratings", getRecipeRatings);
-
 router.post("/:id/rating", auth, createOrUpdateRating);
-
-// RATING SUMMARY
 router.get("/:id/rating-summary", getRecipeRatingSummary);
-
-
 
 module.exports = router;

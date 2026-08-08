@@ -91,6 +91,33 @@ exports.getChildren = async (req, res) => {
 };
 
 // ==========================================
+// GET /api/children/:id — single baby profile
+// ==========================================
+exports.getChildById = async (req, res) => {
+    try {
+        const parentId = req.user.id;
+
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.id = ? AND cp.parent_id = ? GROUP BY cp.id`,
+            [req.params.id, parentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "Baby profile not found.",
+            });
+        }
+
+        return res.json(toResponseShape(rows[0]));
+    } catch (err) {
+        console.error("getChildById error:", err);
+        return res.status(500).json({
+            message: "Failed to fetch baby profile",
+        });
+    }
+};
+
+// ==========================================
 // POST /api/children — create a baby profile
 // owned by the logged-in parent
 // ==========================================

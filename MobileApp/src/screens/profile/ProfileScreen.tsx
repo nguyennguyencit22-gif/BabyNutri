@@ -1,11 +1,7 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Text, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from 'react-native-paper';
-import {
-    useDispatch,
-    useSelector,
-} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSummaryCard from '../../components/profile/ProfileSummaryCard';
@@ -17,28 +13,12 @@ import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
 import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-import {
-    calculateBabyAgeInMonths,
-} from '../../utils/calculateBabyAge';
+import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+import type { AppDispatch, RootState } from '../../store/store';
+import { deleteBaby } from '../../store/babySlice';
 
-import type {
-    AppDispatch,
-    RootState,
-} from '../../store/Store';
-
-import {
-    deleteBaby,
-} from '../../store/babySlice';
-
-import {
-    Share,
-} from 'react-native';
-
-function ProfileScreen({
-    navigation,
-}: any) {
-    const dispatch =
-        useDispatch<AppDispatch>();
+function ProfileScreen({ navigation }: any) {
+    const dispatch = useDispatch<AppDispatch>();
 
     const { colors } = useAppTheme();
     const styles = React.useMemo(
@@ -46,34 +26,20 @@ function ProfileScreen({
         [colors],
     );
 
-    const babies = useSelector(
-        (state: RootState) =>
-            state.baby.babies,
-    );
+    const babies = useSelector((state: RootState) => state.baby.babies);
+    const sessionMode = useSelector((state: RootState) => state.auth.mode);
+    const user = useSelector((state: RootState) => state.auth.user);
 
-    const sessionMode = useSelector(
-        (state: RootState) =>
-            state.auth.mode,
-    );
+    const [selectedBabyId, setSelectedBabyId] = React.useState<string | null>(null);
+    const [showBabyActions, setShowBabyActions] = React.useState(false);
 
-    const user = useSelector(
-        (state: RootState) =>
-            state.auth.user,
-    );
+    const isAuthenticated = sessionMode === 'authenticated' && user !== null;
+    const userRole = user?.role?.toLowerCase() ?? 'guest';
 
-    const [selectedBabyId, setSelectedBabyId] =
-        React.useState<string | null>(null);
+    const isExpert = userRole === 'expert';
+    const isAdmin = userRole === 'admin';
 
-    const [showBabyActions, setShowBabyActions] =
-        React.useState(false);
-
-    const isAuthenticated =
-        sessionMode === 'authenticated' &&
-        user !== null;
-
-    const handleOpenBabyActions = (
-        babyId: string,
-    ) => {
+    const handleOpenBabyActions = (babyId: string) => {
         setSelectedBabyId(babyId);
         setShowBabyActions(true);
     };
@@ -83,35 +49,31 @@ function ProfileScreen({
     };
 
     const handleEditBaby = () => {
-        if (!selectedBabyId) {
-            return;
-        }
+        if (!selectedBabyId) return;
 
         handleCloseBabyActions();
-
-        navigation.navigate(
-            'EditBabyProfile',
-            {
+        setTimeout(() => {
+            navigation.navigate('EditBabyProfile', {
                 babyId: selectedBabyId,
-            },
-        );
+            });
+        }, 100);
+    };
+
+    const getRoleTitle = () => {
+        if (isAdmin) return 'System Admin';
+        if (isExpert) return 'Nutrition Expert';
+        return 'Parent';
     };
 
     const handleShareApp = async () => {
         try {
-            const appLink =
-                'https://babynutri.app/download';
-
+            const appLink = 'https://babynutri.app/download';
             await Share.share({
-                message:
-                    `I recommend BabyNutri. Here is the link:\n${appLink}`,
+                message: `I recommend BabyNutri. Here is the link:\n${appLink}`,
                 title: 'BabyNutri',
             });
         } catch (error) {
-            console.log(
-                'Share BabyNutri error:',
-                error,
-            );
+            console.log('Share BabyNutri error:', error);
         }
     };
 
@@ -119,80 +81,52 @@ function ProfileScreen({
         <SafeAreaView style={styles.safeArea}>
             <ProfileHeader
                 title="My Profile"
-                onBack={() =>
-                    navigation.goBack()
-                }
             />
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={
-                    styles.scrollContent
-                }>
+                contentContainerStyle={styles.scrollContent}>
 
+                {/* USER PROFILE CARD */}
                 {isAuthenticated ? (
                     <ProfileSummaryCard
-                        name={
-                            user.displayName ||
-                            'BabyNutri Parent'
-                        }
+                        name={`${user.displayName || 'BabyNutri User'} (${getRoleTitle()})`}
                         email={user.email}
-                        imageUrl={
-                            user.photoURL
-                        }
+                        imageUrl={user.photoURL}
                         onChangePhoto={() => {
-                            console.log(
-                                'Change profile photo',
-                            );
+                            console.log('Change profile photo');
                         }}
                         onPress={() => {
-                            navigation.navigate(
-                                'AccountSettings',
-                            );
+                            navigation.navigate('AccountSettings');
                         }}
                     />
                 ) : (
                     <GuestProfileBanner
                         onLogin={() => {
-                            navigation.navigate(
-                                'Login',
-                            );
+                            navigation.navigate('Login');
                         }}
                     />
                 )}
 
+                {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
                 <Text style={styles.sectionLabel}>
                     PROFILES
                 </Text>
 
                 {babies.map(baby => (
                     <BabyProfileItem
-                        key={baby.id}
-                        name={baby.name}
-                        profileColor={
-                            baby.profileColor
-                        }
-                        ageInMonths={
-                            calculateBabyAgeInMonths(
-                                baby.dateOfBirth,
-                            )
-                        }
+                        key={String(baby.id)}
+                        name={baby.name || 'Baby'}
+                        profileColor={baby.profileColor || '#FF7A59'}
+                        ageInMonths={calculateBabyAgeInMonths(baby.dateOfBirth || '')}
                         onPress={() =>
-                            handleOpenBabyActions(
-                                baby.id,
-                            )
+                            navigation.navigate('EditBabyProfile', {
+                                babyId: String(baby.id),
+                            })
                         }
-                        onEdit={() =>
-                            handleOpenBabyActions(
-                                baby.id,
-                            )
-                        }
+                        onEdit={() => handleOpenBabyActions(String(baby.id))}
                         onDelete={() => {
-                            dispatch(
-                                deleteBaby(
-                                    baby.id,
-                                ),
-                            );
+                            dispatch(deleteBaby(baby.id));
                         }}
                     />
                 ))}
@@ -201,26 +135,34 @@ function ProfileScreen({
                     title="Add baby profile"
                     leftIcon="plus"
                     onPress={() => {
-                        navigation.navigate(
-                            'AddBabyProfile',
-                        );
+                        navigation.navigate('AddBabyProfile');
                     }}
                 />
 
                 <ProfileMenuItem
                     title="Enter invitation code"
-                    leftIcon="message-text-outline"
+                    leftIcon="plus"
                     onPress={() => {
-                        navigation.navigate(
-                            'InvitationCode',
-                        );
+                        navigation.navigate('InvitationCode');
                     }}
                 />
 
-                <Text
-                    style={
-                        styles.otherSettingLabel
-                    }>
+                {/* HISTORY SECTION */}
+                <Text style={styles.sectionLabel}>
+                    HISTORY
+                </Text>
+
+                <ProfileMenuItem
+                    title="History"
+                    leftIcon="history"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('SavedItems', { initialTab: 'history' });
+                    }}
+                />
+
+                {/* OTHER SETTING SECTION (CHUẨN MEMBER A) */}
+                <Text style={styles.otherSettingLabel}>
                     OTHER SETTING
                 </Text>
 
@@ -248,51 +190,23 @@ function ProfileScreen({
 
             <BabyProfileActionsModal
                 visible={showBabyActions}
-                onClose={
-                    handleCloseBabyActions
-                }
-                onEditBaby={
-                    handleEditBaby
-                }
+                onClose={handleCloseBabyActions}
+                onEditBaby={handleEditBaby}
                 onAddCaregiver={() => {
-                    if (!selectedBabyId) {
-                        return;
-                    }
-
-                    console.log(
-                        'Add caregiver:',
-                        selectedBabyId,
-                    );
+                    if (!selectedBabyId) return;
+                    console.log('Add caregiver:', selectedBabyId);
                 }}
                 onEditEvents={() => {
-                    if (!selectedBabyId) {
-                        return;
-                    }
-
-                    console.log(
-                        'Edit events:',
-                        selectedBabyId,
-                    );
+                    if (!selectedBabyId) return;
+                    console.log('Edit events:', selectedBabyId);
                 }}
                 onConfigureMainScreen={() => {
-                    if (!selectedBabyId) {
-                        return;
-                    }
-
-                    console.log(
-                        'Configure main screen:',
-                        selectedBabyId,
-                    );
+                    if (!selectedBabyId) return;
+                    console.log('Configure main screen:', selectedBabyId);
                 }}
                 onReminders={() => {
-                    if (!selectedBabyId) {
-                        return;
-                    }
-
-                    console.log(
-                        'Reminders:',
-                        selectedBabyId,
-                    );
+                    if (!selectedBabyId) return;
+                    console.log('Reminders:', selectedBabyId);
                 }}
             />
         </SafeAreaView>

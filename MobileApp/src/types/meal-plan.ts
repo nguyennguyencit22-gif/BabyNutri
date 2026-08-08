@@ -4,6 +4,11 @@ export interface Meal {
   time: string; // e.g. "08:00 AM"
   description: string;
   calories: number;
+  recipeId?: number;
+  recipeImage?: string;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
 }
 
 export interface MealPlan {
@@ -12,6 +17,10 @@ export interface MealPlan {
   date: string; // YYYY-MM-DD
   meals: Meal[];
   totalCalories: number;
+  totalProtein?: number;
+  totalFat?: number;
+  totalCarbs?: number;
   createdAt?: string;
   updatedAt?: string;
 }
+
