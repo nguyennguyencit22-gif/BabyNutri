@@ -4,15 +4,9 @@ import {
     Text,
     View,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import createStyles from '../../styles/profile/profileComponentStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
-
-const ChevronRightIcon = ({ size = 22, color = '#8E7377' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M9 18l6-6-6-6" />
-  </Svg>
-);
 
 type ProfileMenuItemProps = {
     title: string;
@@ -44,6 +38,11 @@ function ProfileMenuItem({
             ]}>
 
             <View style={styles.leftContent}>
+                {leftIcon === 'plus' && (
+                    <View style={{ marginRight: 10 }}>
+                        <Icon source="plus" size={20} color={danger ? colors.danger : colors.primary} />
+                    </View>
+                )}
                 <Text
                     style={[
                         styles.titleMenu,
@@ -54,7 +53,8 @@ function ProfileMenuItem({
             </View>
 
             {showArrow ? (
-                <ChevronRightIcon
+                <Icon
+                    source="chevron-right"
                     size={22}
                     color={
                         danger

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan, Meal } from '../../types/meal-plan';
@@ -52,6 +52,31 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
 
   const handleOpenScheduler = () => {
     navigation.navigate('MealScheduler');
+  };
+
+  const handleRemoveDish = (meal: Meal) => {
+    if (!mealPlan) return;
+    const cleanName = meal.name.replace(/^(Breakfast|Lunch|Snack|Dinner):\s*/i, '');
+
+    Alert.alert(
+      'Remove Dish',
+      `Are you sure you want to remove "${cleanName}" from this meal plan?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            await mealPlanService.removeDishFromMealPlan({
+              childId: mealPlan.childId || '1',
+              dateStr: mealPlan.date,
+              mealId: meal.id,
+            });
+            loadMealPlan();
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -145,14 +170,14 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
               {!!item.carbs && <Text style={styles.macroPill}>🌾 Carbs {item.carbs}g</Text>}
             </View>
 
-            {/* Interactive Action Buttons linking to Weaning Recipe & Nutrition Schedule */}
+            {/* Interactive Action Buttons linking to Weaning Recipe, Schedule & Remove */}
             <View style={styles.itemActionsRow}>
               <TouchableOpacity 
                 style={styles.recipeDetailBtn}
                 onPress={() => handleOpenRecipeDetail(item)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.recipeDetailBtnText}>📖 View Detailed Recipe</Text>
+                <Text style={styles.recipeDetailBtnText}>📖 View Recipe</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -160,7 +185,15 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                 onPress={handleOpenScheduler}
                 activeOpacity={0.8}
               >
-                <Text style={styles.scheduleItemBtnText}>🗓️ Change Dish</Text>
+                <Text style={styles.scheduleItemBtnText}>🗓️ Custom Schedule</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.deleteDetailBtn}
+                onPress={() => handleRemoveDish(item)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.deleteDetailBtnText}>🗑️ Remove</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -390,6 +423,20 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   scheduleItemBtnText: {
     color: colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  deleteDetailBtn: {
+    backgroundColor: '#FFF0F2',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FF5F70',
+  },
+  deleteDetailBtnText: {
+    color: '#FF5F70',
     fontSize: 12,
     fontWeight: '700',
   },

@@ -81,8 +81,8 @@ function BabySwitcherModal({
                         showsVerticalScrollIndicator={false}
                         renderItem={({ item }) => {
                             const isSelected =
-                                item.id ===
-                                selectedBabyId;
+                                String(item.id) ===
+                                String(selectedBabyId);
 
                             const ageInMonths =
                                 calculateBabyAgeInMonths(
@@ -93,7 +93,7 @@ function BabySwitcherModal({
                                 <Pressable
                                     onPress={() =>
                                         handleSelectBaby(
-                                            item.id,
+                                            String(item.id),
                                         )
                                     }
                                     style={({

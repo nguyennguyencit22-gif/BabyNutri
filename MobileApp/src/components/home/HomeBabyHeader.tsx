@@ -53,9 +53,9 @@ function HomeBabyHeader() {
     const selectedBaby =
         babies.find(
             baby =>
-                baby.id ===
-                selectedBabyId,
-        );
+                String(baby.id) ===
+                String(selectedBabyId),
+        ) || babies[0];
 
     const hasMultipleBaby =
         babies.length > 1;

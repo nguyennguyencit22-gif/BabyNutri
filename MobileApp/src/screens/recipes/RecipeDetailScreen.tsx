@@ -11,54 +11,22 @@ import { Recipe } from '../../types/recipe';
 import IngredientItem from '../../components/recipes/IngredientItem';
 import type { RootState } from '../../store/store';
 
-const EditIcon = ({ color = '#FF7A59', size = 16 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-    <Path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </Svg>
-);
+import { Icon } from 'react-native-paper';
 
-const TrashIcon = ({ color = '#DC2626', size = 16 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
-  </Svg>
-);
+function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' {
+  const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return 'Breakfast';
+  let hour = parseInt(match[1], 10);
+  const ampm = match[3].toUpperCase();
 
-const HeartIcon = ({ liked, size = 18 }: { liked?: boolean; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={liked ? '#FF3B30' : 'none'} stroke={liked ? '#FF3B30' : '#65676B'} strokeWidth={2}>
-    <Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-  </Svg>
-);
+  if (ampm === 'PM' && hour < 12) hour += 12;
+  if (ampm === 'AM' && hour === 12) hour = 0;
 
-const ShareIcon = ({ size = 18 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#65676B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-  </Svg>
-);
-
-const PostFeedIcon = ({ size = 18, color = '#FF7A59' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-  </Svg>
-);
-
-const BookmarkIcon = ({ saved, size = 18 }: { saved?: boolean; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={saved ? '#FF7A59' : 'none'} stroke={saved ? '#FF7A59' : '#65676B'} strokeWidth={2}>
-    <Path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-  </Svg>
-);
-
-const CalendarPlusIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18M12 13v6M9 16h6" />
-  </Svg>
-);
-
-const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
+  if (hour >= 5 && hour < 11) return 'Breakfast';
+  if (hour >= 11 && hour < 14) return 'Lunch';
+  if (hour >= 14 && hour < 17) return 'Snack';
+  return 'Dinner';
+}
 
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const id = Number(route?.params?.id);
@@ -72,9 +40,28 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const isExpert = authMode === 'authenticated' && user?.role === 'expert';
   const isStaffOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
 
+  const selectedBabyIdFromRedux = useSelector((state: RootState) => state.baby.selectedBabyId);
+  const babies = useSelector((state: RootState) => state.baby.babies);
+  const activeBabyId = String(selectedBabyIdFromRedux || '1');
+  const selectedBaby = useMemo(() => babies.find(b => String(b.id) === activeBabyId) || babies[0], [babies, activeBabyId]);
+
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
-  const [selectedMealType, setSelectedMealType] = useState<'Breakfast' | 'Lunch' | 'Snack' | 'Dinner'>('Breakfast');
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+
+  // Freely Selectable Hour & Minute State (00 to 59)
+  const [hour, setHour] = useState<number>(8);
+  const [minuteNum, setMinuteNum] = useState<number>(0);
+  const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
+
+  const selectedTimeStr = useMemo(() => {
+    const formattedHour = String(hour).padStart(2, '0');
+    const formattedMinute = String(minuteNum).padStart(2, '0');
+    return `${formattedHour}:${formattedMinute} ${period}`;
+  }, [hour, minuteNum, period]);
+
+  const targetSlot = useMemo(() => {
+    return getSlotFromTime(selectedTimeStr);
+  }, [selectedTimeStr]);
 
   const weekDays = useMemo(() => {
     const today = new Date();
@@ -156,11 +143,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const toggleSaveRecipe = () => {
     if (authMode === 'guest') {
       Alert.alert(
-        'Yêu cầu đăng nhập',
-        'Bạn cần có tài khoản để lưu công thức vào danh sách yêu thích.',
+        'Login Required',
+        'Please log in to save recipes to your favorites.',
         [
-          { text: 'Để sau', style: 'cancel' },
-          { text: 'Đăng nhập', onPress: () => navigation.navigate('Login') },
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
         ]
       );
       return;
@@ -177,11 +164,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const handleToggleLike = () => {
     if (authMode === 'guest') {
       Alert.alert(
-        'Yêu cầu đăng nhập',
-        'Bạn cần có tài khoản để yêu thích công thức.',
+        'Login Required',
+        'Please log in to save recipes to your favorites.',
         [
-          { text: 'Để sau', style: 'cancel' },
-          { text: 'Đăng nhập', onPress: () => navigation.navigate('Login') },
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
         ]
       );
       return;
@@ -192,11 +179,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const handleOpenScheduleModal = () => {
     if (authMode === 'guest') {
       Alert.alert(
-        'Yêu cầu đăng nhập',
-        'Bạn cần có tài khoản để lên kế hoạch thực đơn cho bé.',
+        'Login Required',
+        'Please log in to schedule meal plans for your baby.',
         [
-          { text: 'Để sau', style: 'cancel' },
-          { text: 'Đăng nhập', onPress: () => navigation.navigate('Login') },
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
         ]
       );
       return;
@@ -204,14 +191,17 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     setScheduleModalVisible(true);
   };
 
+  const [selectedMealSlot, setSelectedMealSlot] = useState<'Breakfast' | 'Lunch' | 'Snack' | 'Dinner'>('Breakfast');
+
   const handleApplyToSchedule = async () => {
     if (!recipe) return;
     const targetDay = weekDays[selectedDayIndex];
+
     try {
       await mealPlanService.addRecipeToMealPlan({
-        childId: '1',
+        childId: activeBabyId,
         dateStr: targetDay.dateStr,
-        mealType: selectedMealType,
+        mealType: selectedMealSlot,
         recipe: {
           id: recipe.id,
           name: recipe.name,
@@ -220,7 +210,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           protein: recipe.protein,
           fat: recipe.fat,
           carbohydrate: recipe.carbohydrate,
-          description: recipe.description,
+          description: `Scheduled for ${selectedBaby?.name || 'baby'} in ${selectedMealSlot} slot`,
         },
       });
 
@@ -228,20 +218,21 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
 
       Alert.alert(
         'Added to Schedule',
-        `Added "${recipe.name}" to ${selectedMealType} for ${targetDay.label}!`,
+        `Scheduled "${recipe.name}" in ${selectedMealSlot} slot for ${selectedBaby?.name || 'baby'} on ${targetDay.label}!`,
         [
-          { text: 'Stay Here' },
+          { text: 'OK' },
           {
             text: 'View Meal Plan',
             onPress: () => {
-              navigation.navigate('MealPlanList', { childId: '1', dateStr: targetDay.dateStr });
+              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr: targetDay.dateStr });
             },
           },
         ]
       );
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      Alert.alert('Error', 'Unable to add dish to schedule');
+      setScheduleModalVisible(false);
+      Alert.alert('Duplicate Recipe Warning', e?.message || `"${recipe.name}" is already in schedule for this date!`);
     }
   };
 
@@ -286,7 +277,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.85}
           >
-            <BackIcon size={20} color="#FF7A59" />
+            <Icon source="chevron-left" size={24} color="#FF7A59" />
           </TouchableOpacity>
         </View>
 
@@ -301,7 +292,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
             activeOpacity={0.88}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <CalendarPlusIcon size={18} color="#FFFFFF" />
+              <Icon source="calendar-plus" size={20} color="#FFFFFF" />
               <Text style={styles.schedulePrimaryBtnText}>Add to Meal Schedule</Text>
             </View>
           </TouchableOpacity>
@@ -310,11 +301,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           {isStaffOrAdmin && (
             <View style={styles.actionRow}>
               <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
-                <EditIcon color="#FF7A59" size={16} />
+                <Icon source="pencil" size={18} color="#FF7A59" />
                 <Text style={styles.editBtnText}>Edit Recipe</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={deleting}>
-                <TrashIcon color="#DC2626" size={16} />
+                <Icon source="delete-outline" size={18} color="#DC2626" />
                 <Text style={styles.deleteBtnText}>{deleting ? 'Deleting...' : 'Delete Recipe'}</Text>
               </TouchableOpacity>
             </View>
@@ -323,26 +314,26 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           {/* Social Bar */}
           <View style={styles.socialBar}>
             <TouchableOpacity style={styles.socialBtn} onPress={handleToggleLike}>
-              <HeartIcon liked={liked} size={18} />
+              <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : '#65676B'} />
               <Text style={[styles.socialText, liked && { color: '#FF3B30' }]}>
                 {liked ? 'Liked' : 'Like'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.socialBtn} onPress={handleShareRecipe}>
-              <ShareIcon size={18} />
+              <Icon source="share-variant" size={20} color="#65676B" />
               <Text style={styles.socialText}>Share</Text>
             </TouchableOpacity>
 
             {isExpert && (
               <TouchableOpacity style={[styles.socialBtn, styles.postFeedHighlightBtn]} onPress={handlePostRecipeToFeed}>
-                <PostFeedIcon size={18} color="#FF7A59" />
+                <Icon source="newspaper-plus" size={20} color="#FF7A59" />
                 <Text style={[styles.socialText, { color: '#FF7A59', fontWeight: '700' }]}>Post</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity style={styles.socialBtn} onPress={toggleSaveRecipe}>
-              <BookmarkIcon saved={saved} size={18} />
+              <Icon source={saved ? 'bookmark' : 'bookmark-outline'} size={20} color={saved ? '#FF7A59' : '#65676B'} />
               <Text style={[styles.socialText, saved && { color: '#FF7A59' }]}>
                 {saved ? 'Saved' : 'Save'}
               </Text>
@@ -381,15 +372,19 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         </View>
       </ScrollView>
 
-      {/* Interactive Modal: Add Dish to Schedule */}
+      {/* Fast & Easy Modal: Add Dish to Schedule (Select Day & Meal Slot Sáng/Trưa/Phụ/Tối) */}
       <Modal visible={scheduleModalVisible} transparent animationType="fade" onRequestClose={() => setScheduleModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setScheduleModalVisible(false)}>
           <View style={styles.scheduleModalBox}>
-            <Text style={styles.modalTitle}>Add "{recipe.name}" to Schedule</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
+              <Icon source="clock-outline" size={20} color="#FF5F70" />
+              <Text style={styles.modalTitle}>Add to Meal Schedule</Text>
+            </View>
+            <Text style={styles.modalSubTitle}>Dish: "{recipe?.name}" ({recipe?.calories} kcal)</Text>
 
-            {/* Select Day */}
+            {/* Step 1: Select Day of Week */}
             <Text style={styles.modalLabel}>1. Select Day of Week:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
               {weekDays.map((day, idx) => {
                 const isSelected = idx === selectedDayIndex;
                 return (
@@ -405,25 +400,25 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
               })}
             </ScrollView>
 
-            {/* Select Meal Slot */}
-            <Text style={styles.modalLabel}>2. Select Meal Time:</Text>
-            <View style={styles.mealTypeRow}>
+            {/* Step 2: Select Meal Slot (Sáng, Trưa, Phụ, Tối) */}
+            <Text style={styles.modalLabel}>2. Select Meal Slot:</Text>
+            <View style={styles.slotSelectGrid}>
               {[
-                { type: 'Breakfast', icon: '🍳', time: '08:00 AM' },
-                { type: 'Lunch', icon: '🍲', time: '11:30 AM' },
-                { type: 'Snack', icon: '🥛', time: '03:00 PM' },
-                { type: 'Dinner', icon: '🥣', time: '06:00 PM' },
-              ].map((m) => {
-                const isSelected = selectedMealType === m.type;
+                { key: 'Breakfast', label: '🌅 Breakfast' },
+                { key: 'Lunch', label: '☀️ Lunch' },
+                { key: 'Snack', label: '🍎 Snack' },
+                { key: 'Dinner', label: '🌙 Dinner' },
+              ].map(slot => {
+                const isSelected = selectedMealSlot === slot.key;
                 return (
                   <TouchableOpacity
-                    key={m.type}
-                    style={[styles.mealTypeBtn, isSelected && styles.mealTypeBtnSelected]}
-                    onPress={() => setSelectedMealType(m.type as any)}
+                    key={slot.key}
+                    style={[styles.slotSelectCard, isSelected && styles.slotSelectCardActive]}
+                    onPress={() => setSelectedMealSlot(slot.key as any)}
+                    activeOpacity={0.8}
                   >
-                    <Text style={styles.mealTypeIcon}>{m.icon}</Text>
-                    <Text style={[styles.mealTypeText, isSelected && styles.mealTypeTextSelected]}>{m.type}</Text>
-                    <Text style={[styles.mealTypeTime, isSelected && styles.mealTypeTimeSelected]}>{m.time}</Text>
+                    <Text style={[styles.slotSelectText, isSelected && styles.slotSelectTextActive]}>{slot.label}</Text>
+                    {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
                   </TouchableOpacity>
                 );
               })}
@@ -435,7 +430,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalApplyBtn} onPress={handleApplyToSchedule}>
-                <Text style={styles.modalApplyText}>Apply & View Plan</Text>
+                <Text style={styles.modalApplyText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -494,27 +489,46 @@ const styles = StyleSheet.create({
   stepText: { flex: 1, fontSize: 14, color: '#3A3A3A', lineHeight: 20 },
   floatingBackBtn: { position: 'absolute', top: 14, left: 14, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255, 255, 255, 0.95)', justifyContent: 'center', alignItems: 'center', elevation: 4 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  scheduleModalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
-  modalTitle: { fontSize: 17, fontWeight: '800', color: '#2E2E2E', marginBottom: 14, textAlign: 'center' },
-  modalLabel: { fontSize: 13, fontWeight: '700', color: '#555555', marginBottom: 8 },
-  dayChip: { width: 50, height: 50, borderRadius: 14, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginRight: 8, borderWidth: 1, borderColor: '#E5E7EB' },
+  scheduleModalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, elevation: 5 },
+  modalTitle: { fontSize: 17, fontWeight: '800', color: '#4B3034', textAlign: 'center' },
+  modalSubTitle: { fontSize: 13, color: '#FF5F70', fontWeight: '600', textAlign: 'center', marginBottom: 12 },
+  modalLabel: { fontSize: 13, fontWeight: '700', color: '#555555', marginBottom: 6 },
+  dayChip: { width: 48, height: 48, borderRadius: 14, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', marginRight: 8, borderWidth: 1, borderColor: '#E5E7EB' },
   dayChipSelected: { backgroundColor: '#FF5F70', borderColor: '#FF5F70' },
   dayChipText: { fontSize: 12, fontWeight: '700', color: '#4B5563' },
   dayChipDate: { fontSize: 11, color: '#6B7280' },
   dayChipTextSelected: { color: '#FFFFFF' },
-  mealTypeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  mealTypeBtn: { width: '48%', backgroundColor: '#F9FAFB', padding: 10, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center' },
-  mealTypeBtnSelected: { backgroundColor: '#FFF0F2', borderColor: '#FF5F70' },
-  mealTypeIcon: { fontSize: 20, marginBottom: 2 },
-  mealTypeText: { fontSize: 13, fontWeight: '700', color: '#374151' },
-  mealTypeTextSelected: { color: '#FF5F70' },
-  mealTypeTime: { fontSize: 11, color: '#9CA3AF' },
-  mealTypeTimeSelected: { color: '#FF5F70' },
+  liveClockBox: { backgroundColor: '#FFF0F2', borderRadius: 14, padding: 12, alignItems: 'center', marginBottom: 14, borderWidth: 1, borderColor: '#FFE4E6' },
+  liveClockText: { fontSize: 26, fontWeight: '800', color: '#FF5F70', marginBottom: 2 },
+  liveSlotText: { fontSize: 12, color: '#4B3034', fontWeight: '600' },
+  stepperContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 12 },
+  stepperBox: { alignItems: 'center' },
+  stepperLabel: { fontSize: 10, fontWeight: '700', color: '#8E7377', marginBottom: 4 },
+  stepperControls: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF0F2', borderRadius: 14, borderWidth: 1, borderColor: '#FFE4E6', padding: 4 },
+  stepBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', elevation: 1 },
+  stepVal: { fontSize: 18, fontWeight: '800', color: '#4B3034', paddingHorizontal: 12 },
+  colonSeparator: { fontSize: 24, fontWeight: '800', color: '#FF5F70', marginTop: 12 },
+  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: '#FFF0F2', borderWidth: 1, borderColor: '#FFE4E6' },
+  activeQuickChip: { backgroundColor: '#FF5F70', borderColor: '#FF5F70' },
+  quickChipText: { fontSize: 11, fontWeight: '700', color: '#4B3034' },
+  activeQuickChipText: { color: '#FFFFFF' },
+  periodRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: '#FFF0F2', alignItems: 'center', borderWidth: 1, borderColor: '#FFE4E6' },
+  activePeriodBtn: { backgroundColor: '#FF5F70', borderColor: '#FF5F70' },
+  periodText: { fontSize: 12, fontWeight: '700', color: '#4B3034' },
+  activePeriodText: { color: '#FFFFFF' },
   modalBtnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
   modalCancelBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#F3F4F6' },
   modalCancelText: { color: '#6B7280', fontWeight: '600' },
   modalApplyBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#FF5F70' },
   modalApplyText: { color: '#FFFFFF', fontWeight: '700' },
+  slotSelectGrid: { gap: 8, marginBottom: 16 },
+  slotSelectCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFF0F2', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#FFE4E6' },
+  slotSelectCardActive: { backgroundColor: '#FFFFFF', borderColor: '#FF5F70', elevation: 2 },
+  slotSelectText: { fontSize: 13, fontWeight: '700', color: '#4B3034' },
+  slotSelectTextActive: { color: '#FF5F70' },
+  slotTimeText: { fontSize: 11, color: '#8E7377', marginTop: 2 },
+  slotTimeTextActive: { color: '#FF5F70' },
 });
 
 export default RecipeDetailScreen;

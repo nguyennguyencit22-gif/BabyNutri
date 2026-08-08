@@ -141,7 +141,7 @@ function ProfileScreen({ navigation }: any) {
 
                 <ProfileMenuItem
                     title="Enter invitation code"
-                    leftIcon="message-text-outline"
+                    leftIcon="plus"
                     onPress={() => {
                         navigation.navigate('InvitationCode');
                     }}

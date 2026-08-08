@@ -27,6 +27,7 @@ import {
     fetchHomeData,
     HomeData,
 } from '../../services/home.service';
+import { useFocusEffect } from '@react-navigation/native';
 import { getJourneyImage } from '../../constants/home/journeyImages';
 import { getRecipeImage } from '../../constants/home/recipeImages';
 
@@ -68,9 +69,11 @@ function HomeScreen({ navigation }: any) {
         }
     }, []);
 
-    React.useEffect(() => {
-        loadHomeData();
-    }, [loadHomeData]);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadHomeData();
+        }, [loadHomeData])
+    );
 
     const {
         popularCategories,

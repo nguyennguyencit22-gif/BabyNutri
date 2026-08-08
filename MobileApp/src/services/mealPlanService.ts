@@ -1,7 +1,9 @@
 import { MealPlan, Meal } from '../types/meal-plan';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+const MEAL_PLANS_STORAGE_KEY = '@babynutri_meal_plans_persistent_v3';
 
 // Helper to format date string YYYY-MM-DD in local timezone
 const formatDate = (date: Date) => {
@@ -26,7 +28,7 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
     const dateStr = formatDate(d);
 
     plans.push({
-      id: `plan-${i + 1}`,
+      id: `plan-${childId}-${i + 1}`,
       childId: childId,
       date: dateStr,
       totalCalories: 600,
@@ -35,8 +37,8 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
       totalCarbs: 76.0,
       meals: [
         {
-          id: `m-${i}-1`,
-          name: 'Breakfast',
+          id: `m-${childId}-${i}-1`,
+          name: 'Breakfast: Pumpkin & Pork Porridge',
           time: '08:00 AM',
           description: 'Nutritious pumpkin & pork porridge rich in dietary fibers',
           calories: 220,
@@ -47,8 +49,8 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
           carbs: 32.0,
         },
         {
-          id: `m-${i}-2`,
-          name: 'Lunch',
+          id: `m-${childId}-${i}-2`,
+          name: 'Lunch: Fresh Shrimp & Carrot Soup',
           time: '11:30 AM',
           description: 'Fresh shrimp & carrot soup supporting eyesight & immunity',
           calories: 180,
@@ -59,8 +61,8 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
           carbs: 24.0,
         },
         {
-          id: `m-${i}-3`,
-          name: 'Snack',
+          id: `m-${childId}-${i}-3`,
+          name: 'Snack: Banana Avocado Smoothie',
           time: '03:00 PM',
           description: 'Banana avocado yogurt smoothie easy to digest',
           calories: 140,
@@ -71,8 +73,8 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
           carbs: 20.0,
         },
         {
-          id: `m-${i}-4`,
-          name: 'Dinner',
+          id: `m-${childId}-${i}-4`,
+          name: 'Dinner: Salmon Potato Oatmeal Porridge',
           time: '06:00 PM',
           description: 'Salmon potato oatmeal porridge loaded with Omega-3 & DHA',
           calories: 260,
@@ -89,27 +91,61 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
   return plans;
 };
 
-// Local storage cache for mock fallback
-let inMemoryMealPlans: MealPlan[] = generateMockMealPlans();
+let inMemoryMealPlans: MealPlan[] | null = null;
+
+const loadPersistedMealPlans = async (targetChildId: string = '1'): Promise<MealPlan[]> => {
+  if (inMemoryMealPlans === null) {
+    try {
+      const raw = await AsyncStorage.getItem(MEAL_PLANS_STORAGE_KEY);
+      if (raw) {
+        inMemoryMealPlans = JSON.parse(raw);
+      }
+    } catch (e) {
+      console.warn('AsyncStorage load error:', e);
+    }
+  }
+
+  if (inMemoryMealPlans === null) {
+    inMemoryMealPlans = generateMockMealPlans(targetChildId);
+    savePersistedMealPlans(inMemoryMealPlans);
+  }
+
+  const hasPlansForChild = inMemoryMealPlans.some(p => String(p.childId) === String(targetChildId));
+  if (!hasPlansForChild) {
+    const childMockPlans = generateMockMealPlans(targetChildId);
+    inMemoryMealPlans.push(...childMockPlans);
+    savePersistedMealPlans(inMemoryMealPlans);
+  }
+
+  return inMemoryMealPlans;
+};
+
+const savePersistedMealPlans = async (plans: MealPlan[]) => {
+  inMemoryMealPlans = plans;
+  try {
+    await AsyncStorage.setItem(MEAL_PLANS_STORAGE_KEY, JSON.stringify(plans));
+  } catch (e) {
+    console.warn('AsyncStorage save error:', e);
+  }
+};
 
 export const mealPlanService = {
   getMealPlans: async (childId?: string): Promise<MealPlan[]> => {
+    const targetChildId = childId || '1';
     try {
-      let url = `${BASE_URL}/mealplans`;
-      if (childId) {
-        url += `?childId=${childId}`;
-      }
+      let url = `${BASE_URL}/mealplans?childId=${targetChildId}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch meal plans');
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        return data;
+        return data.filter((p: any) => String(p.childId) === String(targetChildId));
       }
-      return inMemoryMealPlans;
     } catch (error) {
-      console.warn('Backend API unavailable, using mock meal plan data:', error);
-      return inMemoryMealPlans;
+      console.warn('Backend API unavailable, using persistent local meal plan data:', error);
     }
+
+    const plans = await loadPersistedMealPlans(targetChildId);
+    return plans.filter(p => String(p.childId) === String(targetChildId));
   },
 
   getMealPlanById: async (id: string): Promise<MealPlan | undefined> => {
@@ -118,13 +154,14 @@ export const mealPlanService = {
       if (!response.ok) throw new Error('Failed to fetch meal plan details');
       return await response.json();
     } catch (error) {
-      console.warn('Backend API unavailable, fetching meal plan from memory:', error);
-      return inMemoryMealPlans.find(plan => plan.id === id || plan.date === id);
+      console.warn('Backend API unavailable, fetching meal plan from persistent storage:', error);
+      const plans = await loadPersistedMealPlans();
+      return plans.find(plan => plan.id === id || plan.date === id);
     }
   },
 
-  getMealPlanByDate: async (dateStr: string): Promise<MealPlan | undefined> => {
-    const plans = await mealPlanService.getMealPlans();
+  getMealPlanByDate: async (dateStr: string, childId?: string): Promise<MealPlan | undefined> => {
+    const plans = await mealPlanService.getMealPlans(childId);
     return plans.find(plan => plan.date === dateStr);
   },
 
@@ -135,12 +172,17 @@ export const mealPlanService = {
       createdAt: new Date().toISOString(),
     };
 
-    const existingIndex = inMemoryMealPlans.findIndex(p => p.date === newPlan.date);
+    const plans = await loadPersistedMealPlans(String(newPlan.childId || '1'));
+    const existingIndex = plans.findIndex(
+      p => (String(p.childId) === String(newPlan.childId) || !p.childId) && p.date === newPlan.date
+    );
     if (existingIndex >= 0) {
-      inMemoryMealPlans[existingIndex] = newPlan;
+      plans[existingIndex] = newPlan;
     } else {
-      inMemoryMealPlans.push(newPlan);
+      plans.push(newPlan);
     }
+
+    await savePersistedMealPlans(plans);
 
     try {
       const response = await fetch(`${BASE_URL}/mealplans`, {
@@ -152,7 +194,7 @@ export const mealPlanService = {
         return await response.json();
       }
     } catch (e) {
-      console.warn('Backend save meal plan error, using in-memory updated plan:', e);
+      console.warn('Backend save meal plan error, using persistent local updated plan:', e);
     }
 
     return newPlan;
@@ -162,10 +204,24 @@ export const mealPlanService = {
     childId?: string;
     dateStr: string;
     mealType: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner';
+    customTime?: string;
     recipe: { id: number; name: string; calories: number; image_url?: string; protein?: number; fat?: number; carbohydrate?: number; description?: string };
   }): Promise<MealPlan> => {
-    const { childId = '1', dateStr, mealType, recipe } = params;
-    let existingPlan = inMemoryMealPlans.find(p => p.date === dateStr);
+    const { childId = '1', dateStr, mealType, customTime, recipe } = params;
+    const plans = await loadPersistedMealPlans(childId);
+    let existingPlan = plans.find(
+      p => (String(p.childId) === String(childId) || !p.childId) && p.date === dateStr
+    );
+
+    // Prevent duplicate dish on the same day for this baby
+    if (existingPlan) {
+      const isDuplicate = existingPlan.meals.some(
+        m => String(m.recipeId) === String(recipe.id) || m.name.endsWith(recipe.name)
+      );
+      if (isDuplicate) {
+        throw new Error(`"${recipe.name}" is already added to this baby's schedule for this date!`);
+      }
+    }
 
     const timesMap: Record<string, string> = {
       Breakfast: '08:00 AM',
@@ -174,10 +230,12 @@ export const mealPlanService = {
       Dinner: '06:00 PM',
     };
 
+    const finalTime = customTime || timesMap[mealType] || '08:00 AM';
+
     const newMeal: Meal = {
       id: `m-${Date.now()}`,
       name: `${mealType}: ${recipe.name}`,
-      time: timesMap[mealType] || '08:00 AM',
+      time: finalTime,
       description: recipe.description || `Weaning recipe dish for ${mealType}`,
       calories: recipe.calories,
       recipeId: recipe.id,
@@ -187,12 +245,12 @@ export const mealPlanService = {
       carbs: recipe.carbohydrate || 25,
     };
 
+    let resultPlan: MealPlan;
     if (existingPlan) {
-      const updatedMeals = existingPlan.meals.filter(m => !m.name.startsWith(mealType));
-      updatedMeals.push(newMeal);
-      existingPlan.meals = updatedMeals;
-      existingPlan.totalCalories = updatedMeals.reduce((sum, m) => sum + m.calories, 0);
-      return existingPlan;
+      existingPlan.meals.push(newMeal);
+      existingPlan.totalCalories = existingPlan.meals.reduce((sum, m) => sum + m.calories, 0);
+      existingPlan.totalProtein = Number(existingPlan.meals.reduce((sum, m) => sum + (m.protein || 0), 0).toFixed(1));
+      resultPlan = existingPlan;
     } else {
       const newPlan: MealPlan = {
         id: `plan-${Date.now()}`,
@@ -204,26 +262,59 @@ export const mealPlanService = {
         totalCarbs: recipe.carbohydrate || 25,
         meals: [newMeal],
       };
-      inMemoryMealPlans.push(newPlan);
-      return newPlan;
+      plans.push(newPlan);
+      resultPlan = newPlan;
     }
+
+    await savePersistedMealPlans(plans);
+    return resultPlan;
+  },
+
+  removeDishFromMealPlan: async (params: {
+    childId: string;
+    dateStr: string;
+    mealId: string | number;
+  }): Promise<MealPlan | null> => {
+    const { childId, dateStr, mealId } = params;
+    const plans = await loadPersistedMealPlans(childId);
+    const planIndex = plans.findIndex(
+      p => (String(p.childId) === String(childId) || !p.childId) && p.date === dateStr
+    );
+
+    if (planIndex >= 0) {
+      const plan = plans[planIndex];
+      plan.meals = plan.meals.filter(
+        m => String(m.id) !== String(mealId) && String(m.recipeId) !== String(mealId) && m.name !== String(mealId)
+      );
+      plan.totalCalories = plan.meals.reduce((sum, m) => sum + (m.calories || 0), 0);
+      plan.totalProtein = Number(plan.meals.reduce((sum, m) => sum + (m.protein || 0), 0).toFixed(1));
+      plans[planIndex] = plan;
+
+      await savePersistedMealPlans(plans);
+      return plan;
+    }
+    return null;
   },
 
   updateMealPlan: async (id: string, mealPlanData: Partial<MealPlan>): Promise<MealPlan> => {
-    const existingIndex = inMemoryMealPlans.findIndex(p => p.id === id || p.date === id);
+    const plans = await loadPersistedMealPlans();
+    const existingIndex = plans.findIndex(p => p.id === id || p.date === id);
     if (existingIndex >= 0) {
-      inMemoryMealPlans[existingIndex] = {
-        ...inMemoryMealPlans[existingIndex],
+      plans[existingIndex] = {
+        ...plans[existingIndex],
         ...mealPlanData,
         updatedAt: new Date().toISOString(),
       };
-      return inMemoryMealPlans[existingIndex];
+      await savePersistedMealPlans(plans);
+      return plans[existingIndex];
     }
     throw new Error('Meal plan not found');
   },
 
   deleteMealPlan: async (id: string): Promise<boolean> => {
-    inMemoryMealPlans = inMemoryMealPlans.filter(p => p.id !== id);
+    let plans = await loadPersistedMealPlans();
+    plans = plans.filter(p => p.id !== id);
+    await savePersistedMealPlans(plans);
     return true;
   },
 };

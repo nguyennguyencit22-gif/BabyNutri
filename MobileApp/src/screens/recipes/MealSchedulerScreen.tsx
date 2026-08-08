@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -20,35 +21,20 @@ import type { RootState } from '../../store/store';
 import { useRecipeStore } from '../../stores/useRecipeStore';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
-const ChevronLeftIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
+import { Icon } from 'react-native-paper';
 
-const PlusIcon = ({ size = 16, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 5v14M5 12h14" />
-  </Svg>
-);
+const getWeekDayDateStr = (dayIndex: number): string => {
+  const now = new Date();
+  const currentDay = now.getDay();
+  const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+  const targetDate = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + dayIndex);
 
-const MinusIcon = ({ size = 16, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M5 12h14" />
-  </Svg>
-);
-
-const TrashIcon = ({ size = 14, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
-  </Svg>
-);
-
-const ClockIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </Svg>
-);
+  const y = targetDate.getFullYear();
+  const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const d = String(targetDate.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const DAYS_OF_WEEK = [
   { day: 'Mon', date: 'Day 1' },
@@ -75,13 +61,14 @@ function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Di
   return 'Dinner';
 }
 
-export const MealSchedulerScreen = ({ navigation }: any) => {
+export const MealSchedulerScreen = ({ route, navigation }: any) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const babies = useSelector((state: RootState) => state.baby.babies);
-  const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
-  const selectedBaby = useMemo(() => babies.find(b => String(b.id) === String(selectedBabyId)) || babies[0], [babies, selectedBabyId]);
+  const selectedBabyIdFromRedux = useSelector((state: RootState) => state.baby.selectedBabyId);
+  const activeBabyId = String(route?.params?.childId || selectedBabyIdFromRedux || '1');
+  const selectedBaby = useMemo(() => babies.find(b => String(b.id) === activeBabyId) || babies[0], [babies, activeBabyId]);
 
   const babyAgeMonths = useMemo(() => calculateBabyAgeInMonths(selectedBaby?.dateOfBirth || ''), [selectedBaby]);
   const babyAllergies = useMemo(() => selectedBaby?.allergies || [], [selectedBaby]);
@@ -91,6 +78,26 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
   useEffect(() => {
     fetchRecipes();
   }, [fetchRecipes]);
+
+  // Sync dateStr parameter from route if passed
+  useEffect(() => {
+    if (route?.params?.dateStr) {
+      const parts = route.params.dateStr.split('-');
+      if (parts.length === 3) {
+        const targetDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const today = new Date();
+        const currentDay = today.getDay();
+        const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+        const monday = new Date(today.setDate(diff));
+        
+        const diffTime = targetDate.getTime() - monday.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+        if (diffDays >= 0 && diffDays <= 6) {
+          setSelectedDayIndex(diffDays);
+        }
+      }
+    }
+  }, [route?.params?.dateStr]);
 
   // Dynamic Personalized Weaning Recipe Recommendations based on active babyprofile
   const recommendedRecipes = useMemo(() => {
@@ -105,24 +112,68 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
   }, [recipes, babyAllergies]);
 
   const [meals, setMeals] = useState<{ [key: string]: Array<any> }>({
-    'Breakfast': [
-      { id: 101, name: 'Pumpkin & Pork Porridge', monthAge: '6+ months', kcal: 220, protein: 8.5, fat: 4.2, carbs: 32.0, time: '08:00 AM', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500' }
-    ],
-    'Lunch': [
-      { id: 102, name: 'Fresh Shrimp & Carrot Soup', monthAge: '7+ months', kcal: 180, protein: 10.2, fat: 3.1, carbs: 24.0, time: '11:30 AM', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=500' }
-    ],
-    'Snack': [
-      { id: 103, name: 'Banana Avocado Smoothie', monthAge: '8+ months', kcal: 140, protein: 3.5, fat: 5.0, carbs: 20.0, time: '03:00 PM', image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=500' }
-    ],
-    'Dinner': [
-      { id: 104, name: 'Salmon Potato Oatmeal Porridge', monthAge: '9+ months', kcal: 260, protein: 12.0, fat: 6.8, carbs: 35.0, time: '06:00 PM', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500' }
-    ],
+    'Breakfast': [],
+    'Lunch': [],
+    'Snack': [],
+    'Dinner': [],
   });
 
-  const [slotModalVisible, setSlotModalVisible] = useState(false);
-  const [targetRecipe, setTargetRecipe] = useState<any>(null);
+  const loadMealsForSelectedDay = useCallback(async () => {
+    const dateStr = getWeekDayDateStr(selectedDayIndex);
 
-  // 100% Freely Selectable Hour & Minute State (00 to 59)
+    try {
+      const plans = await mealPlanService.getMealPlans(activeBabyId);
+      const dayPlan = plans.find(p => p.date === dateStr);
+
+      const loadedSlots: { [key: string]: Array<any> } = {
+        'Breakfast': [],
+        'Lunch': [],
+        'Snack': [],
+        'Dinner': [],
+      };
+
+      if (dayPlan && dayPlan.meals) {
+        dayPlan.meals.forEach(m => {
+          let slotName: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' = 'Breakfast';
+          if (m.name.startsWith('Breakfast:')) slotName = 'Breakfast';
+          else if (m.name.startsWith('Lunch:')) slotName = 'Lunch';
+          else if (m.name.startsWith('Snack:')) slotName = 'Snack';
+          else if (m.name.startsWith('Dinner:')) slotName = 'Dinner';
+          else slotName = getSlotFromTime(m.time || '08:00 AM');
+
+          const cleanName = m.name.replace(/^(Breakfast|Lunch|Snack|Dinner):\s*/i, '');
+
+          loadedSlots[slotName].push({
+            id: m.recipeId || m.id,
+            name: cleanName,
+            kcal: m.calories,
+            protein: m.protein || 8.0,
+            fat: m.fat || 4.0,
+            carbs: m.carbs || 25.0,
+            time: m.time || '08:00 AM',
+            image: m.recipeImage || 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500',
+          });
+        });
+      }
+
+      setMeals(loadedSlots);
+    } catch (e) {
+      console.error('Error loading schedule for selected day:', e);
+    }
+  }, [selectedDayIndex, activeBabyId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMealsForSelectedDay();
+    }, [loadMealsForSelectedDay])
+  );
+
+  const [addSlotModalVisible, setAddSlotModalVisible] = useState(false);
+  const [clockModalVisible, setClockModalVisible] = useState(false);
+  const [targetRecipe, setTargetRecipe] = useState<any>(null);
+  const [selectedMealSlot, setSelectedMealSlot] = useState<'Breakfast' | 'Lunch' | 'Snack' | 'Dinner'>('Breakfast');
+
+  // Clock Picker State
   const [hour, setHour] = useState<number>(8);
   const [minuteNum, setMinuteNum] = useState<number>(0);
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM');
@@ -155,40 +206,58 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
 
   const openAddSlotModal = (recipe: any) => {
     setTargetRecipe(recipe);
-    setHour(8);
-    setMinuteNum(0);
-    setPeriod('AM');
-    setSlotModalVisible(true);
+    setSelectedMealSlot('Breakfast');
+    setAddSlotModalVisible(true);
+  };
+
+  const openEditTimeClockModal = (dish: any, mealType: string) => {
+    setTargetRecipe(dish);
+    const match = (dish.time || '08:00 AM').match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (match) {
+      setHour(parseInt(match[1], 10));
+      setMinuteNum(parseInt(match[2], 10));
+      setPeriod(match[3].toUpperCase() as 'AM' | 'PM');
+    }
+    setClockModalVisible(true);
   };
 
   const handleConfirmAddDishToSlot = async () => {
     if (!targetRecipe) return;
 
+    // Prevent duplicate dishes in any slot for this day
+    const isAlreadyInDay = Object.values(meals).some(dishList =>
+      dishList.some((d: any) => String(d.id) === String(targetRecipe.id) || d.name === targetRecipe.name)
+    );
+
+    if (isAlreadyInDay) {
+      setAddSlotModalVisible(false);
+      Alert.alert(
+        'Duplicate Recipe Warning',
+        `"${targetRecipe.name}" is already scheduled for ${selectedBaby?.name || 'baby'} on ${DAYS_OF_WEEK[selectedDayIndex].day}! Please select a different recipe.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     const recipeToAdd = {
       ...targetRecipe,
       kcal: targetRecipe.kcal || targetRecipe.calories || 200,
       protein: targetRecipe.protein || 8.0,
-      time: selectedTimeStr,
+      time: '',
     };
 
     setMeals(prev => ({
       ...prev,
-      [targetSlot]: [...(prev[targetSlot] || []), recipeToAdd],
+      [selectedMealSlot]: [...(prev[selectedMealSlot] || []), recipeToAdd],
     }));
 
-    const today = new Date();
-    const currentDay = today.getDay();
-    const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    const targetDate = new Date(monday);
-    targetDate.setDate(monday.getDate() + selectedDayIndex);
-    const dateStr = targetDate.toISOString().split('T')[0];
+    const dateStr = getWeekDayDateStr(selectedDayIndex);
 
     try {
       await mealPlanService.addRecipeToMealPlan({
-        childId: String(selectedBaby?.id || '1'),
+        childId: activeBabyId,
         dateStr,
-        mealType: targetSlot,
+        mealType: selectedMealSlot,
         recipe: {
           id: targetRecipe.id,
           name: targetRecipe.name,
@@ -197,36 +266,129 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
           protein: recipeToAdd.protein,
           fat: 4.0,
           carbohydrate: 25.0,
-          description: `Scheduled for ${selectedBaby?.name || 'baby'} at ${selectedTimeStr}`,
+          description: `Scheduled for ${selectedBaby?.name || 'baby'} in ${selectedMealSlot} slot`,
         },
       });
 
-      setSlotModalVisible(false);
+      setAddSlotModalVisible(false);
 
       Alert.alert(
         'Added to Schedule',
-        `Scheduled "${targetRecipe.name}" at ${selectedTimeStr} (${targetSlot} slot) for ${selectedBaby?.name || 'baby'}!`,
+        `Scheduled "${targetRecipe.name}" in ${selectedMealSlot} slot for ${selectedBaby?.name || 'baby'}!`,
         [
           { text: 'OK' },
           {
-            text: 'View Weaning Meal Plan',
+            text: 'View Meal Plan',
             onPress: () => {
-              navigation.navigate('MealPlanList', { childId: String(selectedBaby?.id || '1'), dateStr });
+              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr });
             },
           },
         ]
       );
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setSlotModalVisible(false);
+      setAddSlotModalVisible(false);
+      Alert.alert(
+        'Duplicate Recipe Warning',
+        e?.message || `"${targetRecipe.name}" is already in schedule!`
+      );
     }
   };
 
-  const handleRemoveDish = (mealType: string, index: number) => {
+  const handleSaveAdjustedClockTime = async () => {
+    if (!targetRecipe) return;
+
+    const updatedTime = selectedTimeStr;
+    const dateStr = getWeekDayDateStr(selectedDayIndex);
+
+    // Update in local state
     setMeals(prev => {
-      const updated = [...(prev[mealType] || [])];
-      updated.splice(index, 1);
-      return { ...prev, [mealType]: updated };
+      const updated = { ...prev };
+      Object.keys(updated).forEach(slotKey => {
+        updated[slotKey] = updated[slotKey].map((d: any) => {
+          if (String(d.id) === String(targetRecipe.id) || d.name === targetRecipe.name) {
+            return { ...d, time: updatedTime };
+          }
+          return d;
+        });
+      });
+      return updated;
+    });
+
+    try {
+      await mealPlanService.addRecipeToMealPlan({
+        childId: activeBabyId,
+        dateStr,
+        mealType: targetSlot,
+        customTime: updatedTime,
+        recipe: {
+          id: targetRecipe.id,
+          name: targetRecipe.name,
+          calories: targetRecipe.kcal || targetRecipe.calories || 200,
+          image_url: targetRecipe.image_url || (targetRecipe as any).image,
+          protein: targetRecipe.protein || 8.0,
+          fat: 4.0,
+          carbohydrate: 25.0,
+          description: `Custom feeding time updated to ${updatedTime}`,
+        },
+      });
+      setClockModalVisible(false);
+      Alert.alert('Time Updated', `Updated "${targetRecipe.name}" feeding time to ${updatedTime}!`);
+    } catch (e) {
+      console.error(e);
+      setClockModalVisible(false);
+    }
+  };
+
+  const handleRemoveDish = async (mealType: string, index: number) => {
+    const updatedMeals = { ...meals };
+    const list = [...(updatedMeals[mealType] || [])];
+    const removedDish = list.splice(index, 1)[0];
+    updatedMeals[mealType] = list;
+    setMeals(updatedMeals);
+
+    const dateStr = getWeekDayDateStr(selectedDayIndex);
+
+    if (removedDish) {
+      await mealPlanService.removeDishFromMealPlan({
+        childId: activeBabyId,
+        dateStr,
+        mealId: removedDish.id,
+      });
+    }
+
+    const formattedMeals: any[] = [];
+    let calcTotalKcal = 0;
+    let calcTotalProtein = 0;
+
+    Object.entries(updatedMeals).forEach(([type, dishList]) => {
+      dishList.forEach((dish, idx) => {
+        const dishKcal = dish.kcal || dish.calories || 200;
+        const dishProt = dish.protein || 8.0;
+        calcTotalKcal += dishKcal;
+        calcTotalProtein += dishProt;
+        formattedMeals.push({
+          id: `m-${selectedDayIndex}-${type}-${idx}`,
+          name: `${type}: ${dish.name}`,
+          time: dish.time || '08:00 AM',
+          description: `Weaning recipe (${dishKcal} kcal)`,
+          calories: dishKcal,
+          recipeId: Number(dish.id) || 1,
+          protein: dishProt,
+          fat: 4.0,
+          carbs: 25.0,
+        });
+      });
+    });
+
+    await mealPlanService.createMealPlan({
+      childId: activeBabyId,
+      date: dateStr,
+      meals: formattedMeals,
+      totalCalories: calcTotalKcal,
+      totalProtein: Number(calcTotalProtein.toFixed(1)),
+      totalFat: 12.3,
+      totalCarbs: 76.0,
     });
   };
 
@@ -237,14 +399,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
   const handleSaveToMealPlan = async () => {
     setSaving(true);
     try {
-      const today = new Date();
-      const currentDay = today.getDay();
-      const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-      const monday = new Date(today.setDate(diff));
-      const targetDate = new Date(monday);
-      targetDate.setDate(monday.getDate() + selectedDayIndex);
-
-      const dateStr = targetDate.toISOString().split('T')[0];
+      const dateStr = getWeekDayDateStr(selectedDayIndex);
       const formattedMeals: any[] = [];
 
       Object.entries(meals).forEach(([type, dishList]) => {
@@ -264,7 +419,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
       });
 
       await mealPlanService.createMealPlan({
-        childId: String(selectedBaby?.id || '1'),
+        childId: activeBabyId,
         date: dateStr,
         meals: formattedMeals,
         totalCalories: totalKcal,
@@ -280,7 +435,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
           {
             text: 'View Weaning Meal Plan',
             onPress: () => {
-              navigation.navigate('MealPlanList', { childId: String(selectedBaby?.id || '1') });
+              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr });
             },
           },
         ]
@@ -306,7 +461,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <ChevronLeftIcon size={22} color="#FF5F70" />
+            <Icon source="chevron-left" size={24} color="#FF5F70" />
           </TouchableOpacity>
 
           <View style={{ flex: 1 }}>
@@ -367,11 +522,17 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
 
         {/* Recommended Weaning Dishes Section */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            💡 Recommended for {selectedBaby?.name} ({babyAgeMonths}m)
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon source="lightbulb-on-outline" size={18} color="#FF5F70" />
+            <Text style={styles.sectionTitle}>
+              Recommended for {selectedBaby?.name} ({babyAgeMonths}m)
+            </Text>
+          </View>
           {babyAllergies.length > 0 && (
-            <Text style={styles.sectionSub}>🛡️ Excluded allergens: {babyAllergies.join(', ')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <Icon source="shield-check-outline" size={14} color="#FF5F70" />
+              <Text style={styles.sectionSub}>Excluded allergens: {babyAllergies.join(', ')}</Text>
+            </View>
           )}
         </View>
 
@@ -395,7 +556,7 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                   onPress={() => openAddSlotModal(item)}
                   activeOpacity={0.8}
                 >
-                  <PlusIcon size={14} color="#FFFFFF" />
+                  <Icon source="plus" size={16} color="#FFFFFF" />
                   <Text style={styles.addBtnText}>Add to schedule</Text>
                 </TouchableOpacity>
               </View>
@@ -405,39 +566,36 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
 
         {/* Meal Schedule Slots (Breakfast, Lunch, Snack, Dinner) */}
         <View style={styles.menuHeaderRow}>
-          <Text style={styles.sectionMainTitle}>🍽️ Menu Slots for {DAYS_OF_WEEK[selectedDayIndex].day}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon source="silverware-fork-knife" size={20} color="#FF5F70" />
+            <Text style={styles.sectionMainTitle}>Menu Slots for {DAYS_OF_WEEK[selectedDayIndex].day}</Text>
+          </View>
           <TouchableOpacity 
             style={styles.savePlanBtn}
             onPress={handleSaveToMealPlan}
             disabled={saving}
             activeOpacity={0.8}
           >
-            <Text style={styles.savePlanBtnText}>{saving ? 'Saving...' : '💾 Apply to Meal Plan'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Icon source="content-save-outline" size={16} color="#FFFFFF" />
+              <Text style={styles.savePlanBtnText}>{saving ? 'Saving...' : 'Apply to Meal Plan'}</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
         {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map((mealName) => {
           const slotDishes = meals[mealName] || [];
-          const slotTimeRanges: { [key: string]: string } = {
-            'Breakfast': '05:00 AM - 10:59 AM',
-            'Lunch': '11:00 AM - 01:59 PM',
-            'Snack': '02:00 PM - 04:59 PM',
-            'Dinner': '05:00 PM onwards',
-          };
           return (
             <View key={mealName} style={styles.slotCard}>
               <View style={styles.slotHeader}>
-                <View>
-                  <Text style={styles.slotTitle}>{mealName}</Text>
-                  <Text style={styles.slotTime}>{slotTimeRanges[mealName]}</Text>
-                </View>
+                <Text style={styles.slotTitle}>{mealName}</Text>
 
                 <TouchableOpacity 
                   style={styles.addMoreBtn}
                   onPress={() => navigation.navigate('SearchRecipe')}
                   activeOpacity={0.8}
                 >
-                  <PlusIcon size={12} color="#FF5F70" />
+                  <Icon source="plus" size={14} color="#FF5F70" />
                   <Text style={styles.addMoreText}>Select from library</Text>
                 </TouchableOpacity>
               </View>
@@ -449,18 +607,30 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                   <View key={idx} style={styles.dishRow}>
                     <Image source={{ uri: dish.image_url || dish.image }} style={styles.dishThumb} />
                     <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={styles.dishTimeBadge}>⏰ {dish.time || '08:00 AM'}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text style={styles.dishName}>{dish.name}</Text>
+                        <TouchableOpacity 
+                          style={styles.editTimeBtn}
+                          onPress={() => openEditTimeClockModal(dish, mealName)}
+                          activeOpacity={0.8}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                            <Icon source="clock-outline" size={12} color="#FF5F70" />
+                            <Text style={styles.editTimeBtnText}>
+                              {dish.time || 'Set Time'}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
                       </View>
                       <Text style={styles.dishKcal}>{dish.kcal || dish.calories || 200} kcal · Protein: {dish.protein || 8.0}g</Text>
                     </View>
+
                     <TouchableOpacity 
                       style={styles.removeBtn}
                       onPress={() => handleRemoveDish(mealName, idx)}
                       activeOpacity={0.7}
                     >
-                      <TrashIcon size={14} color="#FF5F70" />
+                      <Icon source="delete-outline" size={18} color="#FF5F70" />
                     </TouchableOpacity>
                   </View>
                 ))
@@ -472,29 +642,92 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* 100% FREELY ADJUSTABLE CLOCK TIME PICKER MODAL (ANY HOUR & ANY MINUTE 00-59) */}
-      <Modal visible={slotModalVisible} transparent animationType="fade" onRequestClose={() => setSlotModalVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setSlotModalVisible(false)}>
-          <View style={styles.modalBox}>
+      {/* Modal 1: Fast Add Dish to Meal Schedule (Select Slot Sáng/Trưa/Phụ/Tối) */}
+      <Modal visible={addSlotModalVisible} transparent animationType="fade" onRequestClose={() => setAddSlotModalVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setAddSlotModalVisible(false)}>
+          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
-              <ClockIcon size={22} color="#FF5F70" />
-              <Text style={styles.modalTitle}>Set Any Exact Meal Time</Text>
+              <Icon source="clock-outline" size={22} color="#FF5F70" />
+              <Text style={styles.modalTitle}>Add to Meal Schedule</Text>
             </View>
             {!!targetRecipe && (
               <Text style={styles.modalSubTitle}>Dish: "{targetRecipe.name}" ({targetRecipe.kcal || targetRecipe.calories || 200} kcal)</Text>
             )}
 
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#4B3034', marginBottom: 8, marginTop: 4 }}>
+              Select Meal Slot for {DAYS_OF_WEEK[selectedDayIndex].day}:
+            </Text>
+
+            <View style={{ gap: 8, marginBottom: 16 }}>
+              {[
+                { key: 'Breakfast', label: 'Breakfast' },
+                { key: 'Lunch', label: 'Lunch' },
+                { key: 'Snack', label: 'Snack' },
+                { key: 'Dinner', label: 'Dinner' },
+              ].map(slot => {
+                const isSelected = selectedMealSlot === slot.key;
+                return (
+                  <TouchableOpacity
+                    key={slot.key}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: isSelected ? '#FFFFFF' : '#FFF0F2',
+                      borderColor: isSelected ? '#FF5F70' : '#FFE4E6',
+                      borderWidth: 1,
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      borderRadius: 14,
+                      elevation: isSelected ? 2 : 0,
+                    }}
+                    onPress={() => setSelectedMealSlot(slot.key as any)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#FF5F70' : '#4B3034' }}>{slot.label}</Text>
+                    {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setAddSlotModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalApplyBtn} onPress={handleConfirmAddDishToSlot}>
+                <Text style={styles.modalApplyText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Modal 2: Optional Custom Set Time Clock Picker */}
+      <Modal visible={clockModalVisible} transparent animationType="fade" onRequestClose={() => setClockModalVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setClockModalVisible(false)}>
+          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
+              <Icon source="clock-outline" size={22} color="#FF5F70" />
+              <Text style={styles.modalTitle}>Set Meal Time</Text>
+            </View>
+            {!!targetRecipe && (
+              <Text style={styles.modalSubTitle}>Dish: "{targetRecipe.name}"</Text>
+            )}
+
             {/* Live Clock Display & Auto-Slot Preview */}
             <View style={styles.liveClockBox}>
-              <Text style={styles.liveClockText}>⏰ {selectedTimeStr}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Icon source="clock-outline" size={24} color="#FF5F70" />
+                <Text style={styles.liveClockText}>{selectedTimeStr}</Text>
+              </View>
               <Text style={styles.liveSlotText}>
                 Auto maps to: <Text style={{ fontWeight: '800', color: '#FF5F70' }}>{targetSlot}</Text> slot
               </Text>
             </View>
 
-            {/* Interactive Steppers to pick ANY Exact Hour & Minute (00-59) */}
+            {/* Steppers for Hour & Minute */}
             <View style={styles.stepperContainer}>
-              {/* Hour Control */}
               <View style={styles.stepperBox}>
                 <Text style={styles.stepperLabel}>HOUR</Text>
                 <View style={styles.stepperControls}>
@@ -502,21 +735,20 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                     style={styles.stepBtn} 
                     onPress={() => setHour(prev => (prev <= 1 ? 12 : prev - 1))}
                   >
-                    <MinusIcon size={16} color="#FF5F70" />
+                    <Icon source="minus" size={18} color="#FF5F70" />
                   </TouchableOpacity>
                   <Text style={styles.stepVal}>{String(hour).padStart(2, '0')}</Text>
                   <TouchableOpacity 
                     style={styles.stepBtn} 
                     onPress={() => setHour(prev => (prev >= 12 ? 1 : prev + 1))}
                   >
-                    <PlusIcon size={16} color="#FF5F70" />
+                    <Icon source="plus" size={18} color="#FF5F70" />
                   </TouchableOpacity>
                 </View>
               </View>
 
               <Text style={styles.colonSeparator}>:</Text>
 
-              {/* Minute Control (00 to 59 freely!) */}
               <View style={styles.stepperBox}>
                 <Text style={styles.stepperLabel}>MINUTE (00-59)</Text>
                 <View style={styles.stepperControls}>
@@ -524,14 +756,14 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                     style={styles.stepBtn} 
                     onPress={() => setMinuteNum(prev => (prev <= 0 ? 59 : prev - 1))}
                   >
-                    <MinusIcon size={16} color="#FF5F70" />
+                    <Icon source="minus" size={18} color="#FF5F70" />
                   </TouchableOpacity>
                   <Text style={styles.stepVal}>{String(minuteNum).padStart(2, '0')}</Text>
                   <TouchableOpacity 
                     style={styles.stepBtn} 
                     onPress={() => setMinuteNum(prev => (prev >= 59 ? 0 : prev + 1))}
                   >
-                    <PlusIcon size={16} color="#FF5F70" />
+                    <Icon source="plus" size={18} color="#FF5F70" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -558,25 +790,25 @@ export const MealSchedulerScreen = ({ navigation }: any) => {
                 style={[styles.periodBtn, period === 'AM' && styles.activePeriodBtn]}
                 onPress={() => setPeriod('AM')}
               >
-                <Text style={[styles.periodText, period === 'AM' && styles.activePeriodText]}>🌅 AM (Morning)</Text>
+                <Text style={[styles.periodText, period === 'AM' && styles.activePeriodText]}>AM (Morning)</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.periodBtn, period === 'PM' && styles.activePeriodBtn]}
                 onPress={() => setPeriod('PM')}
               >
-                <Text style={[styles.periodText, period === 'PM' && styles.activePeriodText]}>🌙 PM (Afternoon / Night)</Text>
+                <Text style={[styles.periodText, period === 'PM' && styles.activePeriodText]}>PM (Afternoon / Night)</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalBtnRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setSlotModalVisible(false)}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setClockModalVisible(false)}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalApplyBtn} onPress={handleConfirmAddDishToSlot}>
-                <Text style={styles.modalApplyText}>Confirm & Place in Schedule</Text>
+              <TouchableOpacity style={styles.modalApplyBtn} onPress={handleSaveAdjustedClockTime}>
+                <Text style={styles.modalApplyText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -630,6 +862,19 @@ const styles = StyleSheet.create({
   dishTimeBadge: { fontSize: 11, fontWeight: '700', color: '#FF5F70', backgroundColor: '#FFFFFF', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#FFE4E6' },
   dishName: { fontSize: 13, fontWeight: '700', color: '#4B3034', flex: 1 },
   dishKcal: { fontSize: 11, color: '#8E7377', marginTop: 2 },
+  editTimeBtn: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  editTimeBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FF5F70',
+  },
   removeBtn: { padding: 6 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, elevation: 5 },
