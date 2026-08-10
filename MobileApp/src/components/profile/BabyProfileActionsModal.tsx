@@ -26,6 +26,7 @@ interface BabyProfileActionsModalProps {
     invitationCode?: string | null;
     showLoginPromptForCode?: boolean;
     onRequestLoginForCode?: () => void;
+    onRequestLogin?: () => void;
 }
 
 export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = ({
