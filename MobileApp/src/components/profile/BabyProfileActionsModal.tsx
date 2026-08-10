@@ -81,8 +81,8 @@ function BabyProfileActionsModal({
     const actions = [
         {
             id: 'weaning-meal-plan',
-            title: 'Weaning Meal Plan (Thực đơn ăn dặm)',
-            subtitle: 'Xem & Quản lý thực đơn ăn dặm',
+            title: 'Weaning Meal Plan',
+            subtitle: "View & manage baby's weekly plan",
             icon: CalendarIcon,
             onPress: onWeaningMealPlan || (() => {}),
         },

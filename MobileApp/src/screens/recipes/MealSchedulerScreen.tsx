@@ -37,10 +37,10 @@ const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): strin
 };
 
 const WEEK_OPTIONS = [
-  { id: 0, title: 'Tuần 1', subtitle: 'Menu Week 1' },
-  { id: 1, title: 'Tuần 2', subtitle: 'Menu Week 2' },
-  { id: 2, title: 'Tuần 3', subtitle: 'Menu Week 3' },
-  { id: 3, title: 'Tuần 4', subtitle: 'Menu Week 4' },
+  { id: 0, title: 'Week 1', subtitle: 'Menu Week 1' },
+  { id: 1, title: 'Week 2', subtitle: 'Menu Week 2' },
+  { id: 2, title: 'Week 3', subtitle: 'Menu Week 3' },
+  { id: 3, title: 'Week 4', subtitle: 'Menu Week 4' },
 ];
 
 const DAYS_OF_WEEK = [
@@ -879,9 +879,18 @@ const styles = StyleSheet.create({
   daysWrapper: { marginBottom: 16 },
   daysScroll: { gap: 8 },
   dayCard: { width: 60, height: 62, borderRadius: 16, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FFE4E6' },
-  activeDayCard: { backgroundColor: '#FF5F70', borderColor: '#FF5F70' },
+  activeDayCard: {
+    backgroundColor: '#FF5F70',
+    borderColor: '#E03E50',
+    borderWidth: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
+  },
   dayText: { fontSize: 13, fontWeight: '700', color: '#4B3034', marginBottom: 2 },
-  activeDayText: { color: '#FFFFFF' },
+  activeDayText: { color: '#FFFFFF', fontWeight: '900' },
   dateText: { fontSize: 11, color: '#8E7377' },
   activeDateText: { color: 'rgba(255, 255, 255, 0.9)' },
   macroCard: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#FFE4E6', shadowColor: '#FF5F70', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
@@ -1021,7 +1030,13 @@ const styles = StyleSheet.create({
   },
   activeWeekTabBtn: {
     backgroundColor: '#FF5F70',
-    borderColor: '#FF5F70',
+    borderColor: '#E03E50',
+    borderWidth: 2,
+    shadowColor: '#FF5F70',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
   },
   weekTabText: {
     fontSize: 12,
@@ -1030,6 +1045,8 @@ const styles = StyleSheet.create({
   },
   activeWeekTabText: {
     color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 13,
   },
 });
 
