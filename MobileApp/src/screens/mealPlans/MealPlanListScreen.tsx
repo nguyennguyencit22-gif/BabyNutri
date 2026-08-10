@@ -1694,7 +1694,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
   // 4 Weekly Schedule Selector Styles (Synchronized)
   weekSectionContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.surface || '#FFFFFF',
     borderRadius: 18,
     padding: 12,
     marginHorizontal: 16,
