@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
-const MEAL_PLANS_STORAGE_KEY = '@babynutri_meal_plans_persistent_v5';
+const MEAL_PLANS_STORAGE_KEY = '@babynutri_meal_plans_persistent_v6';
 
 // Helper to format date string YYYY-MM-DD in local timezone
 const formatDate = (date: Date) => {
@@ -132,32 +132,40 @@ const savePersistedMealPlans = async (plans: MealPlan[]) => {
 export const mealPlanService = {
   getMealPlans: async (childId?: string): Promise<MealPlan[]> => {
     const targetChildId = childId || '1';
+    const localPlans = await loadPersistedMealPlans(targetChildId);
     try {
       let url = `${BASE_URL}/mealplans?childId=${targetChildId}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch meal plans');
-      const data = await response.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data.filter((p: any) => String(p.childId) === String(targetChildId));
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const validRemote = data.filter((p: any) => String(p.childId) === String(targetChildId) && Array.isArray(p.meals) && p.meals.length > 0);
+          if (validRemote.length > 0) {
+            return validRemote;
+          }
+        }
       }
     } catch (error) {
       console.warn('Backend API unavailable, using persistent local meal plan data:', error);
     }
 
-    const plans = await loadPersistedMealPlans(targetChildId);
-    return plans.filter(p => String(p.childId) === String(targetChildId));
+    return localPlans.filter(p => String(p.childId) === String(targetChildId));
   },
 
   getMealPlanById: async (id: string): Promise<MealPlan | undefined> => {
+    const localPlans = await loadPersistedMealPlans();
+    const localFound = localPlans.find(plan => plan.id === id || plan.date === id);
+    if (localFound) return localFound;
+
     try {
       const response = await fetch(`${BASE_URL}/mealplans/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch meal plan details');
-      return await response.json();
+      if (response.ok) {
+        return await response.json();
+      }
     } catch (error) {
       console.warn('Backend API unavailable, fetching meal plan from persistent storage:', error);
-      const plans = await loadPersistedMealPlans();
-      return plans.find(plan => plan.id === id || plan.date === id);
     }
+    return localFound;
   },
 
   getMealPlanByDate: async (dateStr: string, childId?: string): Promise<MealPlan | undefined> => {
