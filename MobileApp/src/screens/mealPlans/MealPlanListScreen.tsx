@@ -596,7 +596,12 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
               </View>
               <TouchableOpacity 
                 style={styles.detailLinkBtn}
-                onPress={() => navigation.navigate('MealPlanDetail', { mealPlanId: selectedPlan.id })}
+                onPress={() => navigation.navigate('MealPlanDetail', { 
+                  mealPlanId: selectedPlan.id, 
+                  childId: activeChildId, 
+                  dateStr: selectedPlan.date, 
+                  weekIndex: selectedWeekIndex 
+                })}
               >
                 <Text style={styles.detailLinkText}>📋 Daily Details</Text>
               </TouchableOpacity>
