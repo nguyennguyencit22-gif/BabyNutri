@@ -150,7 +150,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
             protein: m.protein || 8.0,
             fat: m.fat || 4.0,
             carbs: m.carbs || 25.0,
-            time: m.time || '08:00 AM',
+            time: m.time || '',
             image: m.recipeImage || 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500',
           });
         });
@@ -370,7 +370,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         formattedMeals.push({
           id: `m-${selectedDayIndex}-${type}-${idx}`,
           name: `${type}: ${dish.name}`,
-          time: dish.time || '08:00 AM',
+          time: dish.time || '',
           description: `Weaning recipe (${dishKcal} kcal)`,
           calories: dishKcal,
           recipeId: Number(dish.id) || 1,
@@ -407,7 +407,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           formattedMeals.push({
             id: `m-${selectedDayIndex}-${type}-${idx}`,
             name: `${type}: ${dish.name}`,
-            time: dish.time || '08:00 AM',
+            time: dish.time || '',
             description: `Weaning recipe (${dish.kcal || 200} kcal)`,
             calories: dish.kcal || 200,
             recipeId: Number(dish.id) || 1,

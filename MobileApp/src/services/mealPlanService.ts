@@ -223,14 +223,7 @@ export const mealPlanService = {
       }
     }
 
-    const timesMap: Record<string, string> = {
-      Breakfast: '08:00 AM',
-      Lunch: '11:30 AM',
-      Snack: '03:00 PM',
-      Dinner: '06:00 PM',
-    };
-
-    const finalTime = customTime || timesMap[mealType] || '08:00 AM';
+    const finalTime = customTime || '';
 
     const newMeal: Meal = {
       id: `m-${Date.now()}`,

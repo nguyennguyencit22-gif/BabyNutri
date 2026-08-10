@@ -156,7 +156,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
             <View style={styles.mealHeader}>
               <Text style={styles.mealName}>{item.name}</Text>
               <View style={styles.timeTag}>
-                <Text style={styles.mealTime}>{item.time}</Text>
+                <Text style={styles.mealTime}>{item.time && item.time.trim() !== '' ? item.time : 'Set Time'}</Text>
               </View>
             </View>
 

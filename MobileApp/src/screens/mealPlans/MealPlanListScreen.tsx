@@ -493,7 +493,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <Text style={{ fontSize: 16 }}>{upcomingMealInfo.isWithin1Hour ? '🔔' : '⏳'}</Text>
                     <Text style={styles.countdownTitle}>
-                      Next Meal ({upcomingMealInfo.meal?.time}): <Text style={{ color: colors.primary, fontWeight: '900' }}>{upcomingMealInfo.countdownTicker}</Text>
+                      Next Meal ({upcomingMealInfo.meal?.time && upcomingMealInfo.meal?.time.trim() !== '' ? upcomingMealInfo.meal?.time : 'Set Time'}): <Text style={{ color: colors.primary, fontWeight: '900' }}>{upcomingMealInfo.countdownTicker}</Text>
                     </Text>
                   </View>
                   <Text style={styles.countdownSub}>
@@ -560,7 +560,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   }}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.mealTime}>{meal.time ? ` ${meal.time}` : ' Set Time'}</Text>
+                  <Text style={styles.mealTime}>{meal.time && meal.time.trim() !== '' ? ` ${meal.time}` : ' Set Time'}</Text>
                   <View style={styles.timeLine} />
                 </TouchableOpacity>
 
