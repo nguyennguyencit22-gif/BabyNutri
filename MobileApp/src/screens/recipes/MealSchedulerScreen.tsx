@@ -140,7 +140,13 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
     fetchRecipes();
   }, [fetchRecipes]);
 
-  // Sync dateStr parameter from route if passed
+  // Sync weekIndex and dateStr parameter from route if passed
+  useEffect(() => {
+    if (route?.params?.weekIndex !== undefined) {
+      setSelectedWeekIndex(Number(route.params.weekIndex));
+    }
+  }, [route?.params?.weekIndex]);
+
   useEffect(() => {
     if (route?.params?.dateStr) {
       const parts = route.params.dateStr.split('-');
@@ -341,7 +347,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           {
             text: 'View Meal Plan',
             onPress: () => {
-              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr });
+              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr, weekIndex: selectedWeekIndex });
             },
           },
         ]
@@ -497,7 +503,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           {
             text: 'View Weaning Meal Plan',
             onPress: () => {
-              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr });
+              navigation.navigate('MealPlanList', { childId: activeBabyId, dateStr, weekIndex: selectedWeekIndex });
             },
           },
         ]
@@ -539,13 +545,10 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        {/* 4 Weekly Schedules Selection Bar (Real-Time Dates · Max 4 Menus per Baby Profile) */}
+        {/* 4 Weekly Schedules Selection Bar (Real-Time Dates) */}
         <View style={styles.weekSectionContainer}>
           <View style={styles.weekHeaderRow}>
             <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
-            <View style={styles.maxMenuBadge}>
-              <Text style={styles.maxMenuBadgeText}>Max 4 Menus / Baby</Text>
-            </View>
           </View>
           <View style={styles.weekTabsRow}>
             {dynamicWeeks.map((week) => {

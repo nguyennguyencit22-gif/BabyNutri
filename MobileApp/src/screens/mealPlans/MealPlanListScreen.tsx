@@ -31,24 +31,58 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDays, setWeekDays] = useState<Date[]>([]);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
 
   const todayDateFormatted = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
+  // Sync weekIndex from route params if passed
   useEffect(() => {
-    // Generate current week (Mon - Sun)
+    if (route?.params?.weekIndex !== undefined) {
+      setSelectedWeekIndex(Number(route.params.weekIndex));
+    }
+  }, [route?.params?.weekIndex]);
+
+  // Dynamic Real-Time Date Ranges for 4 Weeks (Week 1 to Week 4)
+  const dynamicWeeks = React.useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const currentMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return [0, 1, 2, 3].map((weekOffset) => {
+      const startD = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() + (weekOffset * 7));
+      const endD = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate() + 6);
+
+      let dateRangeStr = '';
+      if (startD.getMonth() === endD.getMonth()) {
+        dateRangeStr = `${startD.getDate()} - ${endD.getDate()} ${monthsShort[startD.getMonth()]}`;
+      } else {
+        dateRangeStr = `${startD.getDate()} ${monthsShort[startD.getMonth()]} - ${endD.getDate()} ${monthsShort[endD.getMonth()]}`;
+      }
+
+      return {
+        id: weekOffset,
+        title: `Week ${weekOffset + 1}`,
+        dateRange: dateRangeStr,
+      };
+    });
+  }, []);
+
+  // Update 7 Days (Mon - Sun) based on selectedWeekIndex
+  useEffect(() => {
     const today = new Date();
     const currentDay = today.getDay();
-    const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
+    const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1) + (selectedWeekIndex * 7);
+    const monday = new Date(today.getFullYear(), today.getMonth(), diff);
     
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
+      const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
       days.push(d);
     }
     setWeekDays(days);
-  }, [activeChildId]);
+  }, [selectedWeekIndex, activeChildId]);
 
   const loadMealPlans = useCallback(async () => {
     setLoading(true);
@@ -89,7 +123,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
 
   const handleOpenScheduler = () => {
     const dateStr = toLocalIso(selectedDate);
-    navigation.navigate('MealScheduler', { childId: activeChildId, dateStr });
+    navigation.navigate('MealScheduler', { childId: activeChildId, dateStr, weekIndex: selectedWeekIndex });
   };
 
   // Interactive Remind Me Toggle State (ON / OFF)
@@ -451,6 +485,33 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
           <Text style={styles.bannerArrowText}>➔</Text>
         </View>
       </TouchableOpacity>
+
+      {/* 4 Weekly Schedules Selection Bar (Synchronized with Meal Scheduler) */}
+      <View style={styles.weekSectionContainer}>
+        <View style={styles.weekHeaderRow}>
+          <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
+        </View>
+        <View style={styles.weekTabsRow}>
+          {dynamicWeeks.map((week) => {
+            const isWeekActive = week.id === selectedWeekIndex;
+            return (
+              <TouchableOpacity
+                key={week.id}
+                style={[styles.weekTabBtn, isWeekActive && styles.activeWeekTabBtn]}
+                onPress={() => setSelectedWeekIndex(week.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.weekTabText, isWeekActive && styles.activeWeekTabText]}>
+                  {week.title}
+                </Text>
+                <Text style={[styles.weekSubDateText, isWeekActive && styles.activeWeekSubDateText]}>
+                  {week.dateRange}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
 
       {/* Calendar horizontal days strip */}
       <View style={styles.calendarWrapper}>
@@ -1629,5 +1690,70 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   modalApplyTextCentered: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+
+  // 4 Weekly Schedule Selector Styles (Synchronized)
+  weekSectionContainer: {
+    backgroundColor: colors.card,
+    borderRadius: 18,
+    padding: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  weekHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  weekSectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  weekTabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  weekTabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  activeWeekTabBtn: {
+    backgroundColor: colors.primary,
+    borderColor: '#E03E50',
+    borderWidth: 2,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  weekTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  activeWeekTabText: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 13,
+  },
+  weekSubDateText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.textSoft,
+    marginTop: 2,
+  },
+  activeWeekSubDateText: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '800',
   },
 });
