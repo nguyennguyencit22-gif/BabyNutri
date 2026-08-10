@@ -1,16 +1,18 @@
 # Dependencies
-MobieReport#/node_modules/
+node_modules/
+**/node_modules/
+MobileApp/node_modules/
 
 # Android generated files
-MobieReport#/android/.gradle/
-MobieReport#/android/build/
-MobieReport#/android/app/build/
-MobieReport#/android/.cxx/
-MobieReport#/android/app/.cxx/
+MobileApp/android/.gradle/
+MobileApp/android/build/
+MobileApp/android/app/build/
+MobileApp/android/.cxx/
+MobileApp/android/app/.cxx/
 
 # iOS generated files
-MobieReport#/ios/build/
-MobieReport#/ios/Pods/
+MobileApp/ios/build/
+MobileApp/ios/Pods/
 
 # Build outputs
 *.apk
@@ -31,7 +33,25 @@ yarn-error.log*
 .env
 .env.*
 
+# Firebase service account credentials (never commit these)
+backend/config/firebase-service-account.json
+*firebase-adminsdk*.json
+*service-account*.json
+
 # Temporary Office files
 ~$*.docx
 ~$*.xlsx
 ~$*.pptx
+
+node_modules/
+build/
+.gradle/
+*.keystore
+.env
+**/android/app/build/
+**/android/build/
+**/android/.gradle/
+**/android/app/.cxx/
+**/android/local.properties
+**/ios/build/
+**/ios/Pods/

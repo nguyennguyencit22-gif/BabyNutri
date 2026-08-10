@@ -1,40 +1,76 @@
 -- ==========================================
--- DATABASE
+-- DATABASE INITIALIZATION
 -- ==========================================
 CREATE DATABASE IF NOT EXISTS child_nutrition_system;
 USE child_nutrition_system;
 
 -- ==========================================
--- ROLES
+-- DROP TABLES (CLEAN SLATE IF RE-CREATING)
+-- ==========================================
+DROP TABLE IF EXISTS measurement_settings;
+DROP TABLE IF EXISTS user_settings;
+DROP TABLE IF EXISTS weaning_features;
+DROP TABLE IF EXISTS journey_items;
+DROP TABLE IF EXISTS child_food_preferences;
+DROP TABLE IF EXISTS child_known_allergies;
+DROP TABLE IF EXISTS child_allergies;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS user_recipe_history;
+DROP TABLE IF EXISTS recipe_comments;
+DROP TABLE IF EXISTS recipe_ratings;
+DROP TABLE IF EXISTS answers;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS articles;
+DROP TABLE IF EXISTS meal_plan_items;
+DROP TABLE IF EXISTS meal_plans;
+DROP TABLE IF EXISTS favorite_recipes;
+DROP TABLE IF EXISTS recipe_assets;
+DROP TABLE IF EXISTS recipe_allergies;
+DROP TABLE IF EXISTS allergies;
+DROP TABLE IF EXISTS recipe_steps;
+DROP TABLE IF EXISTS recipe_ingredients;
+DROP TABLE IF EXISTS ingredients;
+DROP TABLE IF EXISTS recipes;
+DROP TABLE IF EXISTS meal_types;
+DROP TABLE IF EXISTS child_profiles;
+DROP TABLE IF EXISTS expert_profiles;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS roles;
+
+-- ==========================================
+-- 1. ROLES (SYSTEM CONFIGURATION)
 -- ==========================================
 CREATE TABLE roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE
 );
 
-INSERT INTO roles(name) VALUES ('Admin'), ('Expert'), ('Parent');
+INSERT INTO roles(id, name) VALUES (1, 'Admin'), (2, 'Expert'), (3, 'Parent');
 
 -- ==========================================
--- USERS
+-- 2. USERS
 -- ==========================================
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL,
     role_id INT NOT NULL,
+    firebase_uid VARCHAR(255) NULL UNIQUE,
+    avatar VARCHAR(500) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
-INSERT INTO users(full_name,email,password,role_id)
+INSERT INTO users(id, full_name, email, password, role_id)
 VALUES
-('System Admin','admin@gmail.com','123456',1),
-('Nguyen Minh Nguyen','expert@gmail.com','123456',2),
-('John Parent','parent@gmail.com','123456',3);
+(1, 'System Admin', 'admin@gmail.com', '123456', 1),
+(2, 'Nguyen Minh Nguyen', 'expert@gmail.com', '123456', 2),
+(3, 'John Parent', 'parent@gmail.com', '123456', 3);
 
 -- ==========================================
--- EXPERT PROFILE
+-- 3. EXPERT PROFILE
 -- ==========================================
 CREATE TABLE expert_profiles (
     expert_id INT PRIMARY KEY,
@@ -44,15 +80,14 @@ CREATE TABLE expert_profiles (
     experience_year INT,
     is_verified BOOLEAN DEFAULT FALSE,
 
-    FOREIGN KEY (expert_id) REFERENCES users(id)
-    ON DELETE CASCADE
+    FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO expert_profiles
-VALUES (2,'Experienced pediatric nutrition specialist','Certified Nutritionist','Child Nutrition',8,FALSE);
+INSERT INTO expert_profiles (expert_id, information, certificate, specialization, experience_year, is_verified)
+VALUES (2, 'Experienced pediatric nutrition specialist', 'Certified Nutritionist', 'Child Nutrition', 8, TRUE);
 
 -- ==========================================
--- CHILD PROFILE
+-- 4. CHILD PROFILE
 -- ==========================================
 CREATE TABLE child_profiles (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,29 +95,49 @@ CREATE TABLE child_profiles (
     name VARCHAR(255),
     date_of_birth DATE,
     weight FLOAT,
+    weight_unit VARCHAR(10) DEFAULT 'kg',
     height FLOAT,
+    height_unit VARCHAR(10) DEFAULT 'cm',
     gender VARCHAR(20),
     image_url VARCHAR(500),
+    profile_color VARCHAR(20),
+    nutrition_goal VARCHAR(255),
 
-    FOREIGN KEY (parent_id) REFERENCES users(id)
+    FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO child_profiles
-VALUES (1,3,'Emma','2024-05-01',8.5,72,'Female','/images/child1.webp');
+INSERT INTO child_profiles (id, parent_id, name, date_of_birth, weight, height, gender, image_url)
+VALUES (1, 3, 'Emma', '2024-05-01', 8.5, 72, 'Female', '/images/child1.webp');
+
+CREATE TABLE child_known_allergies (
+    child_id INT NOT NULL,
+    allergy_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, allergy_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE child_food_preferences (
+    child_id INT NOT NULL,
+    food_name VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (child_id, food_name),
+    FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
+);
 
 -- ==========================================
--- MEAL TYPES
+-- 5. MEAL TYPES
 -- ==========================================
 CREATE TABLE meal_types (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100)
 );
 
-INSERT INTO meal_types(name)
-VALUES ('Breakfast'), ('Lunch'), ('Dinner'), ('Snack');
+INSERT INTO meal_types(id, name)
+VALUES (1, 'Breakfast'), (2, 'Lunch'), (3, 'Dinner'), (4, 'Snack');
 
 -- ==========================================
--- RECIPES
+-- 6. RECIPES
 -- ==========================================
 CREATE TABLE recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,67 +146,66 @@ CREATE TABLE recipes (
     image_url VARCHAR(500),
     expert_id INT,
     meal_type_id INT,
-    cooking_time INT,
-    prep_time INT,
-    serves INT,
-    month_age INT,
+    cooking_time INT DEFAULT 15,
+    prep_time INT DEFAULT 10,
+    serves INT DEFAULT 1,
+    month_age INT DEFAULT 6,
+    calories INT DEFAULT 0,
+    protein INT DEFAULT 0,
+    fat INT DEFAULT 0,
+    carbohydrate INT DEFAULT 0,
 
-    FOREIGN KEY (expert_id) REFERENCES users(id),
-    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id)
+    FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL
 );
 
-INSERT INTO recipes (id,name,description,image_url,expert_id,cooking_time,prep_time,serves,month_age,meal_type_id)
+INSERT INTO recipes (id, name, description, image_url, expert_id, cooking_time, prep_time, serves, month_age, meal_type_id, calories, protein, fat, carbohydrate)
 VALUES
-(1,'Bright Starts Brekkie Bowl','Perfect for hot summer days','/images/recipe1.webp',2,0,5,1,7,2),
-(2,'Three Ways With Yummy Yogurt Pots','Yogurt is one of our go-to','/images/recipe2.webp',2,0,5,1,7,4),
-(3,'Rise + Shine Scrambly Eggs','These speedy scrambly eggs','/images/recipe3.webp',2,0,5,1,7,1),
-(4,'Broc N Roll Cheesy Chive Pasta','Ready in just 15 minutes','/images/recipe4.webp',2,0,5,1,7,3),
-(5,'My First Chicken Curry','This recipe is a great way','/images/recipe5.webp',2,0,5,1,7,4),
-(6,'My First Chicken Curry Alt','This recipe is a great way','/images/recipe6.webp',2,0,5,1,7,2);
+(1, 'Bright Starts Brekkie Bowl', 'Perfect for hot summer days', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624', 2, 0, 5, 1, 7, 2, 180, 5, 4, 30),
+(2, 'Three Ways With Yummy Yogurt Pots', 'Yogurt is one of our go-to', 'https://images.unsplash.com/photo-1547592180-85f173990554', 2, 0, 5, 1, 7, 4, 150, 6, 3, 22),
+(3, 'Rise + Shine Scrambly Eggs', 'These speedy scrambly eggs', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398', 2, 0, 5, 1, 7, 1, 210, 12, 14, 2),
+(4, 'Broc N Roll Cheesy Chive Pasta', 'Ready in just 15 minutes', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624', 2, 10, 5, 1, 7, 3, 260, 9, 8, 38),
+(5, 'My First Chicken Curry', 'This recipe is a great way', 'https://images.unsplash.com/photo-1547592180-85f173990554', 2, 15, 5, 1, 7, 4, 290, 18, 10, 32),
+(6, 'My First Chicken Curry Alt', 'This recipe is a great way', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398', 2, 15, 5, 1, 7, 2, 290, 18, 10, 32);
 
 -- ==========================================
--- INGREDIENTS
+-- 7. INGREDIENTS
 -- ==========================================
 CREATE TABLE ingredients (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255)
 );
 
-INSERT INTO ingredients(name) VALUES
-('Banana'),('Strawberries'),('Yogurt'),('Ice cubes'),
-('Blueberries'),('Banana slices'),('Honey'),
-('Eggs'),('Butter'),('Milk'),('Cheese'),
-('Pasta'),('Broccoli'),('Fresh chives'),
-('Chicken breast'),('Coconut milk'),('Mild curry powder'),('Rice');
+INSERT INTO ingredients(id, name) VALUES
+(1, 'Banana'), (2, 'Strawberries'), (3, 'Yogurt'), (4, 'Ice cubes'),
+(5, 'Blueberries'), (6, 'Banana slices'), (7, 'Honey'),
+(8, 'Eggs'), (9, 'Butter'), (10, 'Milk'), (11, 'Cheese'),
+(12, 'Pasta'), (13, 'Broccoli'), (14, 'Fresh chives'),
+(15, 'Chicken breast'), (16, 'Coconut milk'), (17, 'Mild curry powder'), (18, 'Rice');
 
 -- ==========================================
--- RECIPE INGREDIENTS
+-- 8. RECIPE INGREDIENTS
 -- ==========================================
 CREATE TABLE recipe_ingredients (
     recipe_id INT,
     ingredient_id INT,
     quantity VARCHAR(100),
-    PRIMARY KEY(recipe_id,ingredient_id),
+    PRIMARY KEY(recipe_id, ingredient_id),
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY(ingredient_id) REFERENCES ingredients(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY(ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
 );
 
 INSERT INTO recipe_ingredients VALUES
 (1,1,'1 Banana'),(1,2,'1 Cup Strawberries'),(1,3,'1/2 Cup Yogurt'),(1,4,'Ice cubes'),
-
 (2,3,'1 Cup Yogurt'),(2,5,'Handful'),(2,6,'Slices'),(2,7,'1 tsp'),
-
 (3,8,'2'),(3,9,'1 tbsp'),(3,10,'2 tbsp'),(3,11,'50g'),
-
 (4,12,'100g'),(4,13,'50g'),(4,11,'50g'),(4,14,'1 tbsp'),
-
 (5,15,'200g'),(5,16,'200ml'),(5,17,'1 tsp'),(5,18,'1 cup'),
-
 (6,15,'200g'),(6,16,'200ml'),(6,17,'1 tsp'),(6,18,'1 cup');
 
 -- ==========================================
--- RECIPE STEPS
+-- 9. RECIPE STEPS
 -- ==========================================
 CREATE TABLE recipe_steps (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,69 +213,50 @@ CREATE TABLE recipe_steps (
     step_number INT,
     description TEXT,
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
 );
 
-INSERT INTO recipe_steps(recipe_id,step_number,description)
-VALUES
-(1,1,'Cut fruits into small pieces'),
-(1,2,'Blend all ingredients'),
-(1,3,'Pour into molds'),
-(1,4,'Freeze for 4 hours'),
-
-(2,1,'Prepare yogurt bowls'),
-(2,2,'Add toppings'),
-(2,3,'Mix gently'),
-(2,4,'Serve immediately'),
-
-(3,1,'Whisk eggs and milk'),
-(3,2,'Heat butter'),
-(3,3,'Cook slowly'),
-(3,4,'Add cheese'),
-
-(4,1,'Cook pasta'),
-(4,2,'Steam broccoli'),
-(4,3,'Mix cheese'),
-(4,4,'Add chives'),
-
-(5,1,'Cook chicken'),
-(5,2,'Add coconut milk'),
-(5,3,'Simmer'),
-(5,4,'Serve with rice'),
-
-(6,1,'Cook chicken'),
-(6,2,'Add coconut milk'),
-(6,3,'Simmer'),
-(6,4,'Serve with rice');
+INSERT INTO recipe_steps(recipe_id, step_number, description) VALUES
+(1,1,'Cut fruits into small pieces'), (1,2,'Blend all ingredients'), (1,3,'Pour into molds'), (1,4,'Freeze for 4 hours'),
+(2,1,'Prepare yogurt bowls'), (2,2,'Add toppings'), (2,3,'Mix gently'), (2,4,'Serve immediately'),
+(3,1,'Whisk eggs and milk'), (3,2,'Heat butter'), (3,3,'Cook slowly'), (3,4,'Add cheese'),
+(4,1,'Cook pasta'), (4,2,'Steam broccoli'), (4,3,'Mix cheese'), (4,4,'Add chives'),
+(5,1,'Cook chicken'), (5,2,'Add coconut milk'), (5,3,'Simmer'), (5,4,'Serve with rice'),
+(6,1,'Cook chicken'), (6,2,'Add coconut milk'), (6,3,'Simmer'), (6,4,'Serve with rice');
 
 -- ==========================================
--- ALLERGIES
+-- 10. ALLERGIES
 -- ==========================================
 CREATE TABLE allergies (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100)
 );
 
-INSERT INTO allergies(name)
-VALUES ('Egg Free'),('Nut Free'),('Soya Free'),('Vegetarian');
+INSERT INTO allergies(id, name)
+VALUES (1, 'Egg Free'), (2, 'Nut Free'), (3, 'Soya Free'), (4, 'Vegetarian');
 
--- ==========================================
--- RECIPE ALLERGIES
--- ==========================================
 CREATE TABLE recipe_allergies (
     recipe_id INT,
     allergy_id INT,
-    PRIMARY KEY(recipe_id,allergy_id),
+    PRIMARY KEY(recipe_id, allergy_id),
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY(allergy_id) REFERENCES allergies(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY(allergy_id) REFERENCES allergies(id) ON DELETE CASCADE
 );
 
-INSERT INTO recipe_allergies VALUES
-(1,4),(2,4),(3,1),(4,4);
+INSERT INTO recipe_allergies VALUES (1,4), (2,4), (3,1), (4,4);
+
+CREATE TABLE child_allergies (
+    child_id INT,
+    allergy_id INT,
+    PRIMARY KEY(child_id, allergy_id),
+
+    FOREIGN KEY(child_id) REFERENCES child_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY(allergy_id) REFERENCES allergies(id) ON DELETE CASCADE
+);
 
 -- ==========================================
--- RECIPE ASSETS
+-- 11. RECIPE ASSETS
 -- ==========================================
 CREATE TABLE recipe_assets (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -229,18 +264,11 @@ CREATE TABLE recipe_assets (
     type VARCHAR(50),
     image_url VARCHAR(500),
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
 );
 
-INSERT INTO recipe_assets(recipe_id,type,image_url)
-VALUES
-(1,'sticker','/images/stickerBananaMeal1.png'),
-(1,'sticker','/images/stickerBananaMeal2.png'),
-(2,'sticker','/images/stickerBananaMeal1.png'),
-(2,'sticker','/images/stickerBananaMeal2.png');
-
 -- ==========================================
--- FAVORITES
+-- 12. FAVORITE RECIPES
 -- ==========================================
 CREATE TABLE favorite_recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -248,32 +276,30 @@ CREATE TABLE favorite_recipes (
     recipe_id INT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
 );
 
-INSERT INTO favorite_recipes(user_id,recipe_id)
-VALUES (3,1);
+INSERT INTO favorite_recipes(user_id, recipe_id)
+VALUES (3,1), (3,2), (3,4), (3,5);
 
 -- ==========================================
--- MEAL PLANS
+-- 13. MEAL PLANS & ITEMS
 -- ==========================================
 CREATE TABLE meal_plans (
     id INT AUTO_INCREMENT PRIMARY KEY,
     parent_id INT,
     child_id INT,
     week_start DATE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(parent_id) REFERENCES users(id),
-    FOREIGN KEY(child_id) REFERENCES child_profiles(id)
+    FOREIGN KEY(parent_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(child_id) REFERENCES child_profiles(id) ON DELETE CASCADE
 );
 
-INSERT INTO meal_plans(parent_id,child_id,week_start)
-VALUES (3,1,'2026-06-01');
+INSERT INTO meal_plans(id, parent_id, child_id, week_start)
+VALUES (1, 3, 1, '2026-06-01');
 
--- ==========================================
--- MEAL PLAN ITEMS
--- ==========================================
 CREATE TABLE meal_plan_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     meal_plan_id INT,
@@ -283,32 +309,34 @@ CREATE TABLE meal_plan_items (
     portion VARCHAR(50),
     status VARCHAR(50) DEFAULT 'planned',
 
-    FOREIGN KEY(meal_plan_id) REFERENCES meal_plans(id),
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY(meal_type_id) REFERENCES meal_types(id)
+    FOREIGN KEY(meal_plan_id) REFERENCES meal_plans(id) ON DELETE CASCADE,
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY(meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL
 );
 
-INSERT INTO meal_plan_items(meal_plan_id,recipe_id,day_of_week,meal_type_id)
-VALUES (1,1,'Monday',2);
+INSERT INTO meal_plan_items(meal_plan_id, recipe_id, day_of_week, meal_type_id)
+VALUES (1, 1, 'Monday', 2);
 
 -- ==========================================
--- ARTICLES
+-- 14. ARTICLES
 -- ==========================================
 CREATE TABLE articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    expert_id INT,
+    expert_id INT DEFAULT NULL,
     title VARCHAR(255),
+    summary VARCHAR(500) DEFAULT NULL,
     content TEXT,
     image_url VARCHAR(500),
+    published_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(expert_id) REFERENCES users(id)
+    FOREIGN KEY(expert_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-INSERT INTO articles(expert_id,title,content,image_url)
-VALUES (2,'Top Foods For Growing Babies','Nutrition content','/images/article1.webp');
+INSERT INTO articles(id, expert_id, title, summary, content, image_url)
+VALUES (1, 2, 'Top Foods For Growing Babies', 'Key nutrients for early stages', 'Nutrition content for weaning babies...', 'https://images.unsplash.com/photo-1547592180-85f173990554');
 
 -- ==========================================
--- QUESTIONS
+-- 15. QUESTIONS & ANSWERS
 -- ==========================================
 CREATE TABLE questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -316,33 +344,32 @@ CREATE TABLE questions (
     expert_id INT,
     title VARCHAR(255),
     content TEXT,
-    status VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'Pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(parent_id) REFERENCES users(id),
-    FOREIGN KEY(expert_id) REFERENCES users(id)
+    FOREIGN KEY(parent_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(expert_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO questions(parent_id,expert_id,title,content,status)
-VALUES (3,2,'Can my baby eat yogurt?','My child is 7 months old','Answered');
+INSERT INTO questions(id, parent_id, expert_id, title, content, status)
+VALUES (1, 3, 2, 'Can my baby eat yogurt?', 'My child is 7 months old', 'Answered');
 
--- ==========================================
--- ANSWERS
--- ==========================================
 CREATE TABLE answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     question_id INT,
     expert_id INT,
     content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(question_id) REFERENCES questions(id),
-    FOREIGN KEY(expert_id) REFERENCES users(id)
+    FOREIGN KEY(question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY(expert_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO answers(question_id,expert_id,content)
-VALUES (1,2,'Yes, yogurt is safe.');
+INSERT INTO answers(id, question_id, expert_id, content)
+VALUES (1, 1, 2, 'Yes, yogurt is safe for babies over 6 months.');
 
 -- ==========================================
--- RATINGS
+-- 16. RATINGS & COMMENTS
 -- ==========================================
 CREATE TABLE recipe_ratings (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -350,67 +377,131 @@ CREATE TABLE recipe_ratings (
     user_id INT,
     rating TINYINT,
     review TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO recipe_ratings(recipe_id,user_id,rating,review)
-VALUES (1,3,5,'Great recipe!');
+INSERT INTO recipe_ratings(recipe_id, user_id, rating, review)
+VALUES (1, 3, 5, 'Great recipe!');
 
--- ==========================================
--- COMMENTS
--- ==========================================
 CREATE TABLE recipe_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     recipe_id INT,
     user_id INT,
     content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-INSERT INTO recipe_comments(recipe_id,user_id,content)
-VALUES (1,3,'Very healthy!');
+INSERT INTO recipe_comments(recipe_id, user_id, content)
+VALUES (1, 3, 'Very healthy!');
 
 -- ==========================================
--- USER HISTORY
+-- 17. USER HISTORY & NOTIFICATIONS
 -- ==========================================
 CREATE TABLE user_recipe_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     recipe_id INT,
     action VARCHAR(50),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(recipe_id) REFERENCES recipes(id)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
 );
 
--- ==========================================
--- NOTIFICATIONS
--- ==========================================
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     title VARCHAR(255),
     message TEXT,
     is_read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE child_allergies (
-    child_id INT,
-    allergy_id INT,
-
-    PRIMARY KEY(child_id, allergy_id),
-
-    FOREIGN KEY(child_id)
-        REFERENCES child_profiles(id),
-
-    FOREIGN KEY(allergy_id)
-        REFERENCES allergies(id)
+-- ==========================================
+-- 18. HOME PAGE CONTENT
+-- ==========================================
+CREATE TABLE journey_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    age_label VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    color_month VARCHAR(20),
+    image_key VARCHAR(50),
+    sort_order INT DEFAULT 0
 );
-ALTER TABLE users
-ADD COLUMN avatar VARCHAR(500) DEFAULT NULL;
+
+INSERT INTO journey_items(age_label, title, description, color_month, image_key, sort_order)
+VALUES
+('Starting\nsoon', 'Starting soon', 'Getting ready for weaning tips, a handy checklist and more.', '#1F8FC4', 'startingSoon-Seedstick', 1),
+('First\ntastes', 'First tastes', 'Getting ready for weaning tips, a handy checklist and more.', '#C4265E', 'firstTastes-Seedstick', 2),
+('6+\nmonths', 'From 6 months', 'Getting ready for weaning tips, a handy checklist and more.', '#A31578', '6Months-Seedstick', 3),
+('7+\nmonths', 'From 7 months', 'Getting ready for weaning tips, a handy checklist and more.', '#7C63A3', '7Months-Seedstick', 4),
+('10+\nmonths', 'From 10 months', 'Getting ready for weaning tips, a handy checklist and more.', '#1F7A3D', '10Months-Seedstick', 5),
+('12+\nmonths', 'From 12 months', 'Getting ready for weaning tips, a handy checklist and more.', '#80C700', '12Months-Seedstick', 6);
+
+CREATE TABLE weaning_features (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    sort_order INT DEFAULT 0
+);
+
+INSERT INTO weaning_features(text, sort_order)
+VALUES
+('What to expect at every stage', 1),
+('Top tips from nutritionists', 2),
+('Yummy recipes', 3),
+('...and much more!', 4);
+
+-- Extra verified experts
+INSERT INTO users(id, full_name, email, password, role_id, avatar)
+VALUES
+(4, 'Troyan Smith', 'troyan.smith@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=12'),
+(5, 'James Wolden', 'james.wolden@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=11'),
+(6, 'Niki Samantha', 'niki.samantha@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=47');
+
+INSERT INTO expert_profiles(expert_id, information, certificate, specialization, experience_year, is_verified)
+VALUES
+(4, 'Registered dietitian focused on infant nutrition', 'Registered Dietitian', 'Nutritionist', 6, TRUE),
+(5, 'Pediatrician specializing in early childhood health', 'Board Certified Pediatrician', 'Pediatrician', 10, TRUE),
+(6, 'Helps families build healthy weaning routines', 'Certified Nutrition Coach', 'Dietitian', 5, TRUE);
+
+UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=68' WHERE id = 2;
+
+-- ==========================================
+-- 19. USER SETTINGS & MEASUREMENT SETTINGS
+-- ==========================================
+CREATE TABLE user_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    use_metric BOOLEAN DEFAULT TRUE,
+    weight_unit ENUM('kg','lb') DEFAULT 'kg',
+    volume_unit ENUM('ml','us_fl_oz','uk_fl_oz') DEFAULT 'ml',
+    length_unit ENUM('cm','in') DEFAULT 'cm',
+    temperature_unit ENUM('c','f') DEFAULT 'c',
+    language VARCHAR(10) DEFAULT 'en',
+    theme ENUM('system','light','dark') DEFAULT 'system',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE measurement_settings (
+    user_id INT PRIMARY KEY,
+    use_metric BOOLEAN DEFAULT TRUE,
+    weight_unit VARCHAR(10) DEFAULT 'kg',
+    volume_unit VARCHAR(10) DEFAULT 'ml',
+    length_unit VARCHAR(10) DEFAULT 'cm',
+    temperature_unit VARCHAR(10) DEFAULT 'C',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

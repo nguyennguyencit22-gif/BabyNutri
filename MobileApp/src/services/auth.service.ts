@@ -1,0 +1,73 @@
+import { API_BASE_URL, setAuthToken } from './api';
+
+export type BackendRole = 'Admin' | 'Expert' | 'Parent';
+
+export type BackendUser = {
+    id: number;
+    fullName: string;
+    email: string;
+    avatar: string | null;
+    role: BackendRole;
+};
+
+type FirebaseLoginResponse = {
+    token: string;
+    user: BackendUser;
+};
+
+// Exchanges a Firebase ID token for our own backend JWT. Uses a raw fetch
+// (not apiPost from api.ts) because this specific call must send the
+// Firebase ID token as the bearer, not whatever JWT we already have stored.
+export async function loginWithFirebaseToken(
+    firebaseIdToken: string,
+): Promise<FirebaseLoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/firebase-login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseIdToken}`,
+        },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Firebase login failed.');
+    }
+
+    await setAuthToken(data.token);
+
+    return data as FirebaseLoginResponse;
+}
+
+export async function loginWithEmail(
+    email: string,
+    password: string,
+): Promise<{ token: string; user: BackendUser }> {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Login failed.');
+    }
+
+    await setAuthToken(data.token);
+
+    return {
+        token: data.token,
+        user: {
+            id: data.user.id,
+            fullName: data.user.full_name || data.user.fullName || data.user.email,
+            email: data.user.email,
+            avatar: data.user.avatar || null,
+            role: data.user.role || 'Parent',
+        },
+    };
+}

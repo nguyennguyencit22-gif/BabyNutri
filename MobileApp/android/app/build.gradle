@@ -78,6 +78,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    externalNativeBuild {
+        cmake {
+            buildStagingDirectory file("C:/tmp/cxx")
+        }
+    }
+
     namespace "com.mobileapp"
     defaultConfig {
         applicationId "com.mobileapp"
@@ -85,6 +91,12 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = [usesCleartextTraffic: "true"]
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_shared", "-DCMAKE_OBJECT_PATH_MAX=80"
+            }
+        }
     }
     signingConfigs {
         debug {
@@ -118,3 +130,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

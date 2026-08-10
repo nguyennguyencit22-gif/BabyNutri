@@ -1,0 +1,101 @@
+Member C – Child & Meal Management Developer
+Role: Develop features related to child profile management, meal planning, and FAQ/Q&A. Member C is also responsible for integrating APIs for these modules and testing their functionality.
+1. Main Responsibilities
+No.
+Screen
+Function
+1
+Child List
+Display all child profiles
+2
+Child Detail
+View detailed child information
+3
+Add Child
+Create a new child profile
+4
+Edit Child
+Update child information
+5
+Meal Plan List
+Display meal plans
+6
+Meal Plan Detail
+View meal plan details
+7
+FAQ / Questions
+Display common nutrition questions and answers
+2. Suggested Folder Structure
+src/
+├── screens/
+│   ├── children/
+│   ├── mealPlans/
+│   └── questions/
+├── components/
+│   ├── children/
+│   ├── mealPlans/
+│   └── questions/
+├── services/
+│   ├── childService.ts
+│   ├── mealPlanService.ts
+│   └── questionService.ts
+└── types/
+    ├── child.ts
+    └── mealPlan.ts
+3. Features
+Manage child profiles (create, update, view, delete).
+Store child information such as name, age, gender, height, weight and allergies.
+Create and manage meal plans.
+Display meal plan details by day or week.
+Display Frequently Asked Questions (FAQ) related to child nutrition.
+Connect all screens with backend APIs.
+4. APIs
+Method
+Endpoint
+Description
+GET
+/children
+Get child list
+GET
+/children/{id}
+Get child details
+POST
+/children
+Create child
+PUT
+/children/{id}
+Update child
+DELETE
+/children/{id}
+Delete child
+GET
+/mealplans
+Get meal plans
+GET
+/mealplans/{id}
+Get meal plan details
+POST
+/mealplans
+Create meal plan
+PUT
+/mealplans/{id}
+Update meal plan
+DELETE
+/mealplans/{id}
+Delete meal plan
+GET
+/questions
+Get FAQ
+5. Test Cases
+Verify child list loads correctly.
+Verify add/edit/delete child profile.
+Verify meal plans can be created and updated.
+Verify FAQ screen displays data correctly.
+Verify API error handling.
+Verify empty data state.
+6. Development Phases
+Phase 1: Create Child and Meal Plan screens.
+Phase 2: Develop reusable components.
+Phase 3: Integrate Child and Meal Plan APIs.
+Phase 4: Implement FAQ module.
+Phase 5: Testing and integration with Member A navigation.
