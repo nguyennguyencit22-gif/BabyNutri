@@ -84,6 +84,58 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
 
   const { recipes, fetchRecipes } = useRecipeStore();
 
+  // Dynamic Real-Time Date Ranges for 4 Weeks (Week 1 to Week 4)
+  const dynamicWeeks = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const currentMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return [0, 1, 2, 3].map((weekOffset) => {
+      const startD = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() + (weekOffset * 7));
+      const endD = new Date(startD.getFullYear(), startD.getMonth(), startD.getDate() + 6);
+
+      let dateRangeStr = '';
+      if (startD.getMonth() === endD.getMonth()) {
+        dateRangeStr = `${startD.getDate()} - ${endD.getDate()} ${monthsShort[startD.getMonth()]}`;
+      } else {
+        dateRangeStr = `${startD.getDate()} ${monthsShort[startD.getMonth()]} - ${endD.getDate()} ${monthsShort[endD.getMonth()]}`;
+      }
+
+      return {
+        id: weekOffset,
+        title: `Week ${weekOffset + 1}`,
+        dateRange: dateRangeStr,
+        isCurrentWeek: weekOffset === 0,
+      };
+    });
+  }, []);
+
+  // Dynamic Real-Time Mon to Sun Days for Selected Week
+  const dynamicDaysOfWeek = useMemo(() => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    const currentMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return dayNames.map((name, idx) => {
+      const d = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() + (selectedWeekIndex * 7) + idx);
+      const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      const formattedDate = `${d.getDate()} ${monthsShort[d.getMonth()]}`;
+
+      return {
+        day: name,
+        date: formattedDate,
+        isToday,
+        fullLabel: `${name} ${formattedDate}`,
+      };
+    });
+  }, [selectedWeekIndex]);
+
   useEffect(() => {
     fetchRecipes();
   }, [fetchRecipes]);
@@ -242,7 +294,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
       setAddSlotModalVisible(false);
       Alert.alert(
         'Duplicate Recipe Warning',
-        `"${targetRecipe.name}" is already scheduled for ${selectedBaby?.name || 'baby'} on ${DAYS_OF_WEEK[selectedDayIndex].day}! Please select a different recipe.`,
+        `"${targetRecipe.name}" is already scheduled for ${selectedBaby?.name || 'baby'} on ${dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'selected day'}! Please select a different recipe.`,
         [{ text: 'OK' }]
       );
       return;
@@ -440,7 +492,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
 
       Alert.alert(
         'Schedule Applied',
-        `Successfully saved nutrition schedule for ${selectedBaby?.name || 'baby'} on ${DAYS_OF_WEEK[selectedDayIndex].day}!`,
+        `Successfully saved nutrition schedule for ${selectedBaby?.name || 'baby'} on ${dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'selected day'}!`,
         [
           {
             text: 'View Weaning Meal Plan',
@@ -487,7 +539,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        {/* 4 Weekly Schedules Selection Bar (Tối đa 4 Menu Tuần per Baby Profile) */}
+        {/* 4 Weekly Schedules Selection Bar (Real-Time Dates · Max 4 Menus per Baby Profile) */}
         <View style={styles.weekSectionContainer}>
           <View style={styles.weekHeaderRow}>
             <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
@@ -496,7 +548,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
             </View>
           </View>
           <View style={styles.weekTabsRow}>
-            {WEEK_OPTIONS.map((week) => {
+            {dynamicWeeks.map((week) => {
               const isWeekActive = week.id === selectedWeekIndex;
               return (
                 <TouchableOpacity
@@ -508,16 +560,19 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                   <Text style={[styles.weekTabText, isWeekActive && styles.activeWeekTabText]}>
                     {week.title}
                   </Text>
+                  <Text style={[styles.weekSubDateText, isWeekActive && styles.activeWeekSubDateText]}>
+                    {week.dateRange}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
 
-        {/* Horizontal Days Selector */}
+        {/* Horizontal Days Selector with Real Dates & TODAY Indicator */}
         <View style={styles.daysWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daysScroll}>
-            {DAYS_OF_WEEK.map((item, idx) => {
+            {dynamicDaysOfWeek.map((item, idx) => {
               const isSelected = idx === selectedDayIndex;
               return (
                 <TouchableOpacity
@@ -526,6 +581,11 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                   onPress={() => setSelectedDayIndex(idx)}
                   activeOpacity={0.8}
                 >
+                  {item.isToday && (
+                    <View style={styles.todayBadge}>
+                      <Text style={styles.todayBadgeText}>TODAY</Text>
+                    </View>
+                  )}
                   <Text style={[styles.dayText, isSelected && styles.activeDayText]}>{item.day}</Text>
                   <Text style={[styles.dateText, isSelected && styles.activeDateText]}>{item.date}</Text>
                 </TouchableOpacity>
@@ -622,7 +682,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         <View style={styles.menuHeaderRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Icon source="silverware-fork-knife" size={20} color="#FF5F70" />
-            <Text style={styles.sectionMainTitle}>Menu Slots for {DAYS_OF_WEEK[selectedDayIndex].day}</Text>
+            <Text style={styles.sectionMainTitle}>Menu Slots for {dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'Selected Day'}</Text>
           </View>
           <TouchableOpacity 
             style={styles.savePlanBtn}
@@ -709,7 +769,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
             )}
 
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#4B3034', marginBottom: 8, marginTop: 4 }}>
-              Select Meal Slot for {DAYS_OF_WEEK[selectedDayIndex].day}:
+              Select Meal Slot for {dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'Selected Day'}:
             </Text>
 
             <View style={{ gap: 8, marginBottom: 16 }}>
@@ -1047,6 +1107,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 13,
+  },
+  weekSubDateText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#8E7377',
+    marginTop: 2,
+  },
+  activeWeekSubDateText: {
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '800',
+  },
+  todayBadge: {
+    position: 'absolute',
+    top: 3,
+    backgroundColor: '#FFB800',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  todayBadgeText: {
+    fontSize: 7,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
 });
 
