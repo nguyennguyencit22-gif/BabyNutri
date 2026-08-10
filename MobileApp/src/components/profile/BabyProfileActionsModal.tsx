@@ -43,6 +43,13 @@ const BellIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: str
   </Svg>
 );
 
+const PlateIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+    <Path d="M12 6c-3.31 0-6 2.69-6 6h12c0-3.31-2.69-6-6-6z" />
+  </Svg>
+);
+
 type BabyProfileActionsModalProps = {
     visible: boolean;
     onClose: () => void;
@@ -51,6 +58,7 @@ type BabyProfileActionsModalProps = {
     onEditEvents: () => void;
     onConfigureMainScreen: () => void;
     onReminders: () => void;
+    onWeaningMealPlan: () => void;
 };
 
 function BabyProfileActionsModal({
@@ -61,6 +69,7 @@ function BabyProfileActionsModal({
     onEditEvents,
     onConfigureMainScreen,
     onReminders,
+    onWeaningMealPlan,
 }: BabyProfileActionsModalProps) {
     const { colors } = useAppTheme();
     const styles = React.useMemo(
@@ -98,6 +107,12 @@ function BabyProfileActionsModal({
             title: 'Weaning Reminders',
             icon: BellIcon,
             onPress: onReminders,
+        },
+        {
+            id: 'mealplan',
+            title: 'Weaning Meal Plan',
+            icon: PlateIcon,
+            onPress: onWeaningMealPlan,
         },
     ];
 

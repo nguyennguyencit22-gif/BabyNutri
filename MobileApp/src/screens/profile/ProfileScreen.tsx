@@ -208,6 +208,13 @@ function ProfileScreen({ navigation }: any) {
                     if (!selectedBabyId) return;
                     console.log('Reminders:', selectedBabyId);
                 }}
+                onWeaningMealPlan={() => {
+                    if (!selectedBabyId) return;
+                    handleCloseBabyActions();
+                    setTimeout(() => {
+                        navigation.navigate('MealPlanList', { activeChildId: selectedBabyId });
+                    }, 100);
+                }}
             />
         </SafeAreaView>
     );
