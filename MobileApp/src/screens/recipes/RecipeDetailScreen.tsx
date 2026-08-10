@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Alert, Share, Modal, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path } from 'react-native-svg';
+
 import { useSelector } from 'react-redux';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, StatusBar, Alert, Image } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { mealPlanService } from '../../services/mealPlanService';
@@ -8,18 +7,6 @@ import { MealPlan, Meal } from '../../types/meal-plan';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 import { Icon } from 'react-native-paper';
-
-const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
-
-const CalendarIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-  </Svg>
-);
 
 export const MealPlanDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -175,7 +162,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
       <View style={styles.center}>
         <Text style={styles.notFoundText}>No detailed meal plan found for this date.</Text>
         <TouchableOpacity style={styles.scheduleHeaderActionBtn} onPress={handleOpenScheduler} activeOpacity={0.88}>
-          <CalendarIcon size={16} color="#FFFFFF" />
+          <Icon source="calendar-month-outline" size={16} color="#FFFFFF" />
           <Text style={styles.scheduleHeaderActionText}>Open Scheduler</Text>
         </TouchableOpacity>
       </View>
@@ -193,7 +180,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <BackIcon size={20} color={colors.primary} />
+          <Icon source="chevron-left" size={24} color={colors.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.navTitle}>Daily Weaning Plan Details</Text>
@@ -237,7 +224,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
               onPress={handleOpenScheduler}
               activeOpacity={0.8}
             >
-              <CalendarIcon size={16} color="#FFFFFF" />
+              <Icon source="calendar-month-outline" size={16} color="#FFFFFF" />
               <Text style={styles.scheduleHeaderActionText}>Scheduler</Text>
             </TouchableOpacity>
           </View>

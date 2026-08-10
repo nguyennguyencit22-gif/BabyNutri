@@ -13,7 +13,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { mealPlanService } from '../../services/mealPlanService';
 import { useSelector } from 'react-redux';
@@ -534,9 +534,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
 
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FF5F70" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-                <Path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18" />
-              </Svg>
+              <Icon source="calendar-month-outline" size={20} color="#FF5F70" />
               <Text style={styles.title}>
                 Schedule for {selectedBaby?.name || 'Baby'} ({babyAgeMonths}m)
               </Text>
