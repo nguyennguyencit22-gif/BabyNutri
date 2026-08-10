@@ -71,6 +71,7 @@ function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Di
 export const MealSchedulerScreen = ({ route, navigation }: any) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [showRecommended, setShowRecommended] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const babies = useSelector((state: RootState) => state.baby.babies);
@@ -556,49 +557,66 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           </View>
         </View>
 
-        {/* Recommended Weaning Dishes Section */}
-        <View style={styles.sectionHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Icon source="lightbulb-on-outline" size={18} color="#FF5F70" />
-            <Text style={styles.sectionTitle}>
-              Recommended for {selectedBaby?.name} ({babyAgeMonths}m)
-            </Text>
-          </View>
-          {babyAllergies.length > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-              <Icon source="shield-check-outline" size={14} color="#FF5F70" />
-              <Text style={styles.sectionSub}>Excluded allergens: {babyAllergies.join(', ')}</Text>
+        {/* Recommended Weaning Dishes Section (Collapsible with Arrow Toggle) */}
+        <TouchableOpacity 
+          style={styles.sectionHeaderTouchable}
+          onPress={() => setShowRecommended(prev => !prev)}
+          activeOpacity={0.8}
+        >
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon source="lightbulb-on-outline" size={18} color="#FF5F70" />
+              <Text style={styles.sectionTitle}>
+                Recommended for {selectedBaby?.name} ({babyAgeMonths}m)
+              </Text>
             </View>
-          )}
-        </View>
-
-        <View style={{ marginBottom: 16 }}>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={recommendedRecipes}
-            keyExtractor={item => String(item.id)}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
-            renderItem={({ item }) => (
-              <View style={styles.recCard}>
-                <TouchableOpacity onPress={() => handleViewRecipeDetail(item.id)} activeOpacity={0.88}>
-                  <Image source={{ uri: item.image_url || (item as any).image }} style={styles.recImg} />
-                  <Text style={styles.recName} numberOfLines={2}>{item.name}</Text>
-                  <Text style={styles.recCategory}>{item.month_age ? `${item.month_age}+ months` : 'Safe dish'}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.addBtn}
-                  onPress={() => openAddSlotModal(item)}
-                  activeOpacity={0.8}
-                >
-                  <Icon source="plus" size={16} color="#FFFFFF" />
-                  <Text style={styles.addBtnText}>Add to schedule</Text>
-                </TouchableOpacity>
+            {babyAllergies.length > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                <Icon source="shield-check-outline" size={14} color="#FF5F70" />
+                <Text style={styles.sectionSub}>Excluded allergens: {babyAllergies.join(', ')}</Text>
               </View>
             )}
-          />
-        </View>
+          </View>
+
+          {/* Toggle Arrow Icon */}
+          <View style={styles.toggleArrowBox}>
+            <Icon 
+              source={showRecommended ? "chevron-up" : "chevron-down"} 
+              size={22} 
+              color="#FF5F70" 
+            />
+          </View>
+        </TouchableOpacity>
+
+        {showRecommended && (
+          <View style={{ marginBottom: 16 }}>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={recommendedRecipes}
+              keyExtractor={item => String(item.id)}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+              renderItem={({ item }) => (
+                <View style={styles.recCard}>
+                  <TouchableOpacity onPress={() => handleViewRecipeDetail(item.id)} activeOpacity={0.88}>
+                    <Image source={{ uri: item.image_url || (item as any).image }} style={styles.recImg} />
+                    <Text style={styles.recName} numberOfLines={2}>{item.name}</Text>
+                    <Text style={styles.recCategory}>{item.month_age ? `${item.month_age}+ months` : 'Safe dish'}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.addBtn}
+                    onPress={() => openAddSlotModal(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Icon source="plus" size={16} color="#FFFFFF" />
+                    <Text style={styles.addBtnText}>Add to schedule</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          </View>
+        )}
 
         {/* Meal Schedule Slots (Breakfast, Lunch, Snack, Dinner) */}
         <View style={styles.menuHeaderRow}>
@@ -874,6 +892,20 @@ const styles = StyleSheet.create({
   macroUnit: { fontSize: 10, fontWeight: '600' },
   macroLabel: { fontSize: 11, color: '#8E7377', marginTop: 2 },
   sectionHeader: { marginBottom: 10 },
+  sectionHeaderTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingVertical: 4,
+  },
+  toggleArrowBox: {
+    backgroundColor: '#FFF0F2',
+    borderRadius: 10,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
   sectionTitle: { fontSize: 15, fontWeight: '800', color: '#4B3034' },
   sectionSub: { fontSize: 11, color: '#FF5F70', fontWeight: '600', marginTop: 2 },
   recCard: { width: 160, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 8, marginRight: 12, borderWidth: 1, borderColor: '#FFE4E6' },
