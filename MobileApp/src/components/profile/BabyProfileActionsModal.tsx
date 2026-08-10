@@ -51,11 +51,7 @@ type BabyProfileActionsModalProps = {
     onEditEvents: () => void;
     onConfigureMainScreen: () => void;
     onReminders: () => void;
-    // Only the owner caregiver can invite others (backend enforces this
-    // too) — pass onCopyCode only when the selected baby's permission is
-    // 'owner', which hides the row entirely for editors. Guests get a
-    // different row instead (see showLoginPromptForCode below), since for
-    // them the fix is "log in", not "you lack permission".
+    onWeaningMealPlan?: () => void;
     invitationCode?: string | null;
     onCopyCode?: () => void;
     showLoginPromptForCode?: boolean;
@@ -70,6 +66,7 @@ function BabyProfileActionsModal({
     onEditEvents,
     onConfigureMainScreen,
     onReminders,
+    onWeaningMealPlan,
     invitationCode,
     onCopyCode,
     showLoginPromptForCode,
@@ -82,6 +79,13 @@ function BabyProfileActionsModal({
     );
 
     const actions = [
+        {
+            id: 'weaning-meal-plan',
+            title: 'Weaning Meal Plan (Thực đơn ăn dặm)',
+            subtitle: 'Xem & Quản lý thực đơn ăn dặm',
+            icon: CalendarIcon,
+            onPress: onWeaningMealPlan || (() => {}),
+        },
         {
             id: 'edit',
             title: 'Edit Baby Profile',

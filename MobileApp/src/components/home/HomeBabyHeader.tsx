@@ -245,6 +245,10 @@ function HomeBabyHeader() {
             <BabyProfileActionsModal
                 visible={showBabyActions}
                 onClose={handleCloseBabyActions}
+                onWeaningMealPlan={() => {
+                    handleCloseBabyActions();
+                    (navigation as any).navigate('MealPlanList', { childId: selectedBaby?.id });
+                }}
                 onEditBaby={handleEditBaby}
                 onAddCaregiver={() => {
                     if (!selectedBaby) {

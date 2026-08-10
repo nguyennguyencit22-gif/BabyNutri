@@ -241,6 +241,10 @@ function ProfileScreen({
             <BabyProfileActionsModal
                 visible={showBabyActions}
                 onClose={handleCloseBabyActions}
+                onWeaningMealPlan={() => {
+                    handleCloseBabyActions();
+                    navigation.navigate('MealPlanList', { childId: selectedBabyId });
+                }}
                 onEditBaby={handleEditBaby}
                 onAddCaregiver={() => {
                     if (!selectedBabyId) return;

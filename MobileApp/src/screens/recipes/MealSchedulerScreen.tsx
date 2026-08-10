@@ -23,11 +23,11 @@ import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
 import { Icon } from 'react-native-paper';
 
-const getWeekDayDateStr = (dayIndex: number): string => {
+const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): string => {
   const now = new Date();
   const currentDay = now.getDay();
   const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday + (weekOffsetIndex * 7));
   const targetDate = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + dayIndex);
 
   const y = targetDate.getFullYear();
@@ -35,6 +35,13 @@ const getWeekDayDateStr = (dayIndex: number): string => {
   const d = String(targetDate.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 };
+
+const WEEK_OPTIONS = [
+  { id: 0, title: 'Tuần 1', subtitle: 'Menu Week 1' },
+  { id: 1, title: 'Tuần 2', subtitle: 'Menu Week 2' },
+  { id: 2, title: 'Tuần 3', subtitle: 'Menu Week 3' },
+  { id: 3, title: 'Tuần 4', subtitle: 'Menu Week 4' },
+];
 
 const DAYS_OF_WEEK = [
   { day: 'Mon', date: 'Day 1' },
@@ -63,6 +70,7 @@ function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Di
 
 export const MealSchedulerScreen = ({ route, navigation }: any) => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const babies = useSelector((state: RootState) => state.baby.babies);
@@ -119,7 +127,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
   });
 
   const loadMealsForSelectedDay = useCallback(async () => {
-    const dateStr = getWeekDayDateStr(selectedDayIndex);
+    const dateStr = getWeekDayDateStr(selectedDayIndex, selectedWeekIndex);
 
     try {
       const plans = await mealPlanService.getMealPlans(activeBabyId);
@@ -160,7 +168,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
     } catch (e) {
       console.error('Error loading schedule for selected day:', e);
     }
-  }, [selectedDayIndex, activeBabyId]);
+  }, [selectedDayIndex, selectedWeekIndex, activeBabyId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -251,7 +259,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
       [selectedMealSlot]: [...(prev[selectedMealSlot] || []), recipeToAdd],
     }));
 
-    const dateStr = getWeekDayDateStr(selectedDayIndex);
+    const dateStr = getWeekDayDateStr(selectedDayIndex, selectedWeekIndex);
 
     try {
       await mealPlanService.addRecipeToMealPlan({
@@ -299,7 +307,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
     if (!targetRecipe) return;
 
     const updatedTime = selectedTimeStr;
-    const dateStr = getWeekDayDateStr(selectedDayIndex);
+    const dateStr = getWeekDayDateStr(selectedDayIndex, selectedWeekIndex);
 
     // Update in local state
     setMeals(prev => {
@@ -347,7 +355,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
     updatedMeals[mealType] = list;
     setMeals(updatedMeals);
 
-    const dateStr = getWeekDayDateStr(selectedDayIndex);
+    const dateStr = getWeekDayDateStr(selectedDayIndex, selectedWeekIndex);
 
     if (removedDish) {
       await mealPlanService.removeDishFromMealPlan({
@@ -400,7 +408,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
   const handleSaveToMealPlan = async () => {
     setSaving(true);
     try {
-      const dateStr = getWeekDayDateStr(selectedDayIndex);
+      const dateStr = getWeekDayDateStr(selectedDayIndex, selectedWeekIndex);
       const formattedMeals: any[] = [];
 
       Object.entries(meals).forEach(([type, dishList]) => {
@@ -475,6 +483,33 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               </Text>
             </View>
             <Text style={styles.subTitle}>Smart nutrition planner & allergen-safe menu logic</Text>
+          </View>
+        </View>
+
+        {/* 4 Weekly Schedules Selection Bar (Tối đa 4 Menu Tuần per Baby Profile) */}
+        <View style={styles.weekSectionContainer}>
+          <View style={styles.weekHeaderRow}>
+            <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
+            <View style={styles.maxMenuBadge}>
+              <Text style={styles.maxMenuBadgeText}>Max 4 Menus / Baby</Text>
+            </View>
+          </View>
+          <View style={styles.weekTabsRow}>
+            {WEEK_OPTIONS.map((week) => {
+              const isWeekActive = week.id === selectedWeekIndex;
+              return (
+                <TouchableOpacity
+                  key={week.id}
+                  style={[styles.weekTabBtn, isWeekActive && styles.activeWeekTabBtn]}
+                  onPress={() => setSelectedWeekIndex(week.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.weekTabText, isWeekActive && styles.activeWeekTabText]}>
+                    {week.title}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -905,6 +940,65 @@ const styles = StyleSheet.create({
   modalCancelText: { color: '#6B7280', fontWeight: '600' },
   modalApplyBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, backgroundColor: '#FF5F70' },
   modalApplyText: { color: '#FFFFFF', fontWeight: '700' },
+
+  // 4 Weekly Schedule Selector Styles
+  weekSectionContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  weekHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  weekSectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#4B3034',
+  },
+  maxMenuBadge: {
+    backgroundColor: '#FFF0F2',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  maxMenuBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FF5F70',
+  },
+  weekTabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  weekTabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 12,
+    backgroundColor: '#FFF0F2',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  activeWeekTabBtn: {
+    backgroundColor: '#FF5F70',
+    borderColor: '#FF5F70',
+  },
+  weekTabText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#4B3034',
+  },
+  activeWeekTabText: {
+    color: '#FFFFFF',
+  },
 });
 
 export default MealSchedulerScreen;
