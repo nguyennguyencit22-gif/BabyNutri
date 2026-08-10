@@ -23,6 +23,9 @@ interface BabyProfileActionsModalProps {
     onInputCode?: () => void;
     onCaregiverList?: () => void;
     onMeasurementSettings?: () => void;
+    invitationCode?: string | null;
+    showLoginPromptForCode?: boolean;
+    onRequestLoginForCode?: () => void;
 }
 
 export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = ({
