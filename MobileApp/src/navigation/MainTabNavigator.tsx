@@ -2,6 +2,7 @@ import React from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';

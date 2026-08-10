@@ -52,6 +52,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         color: colors.text,
         fontSize: 16,
     },
+
+    actionTextGroup: {
+        marginLeft: 18,
+    },
+
+    actionSubtitle: {
+        marginTop: 2,
+        color: colors.textSoft,
+        fontSize: 13,
+    },
 });
 
 export default createStyles;

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+    Alert,
     View,
     Pressable,
     TouchableOpacity,
@@ -10,6 +11,7 @@ import {
     Text,
 } from 'react-native-paper';
 import Svg, { Path } from 'react-native-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -31,6 +33,7 @@ import createStyles from '../../styles/home/homeBabyHeaderStyles';
 import BabySwitcherModal from './BabySwitcherModal';
 import BabyProfileActionsModal from '../profile/BabyProfileActionsModal';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { getOrCreateInvitationCode } from '../../services/child.service';
 
 const BellIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -60,8 +63,16 @@ function HomeBabyHeader() {
     const hasMultipleBaby =
         babies.length > 1;
 
+    const sessionMode = useSelector(
+        (state: RootState) => state.auth.mode,
+    );
+
+    const isAuthenticated = sessionMode === 'authenticated';
+
     const [showBabySwitcher, setShowBabySwitcher] = React.useState(false);
     const [showBabyActions, setShowBabyActions] = React.useState(false);
+    const [invitationCode, setInvitationCode] =
+        React.useState<string | null>(null);
 
     const navigation =
         useNavigation<
@@ -74,8 +85,34 @@ function HomeBabyHeader() {
         [colors],
     );
 
+    const handleOpenBabyActions = () => {
+        setShowBabyActions(true);
+        setInvitationCode(null);
+
+        if (
+            sessionMode === 'authenticated' &&
+            selectedBaby?.permission === 'owner'
+        ) {
+            getOrCreateInvitationCode(Number(selectedBaby.id))
+                .then(({ code }) => setInvitationCode(code))
+                .catch(() => setInvitationCode(null));
+        }
+    };
+
     const handleCloseBabyActions = () => {
         setShowBabyActions(false);
+    };
+
+    const handleCopyCode = () => {
+        if (!invitationCode) {
+            return;
+        }
+
+        Clipboard.setString(invitationCode);
+        Alert.alert(
+            'Copied',
+            `Invitation code ${invitationCode} copied to clipboard.`,
+        );
     };
 
     const handleEditBaby = () => {
@@ -103,7 +140,7 @@ function HomeBabyHeader() {
                     if (!selectedBaby) {
                         navigation.navigate('AddBabyProfile');
                     } else {
-                        setShowBabyActions(true);
+                        handleOpenBabyActions();
                     }
                 }}>
 
@@ -248,6 +285,18 @@ function HomeBabyHeader() {
                         'Reminders:',
                         selectedBaby.id,
                     );
+                }}
+                invitationCode={invitationCode}
+                onCopyCode={
+                    isAuthenticated &&
+                        selectedBaby?.permission === 'owner'
+                        ? handleCopyCode
+                        : undefined
+                }
+                showLoginPromptForCode={!isAuthenticated}
+                onRequestLogin={() => {
+                    handleCloseBabyActions();
+                    navigation.navigate('Login');
                 }}
             />
         </View>

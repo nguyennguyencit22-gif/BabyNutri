@@ -20,6 +20,7 @@ const measurementRoutes = require('./routes/measurementRoutes');
 const childRoutes = require('./routes/childRoutes');
 const mealPlanRoutes = require('./routes/mealPlanRoutes');
 const questionRoutes = require('./routes/questionRoutes');
+const invitationRoutes = require('./routes/invitationRoutes');
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/measurement-settings', measurementRoutes);
 app.use('/api/children', childRoutes);
 app.use('/api/mealplans', mealPlanRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 app.use((req, res) => {
     res.status(404).json({

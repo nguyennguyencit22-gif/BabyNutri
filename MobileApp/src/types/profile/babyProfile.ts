@@ -23,4 +23,9 @@ export type BabyProfile = {
     weightUnit?: 'kg' | 'lb';
     height?: number;
     heightUnit?: 'cm' | 'in';
+
+    // Only set for babies synced with a real account (see babySlice.ts).
+    // Guest-only babies have neither — there's no backend row to invite to.
+    profileCode?: string;
+    permission?: 'owner' | 'editor';
 };

@@ -1,7 +1,12 @@
 import React from 'react';
-import { ScrollView, Text, Share } from 'react-native';
+import { Alert, ScrollView, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { Text } from 'react-native-paper';
+import {
+    useDispatch,
+    useSelector,
+} from 'react-redux';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSummaryCard from '../../components/profile/ProfileSummaryCard';
@@ -14,11 +19,22 @@ import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
-import type { AppDispatch, RootState } from '../../store/store';
-import { deleteBaby } from '../../store/babySlice';
+import type {
+    AppDispatch,
+    RootState,
+} from '../../store/Store';
 
-function ProfileScreen({ navigation }: any) {
-    const dispatch = useDispatch<AppDispatch>();
+import {
+    removeBaby,
+} from '../../store/babySlice';
+
+import { getOrCreateInvitationCode } from '../../services/child.service';
+
+function ProfileScreen({
+    navigation,
+}: any) {
+    const dispatch =
+        useDispatch<AppDispatch>();
 
     const { colors } = useAppTheme();
     const styles = React.useMemo(
@@ -32,6 +48,7 @@ function ProfileScreen({ navigation }: any) {
 
     const [selectedBabyId, setSelectedBabyId] = React.useState<string | null>(null);
     const [showBabyActions, setShowBabyActions] = React.useState(false);
+    const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
     const userRole = user?.role?.toLowerCase() ?? 'guest';
@@ -39,13 +56,42 @@ function ProfileScreen({ navigation }: any) {
     const isExpert = userRole === 'expert';
     const isAdmin = userRole === 'admin';
 
-    const handleOpenBabyActions = (babyId: string) => {
+    const selectedBaby = babies.find(
+        baby => baby.id === selectedBabyId,
+    );
+
+    const handleOpenBabyActions = (
+        babyId: string,
+    ) => {
         setSelectedBabyId(babyId);
         setShowBabyActions(true);
+        setInvitationCode(null);
+
+        // Only the owner of a real (backend-synced) baby can invite others
+        // — guest babies and editor-only access don't get this row at all.
+        const baby = babies.find(item => item.id === babyId);
+
+        if (isAuthenticated && baby?.permission === 'owner') {
+            getOrCreateInvitationCode(Number(babyId))
+                .then(({ code }) => setInvitationCode(code))
+                .catch(() => setInvitationCode(null));
+        }
     };
 
     const handleCloseBabyActions = () => {
         setShowBabyActions(false);
+    };
+
+    const handleCopyCode = () => {
+        if (!invitationCode) {
+            return;
+        }
+
+        Clipboard.setString(invitationCode);
+        Alert.alert(
+            'Copied',
+            `Invitation code ${invitationCode} copied to clipboard.`,
+        );
     };
 
     const handleEditBaby = () => {
@@ -126,7 +172,11 @@ function ProfileScreen({ navigation }: any) {
                         }
                         onEdit={() => handleOpenBabyActions(String(baby.id))}
                         onDelete={() => {
-                            dispatch(deleteBaby(baby.id));
+                            dispatch(
+                                removeBaby(
+                                    baby.id,
+                                ),
+                            );
                         }}
                     />
                 ))}
@@ -207,6 +257,18 @@ function ProfileScreen({ navigation }: any) {
                 onReminders={() => {
                     if (!selectedBabyId) return;
                     console.log('Reminders:', selectedBabyId);
+                }}
+                invitationCode={invitationCode}
+                onCopyCode={
+                    isAuthenticated &&
+                        selectedBaby?.permission === 'owner'
+                        ? handleCopyCode
+                        : undefined
+                }
+                showLoginPromptForCode={!isAuthenticated}
+                onRequestLogin={() => {
+                    handleCloseBabyActions();
+                    navigation.navigate('Login');
                 }}
             />
         </SafeAreaView>
