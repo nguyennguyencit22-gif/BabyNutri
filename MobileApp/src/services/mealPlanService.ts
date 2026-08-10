@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
-const MEAL_PLANS_STORAGE_KEY = '@babynutri_meal_plans_persistent_v3';
+const MEAL_PLANS_STORAGE_KEY = '@babynutri_meal_plans_persistent_v5';
 
 // Helper to format date string YYYY-MM-DD in local timezone
 const formatDate = (date: Date) => {
@@ -39,7 +39,7 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
         {
           id: `m-${childId}-${i}-1`,
           name: 'Breakfast: Pumpkin & Pork Porridge',
-          time: '08:00 AM',
+          time: '',
           description: 'Nutritious pumpkin & pork porridge rich in dietary fibers',
           calories: 220,
           recipeId: 1,
@@ -51,7 +51,7 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
         {
           id: `m-${childId}-${i}-2`,
           name: 'Lunch: Fresh Shrimp & Carrot Soup',
-          time: '11:30 AM',
+          time: '',
           description: 'Fresh shrimp & carrot soup supporting eyesight & immunity',
           calories: 180,
           recipeId: 2,
@@ -63,7 +63,7 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
         {
           id: `m-${childId}-${i}-3`,
           name: 'Snack: Banana Avocado Smoothie',
-          time: '03:00 PM',
+          time: '',
           description: 'Banana avocado yogurt smoothie easy to digest',
           calories: 140,
           recipeId: 3,
@@ -75,7 +75,7 @@ const generateMockMealPlans = (childId: string = '1'): MealPlan[] => {
         {
           id: `m-${childId}-${i}-4`,
           name: 'Dinner: Salmon Potato Oatmeal Porridge',
-          time: '06:00 PM',
+          time: '',
           description: 'Salmon potato oatmeal porridge loaded with Omega-3 & DHA',
           calories: 260,
           recipeId: 4,

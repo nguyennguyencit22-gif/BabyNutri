@@ -49,7 +49,7 @@ exports.getMealPlanById = async (req, res) => {
         const meals = items.map(item => ({
             id: item.id.toString(),
             name: item.meal_type_name,
-            time: item.meal_type_name === 'Breakfast' ? '08:00 AM' : (item.meal_type_name === 'Lunch' ? '12:00 PM' : '18:00 PM'),
+            time: item.time || '',
             description: item.recipe_name,
             calories: 350 // Mocking calorie calculation for now
         }));
