@@ -275,8 +275,9 @@ export const mealPlanService = {
     childId: string;
     dateStr: string;
     mealId: string | number;
+    dishName?: string;
   }): Promise<MealPlan | null> => {
-    const { childId, dateStr, mealId } = params;
+    const { childId, dateStr, mealId, dishName } = params;
     const plans = await loadPersistedMealPlans(childId);
     const planIndex = plans.findIndex(
       p => (String(p.childId) === String(childId) || !p.childId) && p.date === dateStr
@@ -284,9 +285,23 @@ export const mealPlanService = {
 
     if (planIndex >= 0) {
       const plan = plans[planIndex];
-      plan.meals = plan.meals.filter(
-        m => String(m.id) !== String(mealId) && String(m.recipeId) !== String(mealId) && m.name !== String(mealId)
-      );
+      const targetIdStr = String(mealId).toLowerCase();
+      const targetNameStr = dishName ? dishName.toLowerCase().trim() : '';
+
+      plan.meals = plan.meals.filter(m => {
+        const mIdStr = String(m.id).toLowerCase();
+        const mRecipeIdStr = String(m.recipeId || '').toLowerCase();
+        const mNameStr = m.name.toLowerCase();
+        const cleanMNameStr = mNameStr.replace(/^(breakfast|lunch|snack|dinner):\s*/i, '').trim();
+
+        if (mIdStr === targetIdStr) return false;
+        if (mRecipeIdStr !== '' && mRecipeIdStr === targetIdStr) return false;
+        if (mNameStr === targetIdStr || cleanMNameStr === targetIdStr) return false;
+        if (targetNameStr !== '' && (mNameStr.includes(targetNameStr) || cleanMNameStr.includes(targetNameStr))) return false;
+
+        return true;
+      });
+
       plan.totalCalories = plan.meals.reduce((sum, m) => sum + (m.calories || 0), 0);
       plan.totalProtein = Number(plan.meals.reduce((sum, m) => sum + (m.protein || 0), 0).toFixed(1));
       plans[planIndex] = plan;

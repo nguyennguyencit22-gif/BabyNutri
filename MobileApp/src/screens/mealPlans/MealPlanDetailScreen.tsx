@@ -71,6 +71,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
               childId: mealPlan.childId || '1',
               dateStr: mealPlan.date,
               mealId: meal.id,
+              dishName: cleanName,
             });
             loadMealPlan();
           },

@@ -354,6 +354,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         childId: activeBabyId,
         dateStr,
         mealId: removedDish.id,
+        dishName: removedDish.name,
       });
     }
 

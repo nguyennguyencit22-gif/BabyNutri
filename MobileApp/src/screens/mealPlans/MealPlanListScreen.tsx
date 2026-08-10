@@ -386,6 +386,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
               childId: activeChildId,
               dateStr,
               mealId: selectedMealForAction.id,
+              dishName: cleanName,
             });
             loadMealPlans();
           },
