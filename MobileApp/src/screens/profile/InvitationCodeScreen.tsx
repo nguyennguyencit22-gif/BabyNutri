@@ -13,17 +13,26 @@ import {
     Text,
     TextInput,
 } from 'react-native-paper';
+import { useDispatch } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import createStyles from '@/styles/profile/invitationCodeStyles';
 import { useAppTheme } from '@/theme/useAppTheme';
+import type { AppDispatch } from '@/store/Store';
+import { loadBabies } from '@/store/babySlice';
+import { selectBaby } from '@/store/babySlice';
+import { activateInvitationCode } from '@/services/child.service';
 
 function InvitationCodeScreen({ navigation }: any) {
+    const dispatch = useDispatch<AppDispatch>();
     const { colors } = useAppTheme();
     const styles = React.useMemo(
         () => createStyles(colors),
         [colors],
     );
+
+    const [activating, setActivating] =
+        React.useState(false);
 
     const [currentStep, setCurrentStep] =
         React.useState<0 | 1>(0);
@@ -69,24 +78,48 @@ function InvitationCodeScreen({ navigation }: any) {
         return true;
     };
 
-    const handleActivate = () => {
-        if (!validateCode()) {
+    const handleActivate = async () => {
+        if (!validateCode() || activating) {
             return;
         }
 
         const formattedCode =
             invitationCode.trim().toUpperCase();
 
-        console.log(
-            'Invitation code:',
-            formattedCode,
-        );
+        try {
+            setActivating(true);
 
-        // Sau này gọi API kiểm tra code ở đây.
-        Alert.alert(
-            'Invitation code',
-            'The invitation code has been submitted.',
-        );
+            const { childId } =
+                await activateInvitationCode(formattedCode);
+
+            // Pull the shared baby (and anything else this account can now
+            // see) from MySQL into Redux, then focus it.
+            await dispatch(loadBabies());
+            dispatch(selectBaby(String(childId)));
+
+            Alert.alert(
+                'Invitation code',
+                'You now have access to this baby profile.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () =>
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'Home' }],
+                            }),
+                    },
+                ],
+            );
+        } catch (error) {
+            setCodeError(
+                error instanceof Error
+                    ? error.message
+                    : 'Invalid or already-used invitation code.',
+            );
+        } finally {
+            setActivating(false);
+        }
     };
 
     const isValidInvitationCode = (
@@ -226,7 +259,8 @@ function InvitationCodeScreen({ navigation }: any) {
 
                         <Button
                             mode="contained"
-                            disabled={!canActivate}
+                            disabled={!canActivate || activating}
+                            loading={activating}
                             style={[
                                 styles.activateButton,
                                 !canActivate &&

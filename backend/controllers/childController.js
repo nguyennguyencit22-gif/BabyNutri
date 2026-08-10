@@ -16,6 +16,19 @@ function toDateOnly(value) {
     return String(value).slice(0, 10);
 }
 
+// Matches the mobile app's invitation-code regex (^BN-[A-Z0-9]{6}$) so a
+// profile_code can double as a readable ID without touching client code.
+function generateCode() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let suffix = "";
+
+    for (let i = 0; i < 6; i++) {
+        suffix += chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    return `BN-${suffix}`;
+}
+
 function toResponseShape(row) {
     return {
         id: row.id,
@@ -29,11 +42,16 @@ function toResponseShape(row) {
         imageUrl: row.imageUrl,
         profileColor: row.profileColor,
         nutritionGoal: row.nutritionGoal,
+        profileCode: row.profileCode,
+        permission: row.permission,
         allergies: splitTags(row.allergies),
         foodPreferences: splitTags(row.foodPreferences),
     };
 }
 
+// `permission` only makes sense when the query is scoped to one caregiver
+// (see WHERE cc.user_id = ? below) — a child can have several caregiver
+// rows, so joining it unscoped would multiply/ambiguous the result.
 const SELECT_CHILDREN = `
     SELECT
         cp.id,
@@ -47,9 +65,12 @@ const SELECT_CHILDREN = `
         cp.image_url AS imageUrl,
         cp.profile_color AS profileColor,
         cp.nutrition_goal AS nutritionGoal,
+        cp.profile_code AS profileCode,
+        cc.permission AS permission,
         GROUP_CONCAT(DISTINCT ka.allergy_name) AS allergies,
         GROUP_CONCAT(DISTINCT fp.food_name) AS foodPreferences
     FROM child_profiles cp
+    JOIN child_caregivers cc ON cc.child_id = cp.id
     LEFT JOIN child_known_allergies ka ON ka.child_id = cp.id
     LEFT JOIN child_food_preferences fp ON fp.child_id = cp.id
 `;
@@ -67,17 +88,29 @@ async function insertTags(table, column, childId, values) {
     );
 }
 
+// Returns the caller's permission on a child ('owner' | 'editor'), or null
+// if they aren't a caregiver of that child at all.
+async function getPermission(childId, userId) {
+    const [rows] = await db.query(
+        `SELECT permission FROM child_caregivers WHERE child_id = ? AND user_id = ?`,
+        [childId, userId]
+    );
+
+    return rows.length > 0 ? rows[0].permission : null;
+}
+
 // ==========================================
-// GET /api/children — every baby profile that
-// belongs to the logged-in parent
+// GET /api/children — every baby profile the
+// logged-in user has caregiver access to
+// (as owner OR as an invited editor)
 // ==========================================
 exports.getChildren = async (req, res) => {
     try {
-        const parentId = req.user.id;
+        const userId = req.user.id;
 
         const [rows] = await db.query(
-            `${SELECT_CHILDREN} WHERE cp.parent_id = ? GROUP BY cp.id ORDER BY cp.id ASC`,
-            [parentId]
+            `${SELECT_CHILDREN} WHERE cc.user_id = ? GROUP BY cp.id, cc.permission ORDER BY cp.id ASC`,
+            [userId]
         );
 
         return res.json(rows.map(toResponseShape));
@@ -90,12 +123,12 @@ exports.getChildren = async (req, res) => {
 };
 
 // ==========================================
-// POST /api/children — create a baby profile
-// owned by the logged-in parent
+// POST /api/children — create a baby profile;
+// the creator becomes its owner caregiver
 // ==========================================
 exports.createChild = async (req, res) => {
     try {
-        const parentId = req.user.id;
+        const userId = req.user.id;
         const {
             name,
             dateOfBirth,
@@ -121,11 +154,12 @@ exports.createChild = async (req, res) => {
             `
             INSERT INTO child_profiles
                 (parent_id, name, date_of_birth, gender, weight, weight_unit,
-                 height, height_unit, image_url, profile_color, nutrition_goal)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 height, height_unit, image_url, profile_color, nutrition_goal,
+                 profile_code)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
-                parentId,
+                userId,
                 name.trim(),
                 toDateOnly(dateOfBirth),
                 gender || null,
@@ -136,10 +170,16 @@ exports.createChild = async (req, res) => {
                 imageUrl || null,
                 profileColor || null,
                 nutritionGoal || null,
+                generateCode(),
             ]
         );
 
         const childId = result.insertId;
+
+        await db.query(
+            `INSERT INTO child_caregivers (child_id, user_id, permission) VALUES (?, ?, 'owner')`,
+            [childId, userId]
+        );
 
         await insertTags(
             "child_known_allergies",
@@ -155,8 +195,8 @@ exports.createChild = async (req, res) => {
         );
 
         const [rows] = await db.query(
-            `${SELECT_CHILDREN} WHERE cp.id = ? GROUP BY cp.id`,
-            [childId]
+            `${SELECT_CHILDREN} WHERE cp.id = ? AND cc.user_id = ? GROUP BY cp.id, cc.permission`,
+            [childId, userId]
         );
 
         return res.status(201).json(toResponseShape(rows[0]));
@@ -169,20 +209,17 @@ exports.createChild = async (req, res) => {
 };
 
 // ==========================================
-// PUT /api/children/:id — update a baby profile,
-// only if it belongs to the logged-in parent
+// PUT /api/children/:id — update a baby profile;
+// owner or editor caregivers may do this
 // ==========================================
 exports.updateChild = async (req, res) => {
     try {
-        const parentId = req.user.id;
+        const userId = req.user.id;
         const childId = req.params.id;
 
-        const [owned] = await db.query(
-            `SELECT id FROM child_profiles WHERE id = ? AND parent_id = ?`,
-            [childId, parentId]
-        );
+        const permission = await getPermission(childId, userId);
 
-        if (owned.length === 0) {
+        if (!permission) {
             return res.status(404).json({
                 message: "Baby profile not found.",
             });
@@ -263,8 +300,8 @@ exports.updateChild = async (req, res) => {
         );
 
         const [rows] = await db.query(
-            `${SELECT_CHILDREN} WHERE cp.id = ? GROUP BY cp.id`,
-            [childId]
+            `${SELECT_CHILDREN} WHERE cp.id = ? AND cc.user_id = ? GROUP BY cp.id, cc.permission`,
+            [childId, userId]
         );
 
         return res.json(toResponseShape(rows[0]));
@@ -277,22 +314,25 @@ exports.updateChild = async (req, res) => {
 };
 
 // ==========================================
-// DELETE /api/children/:id — only if it belongs
-// to the logged-in parent
+// DELETE /api/children/:id — only the owner
+// caregiver may delete a baby profile
 // ==========================================
 exports.deleteChild = async (req, res) => {
     try {
-        const parentId = req.user.id;
+        const userId = req.user.id;
         const childId = req.params.id;
 
-        const [owned] = await db.query(
-            `SELECT id FROM child_profiles WHERE id = ? AND parent_id = ?`,
-            [childId, parentId]
-        );
+        const permission = await getPermission(childId, userId);
 
-        if (owned.length === 0) {
+        if (!permission) {
             return res.status(404).json({
                 message: "Baby profile not found.",
+            });
+        }
+
+        if (permission !== "owner") {
+            return res.status(403).json({
+                message: "Only the owner can delete this baby profile.",
             });
         }
 

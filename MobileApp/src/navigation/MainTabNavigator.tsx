@@ -4,7 +4,6 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import { Icon } from 'react-native-paper';
-import { BlurView } from '@react-native-community/blur';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';

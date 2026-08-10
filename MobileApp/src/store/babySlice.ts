@@ -71,6 +71,8 @@ function fromBackendChild(child: BackendChildProfile): BabyProfile {
         weightUnit: child.weightUnit,
         height: child.height ?? undefined,
         heightUnit: child.heightUnit,
+        profileCode: child.profileCode ?? undefined,
+        permission: child.permission,
     };
 }
 

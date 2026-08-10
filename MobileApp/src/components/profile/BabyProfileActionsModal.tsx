@@ -18,6 +18,15 @@ type BabyProfileActionsModalProps = {
     onEditEvents: () => void;
     onConfigureMainScreen: () => void;
     onReminders: () => void;
+    // Only the owner caregiver can invite others (backend enforces this
+    // too) — pass onCopyCode only when the selected baby's permission is
+    // 'owner', which hides the row entirely for editors. Guests get a
+    // different row instead (see showLoginPromptForCode below), since for
+    // them the fix is "log in", not "you lack permission".
+    invitationCode?: string | null;
+    onCopyCode?: () => void;
+    showLoginPromptForCode?: boolean;
+    onRequestLogin?: () => void;
 };
 
 function BabyProfileActionsModal({
@@ -28,6 +37,10 @@ function BabyProfileActionsModal({
     onEditEvents,
     onConfigureMainScreen,
     onReminders,
+    invitationCode,
+    onCopyCode,
+    showLoginPromptForCode,
+    onRequestLogin,
 }: BabyProfileActionsModalProps) {
     const { colors } = useAppTheme();
     const styles = React.useMemo(
@@ -66,6 +79,27 @@ function BabyProfileActionsModal({
             icon: 'bell-outline',
             onPress: onReminders,
         },
+        ...(onCopyCode
+            ? [
+                {
+                    id: 'copy-code',
+                    title: "Copy baby's code",
+                    subtitle: invitationCode ?? 'Generating…',
+                    icon: 'content-copy',
+                    onPress: onCopyCode,
+                },
+            ]
+            : showLoginPromptForCode && onRequestLogin
+                ? [
+                    {
+                        id: 'copy-code',
+                        title: "Copy baby's code",
+                        subtitle: "Log in to get baby's code",
+                        icon: 'content-copy',
+                        onPress: onRequestLogin,
+                    },
+                ]
+                : []),
     ];
 
     return (
@@ -101,9 +135,20 @@ function BabyProfileActionsModal({
                                 color={colors.text}
                             />
 
-                            <Text style={styles.actionText}>
-                                {action.title}
-                            </Text>
+                            {action.subtitle ? (
+                                <View style={styles.actionTextGroup}>
+                                    <Text style={styles.actionText}>
+                                        {action.title}
+                                    </Text>
+                                    <Text style={styles.actionSubtitle}>
+                                        {action.subtitle}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <Text style={styles.actionText}>
+                                    {action.title}
+                                </Text>
+                            )}
                         </Pressable>
                     ))}
                 </View>

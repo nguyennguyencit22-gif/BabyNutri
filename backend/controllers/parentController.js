@@ -52,13 +52,13 @@ exports.getDashboard = async (req, res) => {
                 cp.height,
                 cp.gender,
                 cp.image_url,
-                GROUP_CONCAT(a.name) AS allergies
+                GROUP_CONCAT(DISTINCT ka.allergy_name) AS allergies
             FROM child_profiles cp
-            LEFT JOIN child_allergies ca
-                ON cp.id = ca.child_id
-            LEFT JOIN allergies a
-                ON ca.allergy_id = a.id
-            WHERE cp.parent_id = ?
+            JOIN child_caregivers cc
+                ON cc.child_id = cp.id
+            LEFT JOIN child_known_allergies ka
+                ON ka.child_id = cp.id
+            WHERE cc.user_id = ?
             GROUP BY
                 cp.id,
                 cp.name,

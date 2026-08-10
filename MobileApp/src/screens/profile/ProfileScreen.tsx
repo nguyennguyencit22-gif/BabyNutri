@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
 import {
     useDispatch,
     useSelector,
 } from 'react-redux';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSummaryCard from '../../components/profile/ProfileSummaryCard';
@@ -27,8 +28,10 @@ import type {
 } from '../../store/Store';
 
 import {
-    deleteBaby,
+    removeBaby,
 } from '../../store/babySlice';
+
+import { getOrCreateInvitationCode } from '../../services/child.service';
 
 import {
     Share,
@@ -67,19 +70,49 @@ function ProfileScreen({
     const [showBabyActions, setShowBabyActions] =
         React.useState(false);
 
+    const [invitationCode, setInvitationCode] =
+        React.useState<string | null>(null);
+
     const isAuthenticated =
         sessionMode === 'authenticated' &&
         user !== null;
+
+    const selectedBaby = babies.find(
+        baby => baby.id === selectedBabyId,
+    );
 
     const handleOpenBabyActions = (
         babyId: string,
     ) => {
         setSelectedBabyId(babyId);
         setShowBabyActions(true);
+        setInvitationCode(null);
+
+        // Only the owner of a real (backend-synced) baby can invite others
+        // — guest babies and editor-only access don't get this row at all.
+        const baby = babies.find(item => item.id === babyId);
+
+        if (isAuthenticated && baby?.permission === 'owner') {
+            getOrCreateInvitationCode(Number(babyId))
+                .then(({ code }) => setInvitationCode(code))
+                .catch(() => setInvitationCode(null));
+        }
     };
 
     const handleCloseBabyActions = () => {
         setShowBabyActions(false);
+    };
+
+    const handleCopyCode = () => {
+        if (!invitationCode) {
+            return;
+        }
+
+        Clipboard.setString(invitationCode);
+        Alert.alert(
+            'Copied',
+            `Invitation code ${invitationCode} copied to clipboard.`,
+        );
     };
 
     const handleEditBaby = () => {
@@ -189,7 +222,7 @@ function ProfileScreen({
                         }
                         onDelete={() => {
                             dispatch(
-                                deleteBaby(
+                                removeBaby(
                                     baby.id,
                                 ),
                             );
@@ -293,6 +326,18 @@ function ProfileScreen({
                         'Reminders:',
                         selectedBabyId,
                     );
+                }}
+                invitationCode={invitationCode}
+                onCopyCode={
+                    isAuthenticated &&
+                        selectedBaby?.permission === 'owner'
+                        ? handleCopyCode
+                        : undefined
+                }
+                showLoginPromptForCode={!isAuthenticated}
+                onRequestLogin={() => {
+                    handleCloseBabyActions();
+                    navigation.navigate('Login');
                 }}
             />
         </SafeAreaView>
