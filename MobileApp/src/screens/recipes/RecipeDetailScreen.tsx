@@ -18,7 +18,10 @@ import { Icon } from 'react-native-paper';
 
 
 
+import { useAppTheme } from '../../theme/useAppTheme';
+
 const RecipeDetailScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
@@ -347,16 +350,16 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     );
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF7A59" /></View>;
-  if (!recipe) return <View style={styles.center}><Text>Recipe not found</Text></View>;
+  if (loading) return <View style={[styles.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color="#FF7A59" /></View>;
+  if (!recipe) return <View style={[styles.center, { backgroundColor: colors.background }]}><Text style={{ color: colors.text }}>Recipe not found</Text></View>;
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={{ position: 'relative' }}>
           <Image source={{ uri: recipe.image_url }} style={styles.image} />
           <TouchableOpacity 
-            style={styles.floatingBackBtn} 
+            style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]} 
             onPress={() => navigation.goBack()}
             activeOpacity={0.85}
           >
@@ -365,11 +368,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>{recipe.name}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{recipe.name}</Text>
           {!!recipe.expertName && <Text style={styles.author}>Expert: {recipe.expertName}</Text>}
           
-          {/* Clean 5-Star Rating Row */}
-          <View style={styles.ratingBarRow}>
+          {/* Rating Row */}
+          <View style={[styles.ratingBarRow, { backgroundColor: isDark ? '#3A2E31' : '#FFFBF0', borderColor: isDark ? '#5A3D42' : '#FEF3C7' }]}>
             <StarRating
               rating={avgRating}
               userRating={userRating}
@@ -407,65 +410,65 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           )}
 
           {/* Social Bar: Like, Share Link, Save, Post */}
-          <View style={styles.socialBar}>
+          <View style={[styles.socialBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <TouchableOpacity style={styles.socialBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
-                <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : '#65676B'} />
+                <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : colors.textSoft} />
               </Animated.View>
-              <Text style={[styles.socialText, liked && { color: '#FF3B30', fontWeight: '700' }]}>
+              <Text style={[styles.socialText, { color: colors.textSoft }, liked && { color: '#FF3B30', fontWeight: '700' }]}>
                 {liked ? 'Liked' : 'Like'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.socialBtn} onPress={handleExternalShare} activeOpacity={0.8}>
-              <Icon source="share-variant" size={20} color="#65676B" />
-              <Text style={styles.socialText}>Share</Text>
+              <Icon source="share-variant" size={20} color={colors.textSoft} />
+              <Text style={[styles.socialText, { color: colors.textSoft }]}>Share</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.socialBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
-                <Icon source={saved ? 'bookmark' : 'bookmark-outline'} size={20} color={saved ? '#FF7A59' : '#65676B'} />
+                <Icon source={saved ? 'bookmark' : 'bookmark-outline'} size={20} color={saved ? '#FF7A59' : colors.textSoft} />
               </Animated.View>
-              <Text style={[styles.socialText, saved && { color: '#FF7A59', fontWeight: '700' }]}>
+              <Text style={[styles.socialText, { color: colors.textSoft }, saved && { color: '#FF7A59', fontWeight: '700' }]}>
                 {saved ? 'Saved' : 'Save'}
               </Text>
             </TouchableOpacity>
 
             {isExpert && (
-              <TouchableOpacity style={[styles.socialBtn, styles.postFeedHighlightBtn]} onPress={handlePostRecipeToFeed}>
+              <TouchableOpacity style={[styles.socialBtn, styles.postFeedHighlightBtn, { backgroundColor: isDark ? '#4A2A30' : '#FFF0F2' }]} onPress={handlePostRecipeToFeed}>
                 <Icon source="newspaper-plus" size={20} color="#FF7A59" />
                 <Text style={[styles.socialText, { color: '#FF7A59', fontWeight: '700' }]}>Post</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <Text style={styles.desc}>{recipe.description}</Text>
+          <Text style={[styles.desc, { color: colors.textSoft }]}>{recipe.description}</Text>
 
           <View style={styles.nutritionRow}>
-            <NutritionBox label="Calories" value={`${recipe.calories}`} />
-            <NutritionBox label="Protein" value={`${recipe.protein}g`} />
-            <NutritionBox label="Fat" value={`${recipe.fat}g`} />
-            <NutritionBox label="Carb" value={`${recipe.carbohydrate}g`} />
+            <NutritionBox label="Calories" value={`${recipe.calories}`} colors={colors} />
+            <NutritionBox label="Protein" value={`${recipe.protein}g`} colors={colors} />
+            <NutritionBox label="Fat" value={`${recipe.fat}g`} colors={colors} />
+            <NutritionBox label="Carb" value={`${recipe.carbohydrate}g`} colors={colors} />
           </View>
 
-          <Text style={styles.meta}>
+          <Text style={[styles.meta, { color: colors.textSoft }]}>
             Suitable Age: {recipe.month_age}+ months
             {recipe.mealType ? ` · ${recipe.mealType}` : ''}
             {'  '}· Prep {recipe.prep_time} min · Cook {recipe.cooking_time} min · {recipe.serves} servings
           </Text>
 
           {!!recipe.allergies?.length && (
-            <Text style={styles.allergyTag}>Allergy Note: {recipe.allergies.join(', ')}</Text>
+            <Text style={[styles.allergyTag, { backgroundColor: isDark ? '#4A2A2A' : '#FEF2F2' }]}>Allergy Note: {recipe.allergies.join(', ')}</Text>
           )}
 
-          <Text style={styles.section}>Ingredients</Text>
+          <Text style={[styles.section, { color: colors.text }]}>Ingredients</Text>
           {recipe.ingredients.map((ing, i) => <IngredientItem key={i} name={ing} />)}
 
-          <Text style={styles.section}>Instructions</Text>
+          <Text style={[styles.section, { color: colors.text }]}>Instructions</Text>
           {recipe.steps.map((step, i) => (
             <View key={i} style={styles.stepRow}>
               <Text style={styles.stepNumber}>{i + 1}</Text>
-              <Text style={styles.stepText}>{step}</Text>
+              <Text style={[styles.stepText, { color: colors.text }]}>{step}</Text>
             </View>
           ))}
         </View>
@@ -474,49 +477,49 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       {/* Fast & Easy Modal: Add Dish to Schedule */}
       <Modal visible={scheduleModalVisible} transparent animationType="fade" onRequestClose={() => setScheduleModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setScheduleModalVisible(false)}>
-          <View style={styles.scheduleModalBox}>
+          <View style={[styles.scheduleModalBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
               <Icon source="clock-outline" size={20} color="#FF5F70" />
-              <Text style={styles.modalTitle}>Add to Meal Schedule</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Add to Meal Schedule</Text>
             </View>
             <Text style={styles.modalSubTitle}>Dish: "{recipe?.name}" ({recipe?.calories} kcal)</Text>
 
             {/* Step 1: Select Day of Week */}
-            <Text style={styles.modalLabel}>1. Select Day of Week:</Text>
+            <Text style={[styles.modalLabel, { color: colors.textSoft }]}>1. Select Day of Week:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
               {weekDays.map((day, idx) => {
                 const isSelected = idx === selectedDayIndex;
                 return (
                   <TouchableOpacity
                     key={day.label}
-                    style={[styles.dayChip, isSelected && styles.dayChipSelected]}
+                    style={[styles.dayChip, { backgroundColor: isDark ? '#3A2E31' : '#F3F4F6', borderColor: colors.border }, isSelected && styles.dayChipSelected]}
                     onPress={() => setSelectedDayIndex(idx)}
                   >
-                    <Text style={[styles.dayChipText, isSelected && styles.dayChipTextSelected]}>{day.label}</Text>
-                    <Text style={[styles.dayChipDate, isSelected && styles.dayChipTextSelected]}>{day.dateNum}</Text>
+                    <Text style={[styles.dayChipText, { color: colors.text }, isSelected && styles.dayChipTextSelected]}>{day.label}</Text>
+                    <Text style={[styles.dayChipDate, { color: colors.textSoft }, isSelected && styles.dayChipTextSelected]}>{day.dateNum}</Text>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
 
             {/* Step 2: Select Meal Slot */}
-            <Text style={styles.modalLabel}>2. Select Meal Slot:</Text>
+            <Text style={[styles.modalLabel, { color: colors.textSoft }]}>2. Select Meal Slot:</Text>
             <View style={styles.slotSelectGrid}>
               {[
-                { key: 'Breakfast', label: '🌅 Breakfast' },
-                { key: 'Lunch', label: '☀️ Lunch' },
-                { key: 'Snack', label: '🍎 Snack' },
-                { key: 'Dinner', label: '🌙 Dinner' },
+                { key: 'Breakfast', label: 'Breakfast' },
+                { key: 'Lunch', label: 'Lunch' },
+                { key: 'Snack', label: 'Snack' },
+                { key: 'Dinner', label: 'Dinner' },
               ].map(slot => {
                 const isSelected = selectedMealSlot === slot.key;
                 return (
                   <TouchableOpacity
                     key={slot.key}
-                    style={[styles.slotSelectCard, isSelected && styles.slotSelectCardActive]}
+                    style={[styles.slotSelectCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: colors.border }, isSelected && [styles.slotSelectCardActive, { backgroundColor: colors.surface, borderColor: '#FF5F70' }]]}
                     onPress={() => setSelectedMealSlot(slot.key as any)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.slotSelectText, isSelected && styles.slotSelectTextActive]}>{slot.label}</Text>
+                    <Text style={[styles.slotSelectText, { color: colors.text }, isSelected && styles.slotSelectTextActive]}>{slot.label}</Text>
                     {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
                   </TouchableOpacity>
                 );
@@ -525,8 +528,8 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
 
             {/* Modal Actions */}
             <View style={styles.modalBtnRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setScheduleModalVisible(false)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+              <TouchableOpacity style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#3A2E31' : '#F3F4F6' }]} onPress={() => setScheduleModalVisible(false)}>
+                <Text style={[styles.modalCancelText, { color: colors.textSoft }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalApplyBtn} onPress={handleApplyToSchedule}>
                 <Text style={styles.modalApplyText}>Confirm</Text>
@@ -539,10 +542,10 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   );
 };
 
-const NutritionBox = ({ label, value }: { label: string; value: string }) => (
-  <View style={styles.nutBox}>
+const NutritionBox = ({ label, value, colors }: { label: string; value: string; colors: any }) => (
+  <View style={[styles.nutBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
     <Text style={styles.nutValue}>{value}</Text>
-    <Text style={styles.nutLabel}>{label}</Text>
+    <Text style={[styles.nutLabel, { color: colors.textSoft }]}>{label}</Text>
   </View>
 );
 

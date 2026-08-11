@@ -30,6 +30,7 @@ import FavoriteRecipesScreen from '../screens/recipes/FavoriteRecipesScreen';
 import { ChildListScreen } from '../screens/children/ChildListScreen';
 import { ChildDetailScreen } from '../screens/children/ChildDetailScreen';
 import { AddEditChildScreen } from '../screens/children/AddEditChildScreen';
+import { GrowthTrackingScreen } from '../screens/children/GrowthTrackingScreen';
 import { MealPlanListScreen } from '../screens/mealPlans/MealPlanListScreen';
 import { MealPlanDetailScreen } from '../screens/mealPlans/MealPlanDetailScreen';
 import { FAQScreen } from '../screens/questions/FAQScreen';
@@ -187,6 +188,11 @@ function AppNavigator() {
         name="AddEditChild"
         component={AddEditChildScreen}
         options={{ title: 'Child Profile', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="GrowthTracking"
+        component={GrowthTrackingScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="MealPlanList"

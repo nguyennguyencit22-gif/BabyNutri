@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, StatusBar, Platform } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-paper';
 
 import TopHeaderBar from '../../components/common/TopHeaderBar';
@@ -7,8 +7,10 @@ import RecipeCard from '../../components/recipes/RecipeCard';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const FavoriteRecipesScreen = ({ navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const [favoriteRecipes, setFavoriteRecipes] = useState<RecipeListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,22 +44,22 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TopHeaderBar />
 
       <View style={styles.headerBox}>
         <View style={styles.titleRow}>
           <TouchableOpacity 
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
             <Icon source="arrow-left" size={20} color="#FF5F70" />
           </TouchableOpacity>
           <Icon source="heart" size={22} color="#FF5F70" />
-          <Text style={styles.title}>Favorite Recipes</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Favorite Recipes</Text>
         </View>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSoft }]}>
           All weaning recipes you have liked and saved for your baby.
         </Text>
       </View>
@@ -79,8 +81,8 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Icon source="heart-outline" size={44} color="#FFD1D6" />
-              <Text style={styles.emptyTitle}>No Favorite Recipes Saved</Text>
-              <Text style={styles.emptySub}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No Favorite Recipes Saved</Text>
+              <Text style={[styles.emptySub, { color: colors.textSoft }]}>
                 Tap the heart icon on any recipe to save it to your favorites list!
               </Text>
             </View>
@@ -92,27 +94,25 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF5F2' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerBox: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  title: { fontSize: 22, fontWeight: '800', color: '#4B3034' },
-  subtitle: { fontSize: 13, color: '#8E7377', marginLeft: 44, marginTop: -2 },
+  title: { fontSize: 22, fontWeight: '800' },
+  subtitle: { fontSize: 13, marginLeft: 44, marginTop: -2 },
   backBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#FFE4E6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   listContent: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
   row: { justifyContent: 'space-between' },
   emptyBox: { alignItems: 'center', marginTop: 80, paddingHorizontal: 30, gap: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#4B3034' },
-  emptySub: { fontSize: 13, color: '#8E7377', textAlign: 'center', lineHeight: 18 },
+  emptyTitle: { fontSize: 16, fontWeight: '700' },
+  emptySub: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
 });
 
 export default FavoriteRecipesScreen;

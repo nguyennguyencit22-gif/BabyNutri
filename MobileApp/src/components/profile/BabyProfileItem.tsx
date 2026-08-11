@@ -115,7 +115,8 @@ function BabyProfileItem({
                     ]}
                     onPress={(e) => {
                         e.stopPropagation();
-                        if (onPress) onPress();
+                        if (onEdit) onEdit();
+                        else if (onPress) onPress();
                     }}>
                     <ThreeDotsIcon size={20} color={colors.textSoft} />
                 </Pressable>

@@ -11,8 +11,10 @@ import { RecipeListItem } from '../../types/recipe';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const SavedItemsScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const initialTab = route?.params?.initialTab || 'history';
   const [activeTab, setActiveTab] = useState<'history' | 'articles' | 'recipes'>(initialTab);
   const [savedArticles, setSavedArticles] = useState<ArticleListItem[]>([]);
@@ -79,28 +81,29 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+
       <View style={styles.headerBox}>
         <View style={styles.titleRow}>
           <TouchableOpacity 
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <Icon source="chevron-left" size={24} color="#FF6B4A" />
+            <Icon source="arrow-left" size={20} color="#FF6B4A" />
           </TouchableOpacity>
-          <Icon source="heart" size={22} color="#FF6B4A" />
-          <Text style={styles.title}>Favorites & Saved</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Saved & History</Text>
         </View>
 
-        {/* Tab Switcher: App Activity Log vs Favorite & Saved Articles vs Favorite Recipes */}
-        <View style={styles.tabBar}>
+        {/* 3 Tab Bar Options */}
+        <View style={[styles.tabBar, { backgroundColor: isDark ? '#3A2E31' : '#FFE8DF' }]}>
           <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'history' && styles.activeTabBtn]}
             onPress={() => handleTabChange('history')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSoft }, activeTab === 'history' && styles.activeTabText]}>
               Activity ({activities.length})
             </Text>
           </TouchableOpacity>
@@ -110,7 +113,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             onPress={() => handleTabChange('articles')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, activeTab === 'articles' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSoft }, activeTab === 'articles' && styles.activeTabText]}>
               Saved ({savedArticleIds.length})
             </Text>
           </TouchableOpacity>
@@ -120,7 +123,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             onPress={() => handleTabChange('recipes')}
             activeOpacity={0.8}
           >
-            <Text style={[styles.tabText, activeTab === 'recipes' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSoft }, activeTab === 'recipes' && styles.activeTabText]}>
               Favorites ({savedRecipeIds.length})
             </Text>
           </TouchableOpacity>
@@ -139,15 +142,15 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
-              <View style={styles.activityCard}>
-                <View style={styles.activityIconCircle}>
+              <View style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={[styles.activityIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
                   <Text style={{ fontSize: 18 }}>{item.icon || '📌'}</Text>
                 </View>
 
                 <View style={styles.activityInfo}>
-                  <Text style={styles.activityTitle}>{item.title}</Text>
+                  <Text style={[styles.activityTitle, { color: colors.text }]}>{item.title}</Text>
                   {!!item.details && (
-                    <Text style={styles.activityDetails}>{item.details}</Text>
+                    <Text style={[styles.activityDetails, { color: colors.textSoft }]}>{item.details}</Text>
                   )}
                   <Text style={styles.activityTime}>{formatRealTimeAgo(item.timestamp)}</Text>
                 </View>
@@ -155,8 +158,8 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             )}
             ListEmptyComponent={
               <View style={styles.emptyBox}>
-                <Icon source="history" size={40} color="#D1D5DB" />
-                <Text style={styles.emptyText}>No activity recorded yet.</Text>
+                <Icon source="history" size={40} color={colors.textSoft} />
+                <Text style={[styles.emptyText, { color: colors.text }]}>No activity recorded yet.</Text>
               </View>
             }
           />
@@ -171,9 +174,9 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             )}
             ListEmptyComponent={
               <View style={styles.emptyBox}>
-                <Icon source="heart-outline" size={40} color="#D1D5DB" />
-                <Text style={styles.emptyText}>You haven't liked or saved any articles yet.</Text>
-                <Text style={styles.emptySubText}>Tap the Heart ❤️ or Bookmark 🔖 button on articles to save them here!</Text>
+                <Icon source="heart-outline" size={40} color={colors.textSoft} />
+                <Text style={[styles.emptyText, { color: colors.text }]}>You haven't liked or saved any articles yet.</Text>
+                <Text style={[styles.emptySubText, { color: colors.textSoft }]}>Tap the Heart button on articles to save them here!</Text>
               </View>
             }
           />
@@ -190,9 +193,9 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             )}
             ListEmptyComponent={
               <View style={styles.emptyBox}>
-                <Icon source="bowl-mix-outline" size={40} color="#D1D5DB" />
-                <Text style={styles.emptyText}>You haven't saved any recipes yet.</Text>
-                <Text style={styles.emptySubText}>Tap the Save 🔖 button on recipes to save them here!</Text>
+                <Icon source="bowl-mix-outline" size={40} color={colors.textSoft} />
+                <Text style={[styles.emptyText, { color: colors.text }]}>You haven't saved any recipes yet.</Text>
+                <Text style={[styles.emptySubText, { color: colors.textSoft }]}>Tap the Save button on recipes to save them here!</Text>
               </View>
             }
           />

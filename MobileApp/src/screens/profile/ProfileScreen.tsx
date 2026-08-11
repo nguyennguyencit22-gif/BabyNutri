@@ -241,6 +241,10 @@ function ProfileScreen({
             <BabyProfileActionsModal
                 visible={showBabyActions}
                 onClose={handleCloseBabyActions}
+                onGrowthTracking={() => {
+                    handleCloseBabyActions();
+                    navigation.navigate('GrowthTracking', { childId: selectedBabyId });
+                }}
                 onWeaningMealPlan={() => {
                     handleCloseBabyActions();
                     navigation.navigate('MealPlanList', { childId: selectedBabyId });

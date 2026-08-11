@@ -5,6 +5,7 @@ import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
 import RecipeItem from '../../components/recipes/RecipeItem';
 import CategoryChip from '../../components/recipes/CategoryChip';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const AGE_PRESETS: { label: string; min?: number; max?: number; type?: string }[] = [
   { label: 'All' },
@@ -14,6 +15,7 @@ const AGE_PRESETS: { label: string; min?: number; max?: number; type?: string }[
 ];
 
 const SearchRecipeScreen = ({ navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const [query, setQuery] = useState('');
   const [ageIndex, setAgeIndex] = useState(0);
   const [results, setResults] = useState<RecipeListItem[]>([]);
@@ -42,13 +44,13 @@ const SearchRecipeScreen = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchBarBox}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.searchBarBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Icon source="magnify" size={18} color="#FF6B4A" />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Enter recipe name or ingredient..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textSoft}
           defaultValue={query}
           onChangeText={setQuery}
           onSubmitEditing={handleSearch}
@@ -56,7 +58,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
         />
       </View>
 
-      <Text style={styles.filterLabel}>Category & Age</Text>
+      <Text style={[styles.filterLabel, { color: colors.text }]}>Category & Age</Text>
       <FlatList
         horizontal
         data={AGE_PRESETS}
@@ -84,7 +86,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No matching recipes found</Text>
+              <Text style={[styles.emptyText, { color: colors.textSoft }]}>No matching recipes found</Text>
             </View>
           }
         />
@@ -94,24 +96,22 @@ const SearchRecipeScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF8F5', padding: 18 },
+  container: { flex: 1, padding: 18 },
   searchBarBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: '#FFE0D6',
     marginBottom: 16,
     shadowColor: '#FF7A59',
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
-  searchInput: { flex: 1, paddingVertical: 10, paddingHorizontal: 8, fontSize: 14, color: '#111827' },
-  filterLabel: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
+  searchInput: { flex: 1, paddingVertical: 10, paddingHorizontal: 8, fontSize: 14 },
+  filterLabel: { fontSize: 13, fontWeight: '700', marginBottom: 10 },
   chipList: { paddingBottom: 10, gap: 8 },
   searchBtn: {
     backgroundColor: '#FF6B4A',
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   },
   searchBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
   emptyContainer: { alignItems: 'center', marginTop: 40 },
-  emptyText: { textAlign: 'center', color: '#9CA3AF', fontSize: 14, fontWeight: '500' },
+  emptyText: { textAlign: 'center', fontSize: 14, fontWeight: '500' },
 });
 
 export default SearchRecipeScreen;

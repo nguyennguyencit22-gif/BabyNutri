@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { recipeService } from '../../services/recipe.service';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const EditRecipeScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -64,54 +66,55 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
     }
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF7A59" /></View>;
+  if (loading) return <View style={[styles.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color="#FF7A59" /></View>;
+
+  const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.label}>Recipe Name</Text>
-      <TextInput style={styles.input} defaultValue={name} onChangeText={setName} />
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name</Text>
+      <TextInput style={inputStyle} defaultValue={name} onChangeText={setName} placeholderTextColor={colors.textSoft} />
 
-      <Text style={styles.label}>Description</Text>
-      <TextInput style={[styles.input, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline />
+      <Text style={[styles.label, { color: colors.textSoft }]}>Description</Text>
+      <TextInput style={[inputStyle, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline placeholderTextColor={colors.textSoft} />
 
-      <Text style={styles.label}>Image (URL)</Text>
-      <TextInput style={styles.input} defaultValue={imageUrl} onChangeText={setImageUrl} />
+      <Text style={[styles.label, { color: colors.textSoft }]}>Image (URL)</Text>
+      <TextInput style={inputStyle} defaultValue={imageUrl} onChangeText={setImageUrl} placeholderTextColor={colors.textSoft} />
 
       <View style={styles.rowInputs}>
         <View style={styles.half}>
-          <Text style={styles.label}>Calories (kcal)</Text>
-          <TextInput style={styles.input} defaultValue={calories} onChangeText={setCalories} keyboardType="numeric" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Calories (kcal)</Text>
+          <TextInput style={inputStyle} defaultValue={calories} onChangeText={setCalories} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Age (months)</Text>
-          <TextInput style={styles.input} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" />
-        </View>
-      </View>
-
-      {/* Nhập Thông tin Dinh dưỡng: Protein, Fat, Carb */}
-      <View style={styles.rowInputs}>
-        <View style={styles.third}>
-          <Text style={styles.label}>Protein (g)</Text>
-          <TextInput style={styles.input} defaultValue={protein} onChangeText={setProtein} keyboardType="numeric" />
-        </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Fat (g)</Text>
-          <TextInput style={styles.input} defaultValue={fat} onChangeText={setFat} keyboardType="numeric" />
-        </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Carb (g)</Text>
-          <TextInput style={styles.input} defaultValue={carbohydrate} onChangeText={setCarbohydrate} keyboardType="numeric" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Age (months)</Text>
+          <TextInput style={inputStyle} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
         </View>
       </View>
 
       <View style={styles.rowInputs}>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Protein (g)</Text>
+          <TextInput style={inputStyle} defaultValue={protein} onChangeText={setProtein} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+        </View>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Fat (g)</Text>
+          <TextInput style={inputStyle} defaultValue={fat} onChangeText={setFat} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+        </View>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Carb (g)</Text>
+          <TextInput style={inputStyle} defaultValue={carbohydrate} onChangeText={setCarbohydrate} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+        </View>
+      </View>
+
+      <View style={styles.rowInputs}>
         <View style={styles.half}>
-          <Text style={styles.label}>Prep Time (min)</Text>
-          <TextInput style={styles.input} defaultValue={prepTime} onChangeText={setPrepTime} keyboardType="numeric" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Prep Time (min)</Text>
+          <TextInput style={inputStyle} defaultValue={prepTime} onChangeText={setPrepTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Cooking Time (min)</Text>
-          <TextInput style={styles.input} defaultValue={cookingTime} onChangeText={setCookingTime} keyboardType="numeric" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Cooking Time (min)</Text>
+          <TextInput style={inputStyle} defaultValue={cookingTime} onChangeText={setCookingTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
         </View>
       </View>
 
@@ -123,11 +126,11 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF5' },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 18, paddingBottom: 40 },
-  label: { fontSize: 13, fontWeight: '600', color: '#6B6B6B', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1, borderColor: '#EEE' },
+  label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },
+  input: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1 },
   multiline: { height: 80, textAlignVertical: 'top' },
   rowInputs: { flexDirection: 'row', justifyContent: 'space-between' },
   half: { width: '48%' },

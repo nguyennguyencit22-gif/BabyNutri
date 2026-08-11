@@ -22,6 +22,7 @@ import { useRecipeStore } from '../../stores/useRecipeStore';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
 import { Icon } from 'react-native-paper';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): string => {
   const now = new Date();
@@ -69,6 +70,7 @@ function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Di
 }
 
 export const MealSchedulerScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
   const [showRecommended, setShowRecommended] = useState(true);
@@ -517,15 +519,15 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
       <TopHeaderBar />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header Title with Back Button */}
         <View style={styles.headerRow}>
           <TouchableOpacity 
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
@@ -535,18 +537,18 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
               <Icon source="calendar-month-outline" size={20} color="#FF5F70" />
-              <Text style={styles.title}>
+              <Text style={[styles.title, { color: colors.text }]}>
                 Schedule for {selectedBaby?.name || 'Baby'} ({babyAgeMonths}m)
               </Text>
             </View>
-            <Text style={styles.subTitle}>Smart nutrition planner & allergen-safe menu logic</Text>
+            <Text style={[styles.subTitle, { color: colors.textSoft }]}>Smart nutrition planner & allergen-safe menu logic</Text>
           </View>
         </View>
 
         {/* 4 Weekly Schedules Selection Bar (Real-Time Dates) */}
-        <View style={styles.weekSectionContainer}>
+        <View style={[styles.weekSectionContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.weekHeaderRow}>
-            <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
+            <Text style={[styles.weekSectionTitle, { color: colors.text }]}>Select Weekly Schedule</Text>
           </View>
           <View style={styles.weekTabsRow}>
             {dynamicWeeks.map((week) => {
@@ -554,14 +556,14 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               return (
                 <TouchableOpacity
                   key={week.id}
-                  style={[styles.weekTabBtn, isWeekActive && styles.activeWeekTabBtn]}
+                  style={[styles.weekTabBtn, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: colors.border }, isWeekActive && styles.activeWeekTabBtn]}
                   onPress={() => setSelectedWeekIndex(week.id)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.weekTabText, isWeekActive && styles.activeWeekTabText]}>
+                  <Text style={[styles.weekTabText, { color: colors.text }, isWeekActive && styles.activeWeekTabText]}>
                     {week.title}
                   </Text>
-                  <Text style={[styles.weekSubDateText, isWeekActive && styles.activeWeekSubDateText]}>
+                  <Text style={[styles.weekSubDateText, { color: colors.textSoft }, isWeekActive && styles.activeWeekSubDateText]}>
                     {week.dateRange}
                   </Text>
                 </TouchableOpacity>
@@ -578,7 +580,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               return (
                 <TouchableOpacity
                   key={item.day}
-                  style={[styles.dayCard, isSelected && styles.activeDayCard]}
+                  style={[styles.dayCard, { backgroundColor: colors.surface, borderColor: colors.border }, isSelected && styles.activeDayCard]}
                   onPress={() => setSelectedDayIndex(idx)}
                   activeOpacity={0.8}
                 >
@@ -587,8 +589,8 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                       <Text style={styles.todayBadgeText}>TODAY</Text>
                     </View>
                   )}
-                  <Text style={[styles.dayText, isSelected && styles.activeDayText]}>{item.day}</Text>
-                  <Text style={[styles.dateText, isSelected && styles.activeDateText]}>{item.date}</Text>
+                  <Text style={[styles.dayText, { color: colors.text }, isSelected && styles.activeDayText]}>{item.day}</Text>
+                  <Text style={[styles.dateText, { color: colors.textSoft }, isSelected && styles.activeDateText]}>{item.date}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -596,24 +598,24 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         </View>
 
         {/* Total Nutrition Analysis Banner */}
-        <View style={styles.macroCard}>
-          <Text style={styles.macroTitle}>Daily Energy Target for {selectedBaby?.name}</Text>
+        <View style={[styles.macroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.macroTitle, { color: colors.text }]}>Daily Energy Target for {selectedBaby?.name}</Text>
           <View style={styles.macroGrid}>
             <View style={styles.macroItem}>
-              <Text style={styles.macroVal}>{totalKcal} <Text style={styles.macroUnit}>kcal</Text></Text>
-              <Text style={styles.macroLabel}>Energy</Text>
+              <Text style={[styles.macroVal, { color: colors.text }]}>{totalKcal} <Text style={styles.macroUnit}>kcal</Text></Text>
+              <Text style={[styles.macroLabel, { color: colors.textSoft }]}>Energy</Text>
             </View>
             <View style={styles.macroItem}>
-              <Text style={styles.macroVal}>{totalProtein}g</Text>
-              <Text style={styles.macroLabel}>Protein</Text>
+              <Text style={[styles.macroVal, { color: colors.text }]}>{totalProtein}g</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSoft }]}>Protein</Text>
             </View>
             <View style={styles.macroItem}>
-              <Text style={styles.macroVal}>12.3g</Text>
-              <Text style={styles.macroLabel}>Fat</Text>
+              <Text style={[styles.macroVal, { color: colors.text }]}>12.3g</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSoft }]}>Fat</Text>
             </View>
             <View style={styles.macroItem}>
-              <Text style={styles.macroVal}>76.0g</Text>
-              <Text style={styles.macroLabel}>Carbs</Text>
+              <Text style={[styles.macroVal, { color: colors.text }]}>76.0g</Text>
+              <Text style={[styles.macroLabel, { color: colors.textSoft }]}>Carbs</Text>
             </View>
           </View>
         </View>
@@ -627,7 +629,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Icon source="lightbulb-on-outline" size={18} color="#FF5F70" />
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Recommended for {selectedBaby?.name} ({babyAgeMonths}m)
               </Text>
             </View>
@@ -658,10 +660,10 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               keyExtractor={item => String(item.id)}
               contentContainerStyle={{ paddingHorizontal: 16 }}
               renderItem={({ item }) => (
-                <View style={styles.recCard}>
+                <View style={[styles.recCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <TouchableOpacity onPress={() => handleViewRecipeDetail(item.id)} activeOpacity={0.88}>
                     <Image source={{ uri: item.image_url || (item as any).image }} style={styles.recImg} />
-                    <Text style={styles.recName} numberOfLines={2}>{item.name}</Text>
+                    <Text style={[styles.recName, { color: colors.text }]} numberOfLines={2}>{item.name}</Text>
                     <Text style={styles.recCategory}>{item.month_age ? `${item.month_age}+ months` : 'Safe dish'}</Text>
                   </TouchableOpacity>
 
@@ -683,7 +685,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         <View style={styles.menuHeaderRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Icon source="silverware-fork-knife" size={20} color="#FF5F70" />
-            <Text style={styles.sectionMainTitle}>Menu Slots for {dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'Selected Day'}</Text>
+            <Text style={[styles.sectionMainTitle, { color: colors.text }]}>Menu Slots for {dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'Selected Day'}</Text>
           </View>
           <TouchableOpacity 
             style={styles.savePlanBtn}
@@ -701,12 +703,12 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map((mealName) => {
           const slotDishes = meals[mealName] || [];
           return (
-            <View key={mealName} style={styles.slotCard}>
+            <View key={mealName} style={[styles.slotCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.slotHeader}>
-                <Text style={styles.slotTitle}>{mealName}</Text>
+                <Text style={[styles.slotTitle, { color: colors.text }]}>{mealName}</Text>
 
                 <TouchableOpacity 
-                  style={styles.addMoreBtn}
+                  style={[styles.addMoreBtn, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}
                   onPress={() => navigation.navigate('SearchRecipe')}
                   activeOpacity={0.8}
                 >
@@ -716,16 +718,16 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               </View>
 
               {slotDishes.length === 0 ? (
-                <Text style={styles.emptySlotText}>No dishes scheduled. Tap "Add to schedule" or "Select from library"!</Text>
+                <Text style={[styles.emptySlotText, { color: colors.textSoft }]}>No dishes scheduled. Tap "Add to schedule" or "Select from library"!</Text>
               ) : (
                 slotDishes.map((dish, idx) => (
-                  <View key={idx} style={styles.dishRow}>
+                  <View key={idx} style={[styles.dishRow, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
                     <Image source={{ uri: dish.image_url || dish.image }} style={styles.dishThumb} />
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                        <Text style={styles.dishName}>{dish.name}</Text>
+                        <Text style={[styles.dishName, { color: colors.text }]}>{dish.name}</Text>
                         <TouchableOpacity 
-                          style={styles.editTimeBtn}
+                          style={[styles.editTimeBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
                           onPress={() => openEditTimeClockModal(dish, mealName)}
                           activeOpacity={0.8}
                         >
@@ -737,7 +739,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                           </View>
                         </TouchableOpacity>
                       </View>
-                      <Text style={styles.dishKcal}>{dish.kcal || dish.calories || 200} kcal · Protein: {dish.protein || 8.0}g</Text>
+                      <Text style={[styles.dishKcal, { color: colors.textSoft }]}>{dish.kcal || dish.calories || 200} kcal · Protein: {dish.protein || 8.0}g</Text>
                     </View>
 
                     <TouchableOpacity 
@@ -757,19 +759,19 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Modal 1: Fast Add Dish to Meal Schedule (Select Slot Sáng/Trưa/Phụ/Tối) */}
+      {/* Modal 1: Fast Add Dish to Meal Schedule */}
       <Modal visible={addSlotModalVisible} transparent animationType="fade" onRequestClose={() => setAddSlotModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setAddSlotModalVisible(false)}>
-          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.modalBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={(e) => e.stopPropagation()}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
               <Icon source="clock-outline" size={22} color="#FF5F70" />
-              <Text style={styles.modalTitle}>Add to Meal Schedule</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Add to Meal Schedule</Text>
             </View>
             {!!targetRecipe && (
               <Text style={styles.modalSubTitle}>Dish: "{targetRecipe.name}" ({targetRecipe.kcal || targetRecipe.calories || 200} kcal)</Text>
             )}
 
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#4B3034', marginBottom: 8, marginTop: 4 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text, marginBottom: 8, marginTop: 4 }}>
               Select Meal Slot for {dynamicDaysOfWeek[selectedDayIndex]?.fullLabel || 'Selected Day'}:
             </Text>
 
@@ -788,8 +790,8 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      backgroundColor: isSelected ? '#FFFFFF' : '#FFF0F2',
-                      borderColor: isSelected ? '#FF5F70' : '#FFE4E6',
+                      backgroundColor: isSelected ? colors.surface : (isDark ? '#3A2E31' : '#FFF0F2'),
+                      borderColor: isSelected ? '#FF5F70' : colors.border,
                       borderWidth: 1,
                       paddingVertical: 12,
                       paddingHorizontal: 14,
@@ -799,7 +801,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                     onPress={() => setSelectedMealSlot(slot.key as any)}
                     activeOpacity={0.8}
                   >
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#FF5F70' : '#4B3034' }}>{slot.label}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#FF5F70' : colors.text }}>{slot.label}</Text>
                     {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
                   </TouchableOpacity>
                 );
@@ -807,8 +809,8 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
             </View>
 
             <View style={styles.modalBtnRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setAddSlotModalVisible(false)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+              <TouchableOpacity style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#3A2E31' : '#F3F4F6' }]} onPress={() => setAddSlotModalVisible(false)}>
+                <Text style={[styles.modalCancelText, { color: colors.textSoft }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalApplyBtn} onPress={handleConfirmAddDishToSlot}>
                 <Text style={styles.modalApplyText}>Confirm</Text>
@@ -821,22 +823,22 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
       {/* Modal 2: Optional Custom Set Time Clock Picker */}
       <Modal visible={clockModalVisible} transparent animationType="fade" onRequestClose={() => setClockModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setClockModalVisible(false)}>
-          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
+          <Pressable style={[styles.modalBox, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={(e) => e.stopPropagation()}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 4 }}>
               <Icon source="clock-outline" size={22} color="#FF5F70" />
-              <Text style={styles.modalTitle}>Set Meal Time</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Set Meal Time</Text>
             </View>
             {!!targetRecipe && (
               <Text style={styles.modalSubTitle}>Dish: "{targetRecipe.name}"</Text>
             )}
 
             {/* Live Clock Display & Auto-Slot Preview */}
-            <View style={styles.liveClockBox}>
+            <View style={[styles.liveClockBox, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: colors.border }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                 <Icon source="clock-outline" size={24} color="#FF5F70" />
                 <Text style={styles.liveClockText}>{selectedTimeStr}</Text>
               </View>
-              <Text style={styles.liveSlotText}>
+              <Text style={[styles.liveSlotText, { color: colors.text }]}>
                 Auto maps to: <Text style={{ fontWeight: '800', color: '#FF5F70' }}>{targetSlot}</Text> slot
               </Text>
             </View>

@@ -140,7 +140,7 @@ function HomeBabyHeader() {
                     if (!selectedBaby) {
                         navigation.navigate('AddBabyProfile');
                     } else {
-                        handleOpenBabyActions();
+                        setShowBabySwitcher(true);
                     }
                 }}>
 
@@ -245,6 +245,10 @@ function HomeBabyHeader() {
             <BabyProfileActionsModal
                 visible={showBabyActions}
                 onClose={handleCloseBabyActions}
+                onGrowthTracking={() => {
+                    handleCloseBabyActions();
+                    (navigation as any).navigate('GrowthTracking', { childId: selectedBaby?.id });
+                }}
                 onWeaningMealPlan={() => {
                     handleCloseBabyActions();
                     (navigation as any).navigate('MealPlanList', { childId: selectedBaby?.id });

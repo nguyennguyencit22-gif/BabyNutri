@@ -29,6 +29,7 @@ import './src/i18n';
 import { store } from './src/store/store';
 import type { AppDispatch } from './src/store/store';
 import { restoreLanguage } from './src/store/settings/languageSlice';
+import { restoreThemeMode } from './src/store/settings/themeSlice';
 import { loadPersistedBabies } from './src/store/babySlice';
 import { loadPersistedHistory } from './src/store/historySlice';
 
@@ -42,6 +43,7 @@ function AppContent() {
 
   useEffect(() => {
     dispatch(restoreLanguage());
+    dispatch(restoreThemeMode());
     dispatch(loadPersistedBabies());
     dispatch(loadPersistedHistory());
   }, [dispatch]);

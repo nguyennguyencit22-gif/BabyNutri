@@ -56,6 +56,8 @@ import type {
 import createStyles from '@/styles/profile/editBabyProfileStyles';
 import DeleteBabyProfileModal from '@/components/profile/DeleteBabyProfileModal';
 import { useAppTheme } from '@/theme/useAppTheme';
+import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+
 function EditBabyProfileScreen({
     navigation,
     route,
@@ -171,6 +173,15 @@ function EditBabyProfileScreen({
         if (babyName.trim().length < 2) {
             setNameError(
                 'Baby name must contain at least 2 characters.',
+            );
+            return false;
+        }
+
+        const ageMonths = calculateBabyAgeInMonths(dateOfBirth.toISOString());
+        if (ageMonths > 60) {
+            Alert.alert(
+                'Age Limit Exceeded',
+                'BabyNutri is designed for infants and children up to 5 years old (60 months). Please select a valid date of birth within 5 years.',
             );
             return false;
         }

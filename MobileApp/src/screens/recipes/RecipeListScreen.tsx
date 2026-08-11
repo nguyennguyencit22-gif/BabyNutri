@@ -7,6 +7,7 @@ import RecipeCard from '../../components/recipes/RecipeCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import type { RootState } from '../../store/store';
 import { useRecipeStore } from '../../stores/useRecipeStore';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const CATEGORIES = ['All', '6-12 months', '12-24 months', '24+ months'];
 
@@ -16,6 +17,7 @@ interface RecipeListScreenProps {
 }
 
 const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTopHeader = false }) => {
+  const { colors, isDark } = useAppTheme();
   const { recipes, loading, selectedCategory, setSelectedCategory, fetchRecipes } = useRecipeStore();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,8 +51,7 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
     else if (selectedCategory === '12-24 months') result = result.filter(r => r.month_age > 12 && r.month_age <= 24);
     else if (selectedCategory === '24+ months') result = result.filter(r => r.month_age > 24);
 
-    // 2. Personalized Smart Ranking (Shopee-Style Recommendation per Leader Minh Nguyen):
-    // Safe recipes are pushed to TOP, recipes with allergens are pushed to BOTTOM.
+    // 2. Personalized Smart Ranking:
     if (babyAllergies && babyAllergies.length > 0) {
       result.sort((a, b) => {
         const fullA = `${a.name || ''} ${(a as any).description || ''} ${JSON.stringify((a as any).ingredients || '')}`.toLowerCase();
@@ -59,8 +60,8 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         const hasAllergenA = babyAllergies.some(allergen => allergen && fullA.includes(allergen.toLowerCase()));
         const hasAllergenB = babyAllergies.some(allergen => allergen && fullB.includes(allergen.toLowerCase()));
 
-        if (hasAllergenA && !hasAllergenB) return 1; // Push A to bottom
-        if (!hasAllergenA && hasAllergenB) return -1; // Keep B on top
+        if (hasAllergenA && !hasAllergenB) return 1;
+        if (!hasAllergenA && hasAllergenB) return -1;
         return 0;
       });
     }
@@ -68,15 +69,15 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
     return result;
   }, [recipes, selectedCategory, babyAllergies]);
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF5F70" /></View>;
+  if (loading) return <View style={[styles.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color="#FF5F70" /></View>;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {!hideTopHeader && <TopHeaderBar />}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Weaning Recipes</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Weaning Recipes</Text>
         <TouchableOpacity
-          style={styles.searchBtnContainer}
+          style={[styles.searchBtnContainer, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: colors.border }]}
           onPress={() => navigation.navigate('SearchRecipe')}
           activeOpacity={0.75}
         >
@@ -84,11 +85,11 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         </TouchableOpacity>
       </View>
 
-      {/* Shopee-style Personalized Smart Recommendation Banner */}
+      {/* Personalized Smart Recommendation Banner */}
       {selectedBaby && (
-        <View style={styles.allergyBanner}>
+        <View style={[styles.allergyBanner, { backgroundColor: isDark ? '#4A2A30' : '#FFF0F2', borderColor: isDark ? '#8A4550' : '#FFE4E6' }]}>
           <Text style={styles.allergyBannerText}>
-            💡 Personalized for {selectedBaby.name}: Safe recipes recommended first.
+            Personalized for {selectedBaby.name}: Safe recipes recommended first.
             {babyAllergies.length > 0 ? ` Recipes with (${babyAllergies.join(', ')}) moved to bottom.` : ''}
           </Text>
         </View>
@@ -102,11 +103,15 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
             return (
               <TouchableOpacity
                 key={cat}
-                style={[styles.chip, isSelected && styles.activeChip]}
+                style={[
+                  styles.chip,
+                  { backgroundColor: isSelected ? '#FF5F70' : colors.surface, borderColor: isSelected ? '#FF5F70' : colors.border },
+                  isSelected && styles.activeChip,
+                ]}
                 onPress={() => setSelectedCategory(cat)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.chipText, isSelected && styles.activeChipText]}>{cat}</Text>
+                <Text style={[styles.chipText, { color: isSelected ? '#FFFFFF' : colors.textSoft }, isSelected && styles.activeChipText]}>{cat}</Text>
               </TouchableOpacity>
             );
           })}
@@ -125,8 +130,8 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🥑</Text>
-            <Text style={styles.empty}>No matching recipes found</Text>
+            <Icon source="food-apple-outline" size={40} color={colors.textSoft} />
+            <Text style={[styles.empty, { color: colors.textSoft }]}>No matching recipes found</Text>
           </View>
         }
       />
@@ -140,17 +145,15 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF5F2' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF5F2' },
+  container: { flex: 1 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 14, paddingBottom: 10 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#4B3034', letterSpacing: -0.3 },
+  headerTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
   searchBtnContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFF0F2',
     borderWidth: 1,
-    borderColor: '#FFE4E6',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#FF5F70',
@@ -161,12 +164,10 @@ const styles = StyleSheet.create({
   allergyBanner: {
     marginHorizontal: 16,
     marginBottom: 10,
-    backgroundColor: '#FFF0F2',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#FFE4E6',
   },
   allergyBannerText: {
     fontSize: 12,
@@ -180,9 +181,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#FFE4E6',
     shadowColor: '#FF5F70',
     shadowOpacity: 0.04,
     shadowRadius: 4,
@@ -199,7 +198,6 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#8E7377',
   },
   activeChipText: {
     color: '#FFFFFF',
@@ -207,9 +205,8 @@ const styles = StyleSheet.create({
   },
   list: { paddingHorizontal: 16, paddingBottom: 90 },
   row: { justifyContent: 'space-between' },
-  emptyContainer: { alignItems: 'center', marginTop: 50 },
-  emptyIcon: { fontSize: 40, marginBottom: 8 },
-  empty: { textAlign: 'center', color: '#8E7377', fontSize: 14, fontWeight: '500' },
+  emptyContainer: { alignItems: 'center', marginTop: 50, gap: 8 },
+  empty: { textAlign: 'center', fontSize: 14, fontWeight: '500' },
   fab: { position: 'absolute', right: 20, bottom: 80, width: 56, height: 56, borderRadius: 28, backgroundColor: '#FF5F70', justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#FF5F70', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
   fabText: { color: '#fff', fontSize: 30, lineHeight: 32, fontWeight: '300' },
 });

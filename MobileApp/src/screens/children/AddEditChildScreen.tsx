@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { childService } from '../../services/childService';
+import { useAppTheme } from '../../theme/useAppTheme';
 import { Child } from '../../types/child';
 
 export const AddEditChildScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const { childId } = route.params || {};
   const isEditing = !!childId;
   
@@ -35,8 +37,13 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
   };
 
   const handleSave = async () => {
-    if (!name || !age || !height || !weight) {
-      Alert.alert('Notice', 'Please fill in all required fields (*)');
+    if (!name || !age || !gender || !height || !weight) {
+      Alert.alert('Missing Fields', 'Please fill in all required fields');
+      return;
+    }
+
+    if (parseInt(age, 10) > 5) {
+      Alert.alert('Age Limit Exceeded', 'BabyNutri is designed for infants and children up to 5 years old (60 months). Please enter an age of 5 years or under.');
       return;
     }
 
@@ -61,79 +68,81 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.screenTitle}>{isEditing ? 'Edit Child Profile' : 'Create Child Profile'}</Text>
+  const inputBg = isDark ? '#3A2E31' : '#FFFFFF';
 
-      <Text style={styles.label}>Child Name *</Text>
+  return (
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.screenTitle, { color: colors.text }]}>{isEditing ? 'Edit Child Profile' : 'Create Child Profile'}</Text>
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Child Name *</Text>
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={name} 
         onChangeText={setName} 
         placeholder="Enter child name (e.g. Leo)" 
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Age (years) *</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Age (years) *</Text>
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={age} 
         onChangeText={setAge} 
         keyboardType="numeric" 
         placeholder="Enter age in years (e.g. 2)" 
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Gender *</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Gender *</Text>
       <View style={styles.genderRow}>
         <TouchableOpacity 
-          style={[styles.genderChip, gender === 'Male' && styles.genderChipActive]} 
+          style={[styles.genderChip, { backgroundColor: inputBg, borderColor: colors.border }, gender === 'Male' && styles.genderChipActive]} 
           onPress={() => setGender('Male')}
           activeOpacity={0.88}
         >
-          <Text style={[styles.genderChipText, gender === 'Male' && styles.genderChipTextActive]}>
-            👦 Boy
+          <Text style={[styles.genderChipText, { color: colors.text }, gender === 'Male' && styles.genderChipTextActive]}>
+            Boy
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.genderChip, gender === 'Female' && styles.genderChipActive]} 
+          style={[styles.genderChip, { backgroundColor: inputBg, borderColor: colors.border }, gender === 'Female' && styles.genderChipActive]} 
           onPress={() => setGender('Female')}
           activeOpacity={0.88}
         >
-          <Text style={[styles.genderChipText, gender === 'Female' && styles.genderChipTextActive]}>
-            👧 Girl
+          <Text style={[styles.genderChipText, { color: colors.text }, gender === 'Female' && styles.genderChipTextActive]}>
+            Girl
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Height (cm) *</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Height (cm) *</Text>
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={height} 
         onChangeText={setHeight} 
         keyboardType="numeric" 
         placeholder="Enter height (e.g. 85)" 
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Weight (kg) *</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Weight (kg) *</Text>
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={weight} 
         onChangeText={setWeight} 
         keyboardType="numeric" 
         placeholder="Enter weight (e.g. 12)" 
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Allergy History (comma separated)</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Allergy History (comma separated)</Text>
       <TextInput 
-        style={styles.input} 
+        style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={allergies} 
         onChangeText={setAllergies} 
         placeholder="e.g. Peanuts, Seafood, Cow milk" 
-        placeholderTextColor="#A0A0A0"
+        placeholderTextColor={colors.textSoft}
       />
 
       <TouchableOpacity style={styles.saveBtn} onPress={handleSave} activeOpacity={0.88}>

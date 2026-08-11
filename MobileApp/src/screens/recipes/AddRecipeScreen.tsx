@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { recipeService } from '../../services/recipe.service';
 import { IngredientInput } from '../../types/recipe';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const DEFAULT_FOOD_IMAGE = 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600';
 
 const AddRecipeScreen = ({ navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const formData = useRef({
     name: '',
     description: '',
@@ -59,87 +61,142 @@ const AddRecipeScreen = ({ navigation }: any) => {
         ingredients: ingredients.filter((i) => i.name.trim()),
         steps: steps.filter((s) => s.trim()),
       });
-      Alert.alert('Success', 'New recipe added', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'Recipe created successfully', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
     } catch (e) {
-      console.error('Create recipe error:', e);
-      Alert.alert('Error', 'Unable to create recipe right now');
+      console.error(e);
+      Alert.alert('Error', 'Unable to create recipe');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.label}>Recipe Name</Text>
-      <TextInput style={styles.input} onChangeText={(v) => { formData.current.name = v; }} placeholder="e.g. Pumpkin Porridge" />
-
-      <Text style={styles.label}>Description</Text>
-      <TextInput style={[styles.input, styles.multiline]} onChangeText={(v) => { formData.current.description = v; }} multiline placeholder="Short description of the recipe" />
-
-      <Text style={styles.label}>Image (URL)</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name *</Text>
       <TextInput
-        style={styles.input}
-        defaultValue={"DEFAULT_FOOD_IMAGE"}
-        onChangeText={(v) => { formData.current.imageUrl = v; }}
-        placeholder="https://..."
+        style={inputStyle}
+        onChangeText={(v) => (formData.current.name = v)}
+        placeholder="e.g. Pumpkin Puree"
+        placeholderTextColor={colors.textSoft}
+      />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Description</Text>
+      <TextInput
+        style={[inputStyle, styles.multiline]}
+        multiline
+        onChangeText={(v) => (formData.current.description = v)}
+        placeholder="Brief description"
+        placeholderTextColor={colors.textSoft}
+      />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Image URL</Text>
+      <TextInput
+        style={inputStyle}
+        defaultValue={DEFAULT_FOOD_IMAGE}
+        onChangeText={(v) => (formData.current.imageUrl = v)}
+        placeholder="Image URL"
+        placeholderTextColor={colors.textSoft}
       />
 
       <View style={styles.rowInputs}>
-        <View style={styles.third}>
-          <Text style={styles.label}>Calories (kcal)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.calories = v; }} keyboardType="numeric" placeholder="120" />
+        <View style={styles.half}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Calories (kcal) *</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.calories = v)}
+            placeholder="120"
+            placeholderTextColor={colors.textSoft}
+          />
         </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Age (months)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.monthAge = v; }} keyboardType="numeric" placeholder="7" />
-        </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Servings</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.serves = v; }} defaultValue="1" keyboardType="numeric" placeholder="1" />
-        </View>
-      </View>
-
-      {/* Nhập Thông tin Dinh dưỡng: Protein, Fat, Carb */}
-      <View style={styles.rowInputs}>
-        <View style={styles.third}>
-          <Text style={styles.label}>Protein (g)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.protein = v; }} keyboardType="numeric" placeholder="12.5" />
-        </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Fat (g)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.fat = v; }} keyboardType="numeric" placeholder="4.2" />
-        </View>
-        <View style={styles.third}>
-          <Text style={styles.label}>Carb (g)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.carbohydrate = v; }} keyboardType="numeric" placeholder="25.0" />
+        <View style={styles.half}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Target Age (Months) *</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.monthAge = v)}
+            placeholder="6"
+            placeholderTextColor={colors.textSoft}
+          />
         </View>
       </View>
 
       <View style={styles.rowInputs}>
         <View style={styles.half}>
-          <Text style={styles.label}>Prep Time (min)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.prepTime = v; }} keyboardType="numeric" placeholder="5" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Prep Time (mins)</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.prepTime = v)}
+            placeholder="10"
+            placeholderTextColor={colors.textSoft}
+          />
         </View>
         <View style={styles.half}>
-          <Text style={styles.label}>Cooking Time (min)</Text>
-          <TextInput style={styles.input} onChangeText={(v) => { formData.current.cookingTime = v; }} keyboardType="numeric" placeholder="10" />
+          <Text style={[styles.label, { color: colors.textSoft }]}>Cook Time (mins)</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.cookingTime = v)}
+            placeholder="15"
+            placeholderTextColor={colors.textSoft}
+          />
         </View>
       </View>
 
-      <Text style={styles.section}>Ingredients</Text>
+      <View style={styles.rowInputs}>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Protein (g)</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.protein = v)}
+            placeholder="3"
+            placeholderTextColor={colors.textSoft}
+          />
+        </View>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Fat (g)</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.fat = v)}
+            placeholder="2"
+            placeholderTextColor={colors.textSoft}
+          />
+        </View>
+        <View style={styles.third}>
+          <Text style={[styles.label, { color: colors.textSoft }]}>Carb (g)</Text>
+          <TextInput
+            style={inputStyle}
+            keyboardType="numeric"
+            onChangeText={(v) => (formData.current.carbohydrate = v)}
+            placeholder="15"
+            placeholderTextColor={colors.textSoft}
+          />
+        </View>
+      </View>
+
+      <Text style={[styles.section, { color: colors.text }]}>Ingredients</Text>
       {ingredients.map((ing, i) => (
         <View key={i} style={styles.dynamicRow}>
           <TextInput
-            style={[styles.input, styles.flex2]}
+            style={[inputStyle, styles.flex2, { marginRight: 8 }]}
             defaultValue={ing.name}
             onChangeText={(v) => updateIngredient(i, 'name', v)}
-            placeholder="Ingredient name"
+            placeholder={`Ingredient ${i + 1}`}
+            placeholderTextColor={colors.textSoft}
           />
           <TextInput
-            style={[styles.input, styles.flex1, { marginLeft: 8 }]}
+            style={[inputStyle, styles.flex1]}
             defaultValue={ing.quantity}
             onChangeText={(v) => updateIngredient(i, 'quantity', v)}
             placeholder="Quantity"
+            placeholderTextColor={colors.textSoft}
           />
           <TouchableOpacity onPress={() => removeIngredient(i)}>
             <Text style={styles.removeBtn}>✕</Text>
@@ -150,14 +207,15 @@ const AddRecipeScreen = ({ navigation }: any) => {
         <Text style={styles.addBtn}>+ Add Ingredient</Text>
       </TouchableOpacity>
 
-      <Text style={styles.section}>Cooking Steps</Text>
+      <Text style={[styles.section, { color: colors.text }]}>Cooking Steps</Text>
       {steps.map((step, i) => (
         <View key={i} style={styles.dynamicRow}>
           <TextInput
-            style={[styles.input, styles.flex1]}
+            style={[inputStyle, styles.flex1]}
             defaultValue={step}
             onChangeText={(v) => updateStep(i, v)}
             placeholder={`Step ${i + 1}`}
+            placeholderTextColor={colors.textSoft}
           />
           <TouchableOpacity onPress={() => removeStep(i)}>
             <Text style={styles.removeBtn}>✕</Text>
@@ -176,15 +234,15 @@ const AddRecipeScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF5' },
+  container: { flex: 1 },
   content: { padding: 18, paddingBottom: 40 },
-  label: { fontSize: 13, fontWeight: '600', color: '#6B6B6B', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1, borderColor: '#EEE' },
+  label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },
+  input: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1 },
   multiline: { height: 80, textAlignVertical: 'top' },
   rowInputs: { flexDirection: 'row', justifyContent: 'space-between' },
   half: { width: '48%' },
   third: { width: '31%' },
-  section: { fontSize: 16, fontWeight: '700', color: '#2E2E2E', marginTop: 20, marginBottom: 8 },
+  section: { fontSize: 16, fontWeight: '700', marginTop: 20, marginBottom: 8 },
   dynamicRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   flex1: { flex: 1 },
   flex2: { flex: 2 },

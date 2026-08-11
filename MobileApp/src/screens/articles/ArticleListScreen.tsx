@@ -7,6 +7,7 @@ import ArticleCard from '../../components/articles/ArticleCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { useArticleStore } from '../../stores/useArticleStore';
 import type { RootState } from '../../store/store';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const PAGE_SIZE = 4;
 
@@ -16,6 +17,7 @@ interface ArticleListScreenProps {
 }
 
 const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideTopHeader = false }) => {
+  const { colors, isDark } = useAppTheme();
   const { articles, loading, fetchArticles } = useArticleStore();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -91,22 +93,22 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {!hideTopHeader && <TopHeaderBar />}
 
-      {/* Role Notice & Post Action Banner */}
-      <View style={styles.roleBannerContainer}>
+      {/* Role Banner */}
+      <View style={[styles.roleBannerContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={styles.authorRow}>
           <Image source={{ uri: avatarUrl }} style={styles.userAvatar} />
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{userName}</Text>
-            <View style={styles.roleTag}>
-              <Text style={styles.roleTagText}>{isExpert ? '✨ Expert Verified' : '👶 Parent Community'}</Text>
+            <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
+            <View style={[styles.roleTag, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
+              <Text style={styles.roleTagText}>{isExpert ? 'Verified Expert' : 'Parent Community'}</Text>
             </View>
           </View>
 
           {isExpert && (
-            <TouchableOpacity style={styles.postBtn} onPress={handleCreatePress} activeOpacity={0.85}>
+            <TouchableOpacity style={[styles.postBtn, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: colors.border }]} onPress={handleCreatePress} activeOpacity={0.85}>
               <Icon source="pencil" size={14} color="#FF7A59" />
               <Text style={styles.postBtnText}>Publish Post</Text>
             </TouchableOpacity>
@@ -114,17 +116,17 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
         </View>
 
         {!isExpert && (
-          <View style={styles.parentNoticeBox}>
+          <View style={[styles.parentNoticeBox, { backgroundColor: isDark ? '#3A2E31' : '#FEF3C7' }]}>
             <Icon source="star" size={14} color="#D97706" />
-            <Text style={styles.parentNoticeText}>
-              Parents can rate 5⭐, comment, like & save articles. Expert posts are verified.
+            <Text style={[styles.parentNoticeText, { color: isDark ? '#F59E0B' : '#B45309' }]}>
+              Parents can rate 5 stars, comment, like & save articles. Expert posts are verified.
             </Text>
           </View>
         )}
       </View>
 
       {loading && articles.length === 0 ? (
-        <View style={styles.center}>
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color="#FF7A59" />
         </View>
       ) : (
@@ -149,14 +151,14 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
             loadingMore ? (
               <View style={styles.footerLoader}>
                 <ActivityIndicator size="small" color="#FF7A59" />
-                <Text style={styles.footerText}>Loading more top articles...</Text>
+                <Text style={[styles.footerText, { color: colors.textSoft }]}>Loading more top articles...</Text>
               </View>
             ) : null
           }
           ListEmptyComponent={
             !loading ? (
               <View style={styles.emptyBox}>
-                <Text style={styles.emptyText}>No articles published yet.</Text>
+                <Text style={[styles.emptyText, { color: colors.textSoft }]}>No articles published yet.</Text>
               </View>
             ) : null
           }

@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import createStyles from '../../styles/questions/questionnaireStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { Picker } from '@react-native-picker/picker';
-import { getBabyAge } from '../../utils/calculateBabyAge';
+import { getBabyAge, calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 import {
     MONTHS,
     getYears,
@@ -183,6 +183,13 @@ function QuestionnaireScreen({ navigation, route }: any) {
                     Alert.alert(
                         'Required',
                         'Please select your child’s complete date of birth.',
+                    );
+                    return false;
+                }
+                if (calculateBabyAgeInMonths(answers.dateOfBirth) > 60) {
+                    Alert.alert(
+                        'Age Limit Exceeded',
+                        'BabyNutri is designed for infants and children up to 5 years old (60 months). Please select a valid date of birth within 5 years.',
                     );
                     return false;
                 }

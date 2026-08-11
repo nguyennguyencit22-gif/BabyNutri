@@ -10,6 +10,7 @@ import type { RootState } from '../../store/store';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { addActivity } from '../../store/historySlice';
 import StarRating from '../../components/common/StarRating';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 interface CommentItem {
   id: number;
@@ -20,6 +21,7 @@ interface CommentItem {
 }
 
 const ArticleDetailScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -262,31 +264,31 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     );
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF7A59" /></View>;
-  if (!article) return <View style={styles.center}><Text>Article not found</Text></View>;
+  if (loading) return <View style={[styles.center, { backgroundColor: colors.background }]}><ActivityIndicator size="large" color="#FF7A59" /></View>;
+  if (!article) return <View style={[styles.center, { backgroundColor: colors.background }]}><Text style={{ color: colors.text }}>Article not found</Text></View>;
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={{ position: 'relative' }}>
           <Image source={{ uri: article.image_url }} style={styles.image} />
           <TouchableOpacity 
-            style={styles.floatingBackBtn} 
+            style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]}
             onPress={() => navigation.goBack()}
-            activeOpacity={0.85}
+            activeOpacity={0.8}
           >
             <Icon source="chevron-left" size={24} color="#FF7A59" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>{article.title}</Text>
-          <Text style={styles.meta}>
+          <Text style={[styles.title, { color: colors.text }]}>{article.title}</Text>
+          <Text style={[styles.meta, { color: colors.textSoft }]}>
             Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
           </Text>
 
-          {/* Clean 5-Star Rating Row */}
-          <View style={styles.ratingBarRow}>
+          {/* Rating Row */}
+          <View style={[styles.ratingBarRow, { backgroundColor: isDark ? '#3A2E31' : '#FFFBF0', borderColor: isDark ? '#5A3D42' : '#FEF3C7' }]}>
             <StarRating
               rating={avgRating}
               userRating={userRating}
@@ -297,38 +299,39 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             />
           </View>
 
-          {/* Synced Action Buttons: Like & Save (Synced to Favourites) */}
+          {/* Action Buttons: Like & Save */}
           <View style={styles.actionRow}>
-            <TouchableOpacity style={[styles.actionBtn, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
-                <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : '#65676B'} />
+                <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : colors.textSoft} />
               </Animated.View>
-              <Text style={[styles.actionBtnText, liked && styles.likedText]}>{liked ? 'Liked & Saved' : 'Like Article'}</Text>
+              <Text style={[styles.actionBtnText, { color: colors.text }, liked && styles.likedText]}>{liked ? 'Liked & Saved' : 'Like Article'}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.actionBtn, isSaved && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, isSaved && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
-                <Icon source={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#FF7A59' : '#65676B'} />
+                <Icon source={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#FF7A59' : colors.textSoft} />
               </Animated.View>
-              <Text style={[styles.actionBtnText, isSaved && styles.savedText]}>{isSaved ? 'Saved in Favourites' : 'Save Article'}</Text>
+              <Text style={[styles.actionBtnText, { color: colors.text }, isSaved && styles.savedText]}>{isSaved ? 'Saved in Favourites' : 'Save Article'}</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.body}>{article.content}</Text>
+          <Text style={[styles.body, { color: colors.text }]}>{article.content}</Text>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           {/* Comments section */}
           <View style={styles.commentTitleBox}>
-            <Icon source="comment-outline" size={20} color="#2E2E2E" />
-            <Text style={styles.commentHeader}>Comments ({comments.length})</Text>
+            <Icon source="comment-outline" size={20} color={colors.text} />
+            <Text style={[styles.commentHeader, { color: colors.text }]}>Comments ({comments.length})</Text>
           </View>
 
           {/* Input box */}
           <View style={styles.inputRow}>
             <TextInput
-              style={styles.commentInput}
+              style={[styles.commentInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               placeholder="Write a comment..."
+              placeholderTextColor={colors.textSoft}
               value={commentInput}
               onChangeText={setCommentInput}
             />
@@ -339,19 +342,19 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
           {/* Comments list */}
           {comments.length === 0 ? (
-            <Text style={styles.emptyCommentText}>No comments yet. Be the first to share your thoughts!</Text>
+            <Text style={[styles.emptyCommentText, { color: colors.textSoft }]}>No comments yet. Be the first to share your thoughts!</Text>
           ) : (
             comments.map((item) => (
-              <View key={item.id} style={styles.commentBox}>
+              <View key={item.id} style={[styles.commentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
                 <View style={styles.commentContentBox}>
                   <View style={styles.commentHeaderRow}>
-                    <Text style={styles.commentUser}>{item.userName}</Text>
-                    <Text style={styles.commentTime}>{item.time}</Text>
+                    <Text style={[styles.commentUser, { color: colors.text }]}>{item.userName}</Text>
+                    <Text style={[styles.commentTime, { color: colors.textSoft }]}>{item.time}</Text>
                   </View>
-                  <Text style={styles.commentText}>{item.content}</Text>
+                  <Text style={[styles.commentText, { color: colors.text }]}>{item.content}</Text>
 
-                  {/* Comment Owner Controls: Edit & Delete */}
+                  {/* Comment Owner Controls */}
                   {item.userName === currentUserName && (
                     <View style={styles.commentOwnerControls}>
                       <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
@@ -373,17 +376,17 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       {/* Edit Comment Modal */}
       <Modal visible={editModalVisible} transparent animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setEditModalVisible(false)}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Comment</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Edit Comment</Text>
             <TextInput
-              style={styles.editInput}
+              style={[styles.editInput, { backgroundColor: isDark ? '#3A2E31' : '#F9FAFB', borderColor: colors.border, color: colors.text }]}
               value={editingText}
               onChangeText={setEditingText}
               multiline
             />
             <View style={styles.modalBtnRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setEditModalVisible(false)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
+              <TouchableOpacity style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#3A2E31' : '#E5E7EB' }]} onPress={() => setEditModalVisible(false)}>
+                <Text style={[styles.modalCancelText, { color: colors.textSoft }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalSaveBtn} onPress={handleConfirmEditComment}>
                 <Text style={styles.modalSaveText}>Save</Text>

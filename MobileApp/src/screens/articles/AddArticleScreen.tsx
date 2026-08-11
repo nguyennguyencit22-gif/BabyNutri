@@ -6,8 +6,10 @@ import { articleService } from '../../services/article.service';
 import { useArticleStore } from '../../stores/useArticleStore';
 import { ArticleListItem } from '../../types/article';
 import type { RootState } from '../../store/store';
+import { useAppTheme } from '../../theme/useAppTheme';
 
 const AddArticleScreen = ({ navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -24,8 +26,8 @@ const AddArticleScreen = ({ navigation }: any) => {
   useEffect(() => {
     if (!isExpert) {
       Alert.alert(
-        'Expert Access Only 🔒',
-        'Article publishing is reserved for verified Nutrition Experts. As a Parent, you can interact by liking, commenting, rating 5 stars ⭐, and saving articles to your favourites!',
+        'Expert Access Only',
+        'Article publishing is reserved for verified Nutrition Experts. As a Parent, you can interact by liking, commenting, rating 5 stars, and saving articles to your favourites!',
         [{ text: 'Understand', onPress: () => navigation.goBack() }]
       );
     }
@@ -68,7 +70,7 @@ const AddArticleScreen = ({ navigation }: any) => {
         author: authorName,
       });
 
-      Alert.alert('Success ✨', 'Article published to newsfeed successfully!', [
+      Alert.alert('Success', 'Article published to newsfeed successfully!', [
         {
           text: 'OK',
           onPress: () => {
@@ -78,7 +80,7 @@ const AddArticleScreen = ({ navigation }: any) => {
       ]);
     } catch (e) {
       console.error('Create article error:', e);
-      Alert.alert('Success ✨', 'Article published to newsfeed successfully!', [
+      Alert.alert('Success', 'Article published to newsfeed successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } finally {
@@ -86,45 +88,47 @@ const AddArticleScreen = ({ navigation }: any) => {
     }
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.headerSubtitle}>Publish Expert Article to BabyNutri Community</Text>
+  const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
-      <Text style={styles.label}>Article Title *</Text>
+  return (
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.headerSubtitle, { color: colors.textSoft }]}>Publish Expert Article to BabyNutri Community</Text>
+
+      <Text style={[styles.label, { color: colors.text }]}>Article Title *</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         value={title}
         onChangeText={setTitle}
         placeholder="e.g. Essential weaning tips for 6-month old baby..."
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Short Summary</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Short Summary</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         value={summary}
         onChangeText={setSummary}
         placeholder="Brief summary of key points..."
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Image URL (Optional)</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Image URL (Optional)</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         value={imageUrl}
         onChangeText={setImageUrl}
         placeholder="https://..."
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={styles.label}>Detailed Content *</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Detailed Content *</Text>
       <TextInput
-        style={[styles.input, styles.multiline]}
+        style={[inputStyle, styles.multiline]}
         value={content}
         onChangeText={setContent}
         multiline
         placeholder="Write expert guidance, feeding schedules, or weaning tips..."
-        placeholderTextColor="#9CA3AF"
+        placeholderTextColor={colors.textSoft}
       />
 
       <TouchableOpacity 
@@ -141,11 +145,11 @@ const AddArticleScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF5' },
+  container: { flex: 1 },
   content: { padding: 18, paddingBottom: 40 },
-  headerSubtitle: { fontSize: 13, color: '#8E7377', marginBottom: 16, fontWeight: '600' },
-  label: { fontSize: 13, fontWeight: '700', color: '#4B3034', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#fff', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, borderWidth: 1, borderColor: '#FFE4E6', color: '#111827' },
+  headerSubtitle: { fontSize: 13, marginBottom: 16, fontWeight: '600' },
+  label: { fontSize: 13, fontWeight: '700', marginBottom: 6, marginTop: 12 },
+  input: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, borderWidth: 1 },
   multiline: { height: 160, textAlignVertical: 'top' },
   submitBtn: { flexDirection: 'row', gap: 8, justifyContent: 'center', backgroundColor: '#FF5F70', borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 28, shadowColor: '#FF5F70', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   submitBtnDisabled: { opacity: 0.6 },

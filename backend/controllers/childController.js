@@ -149,6 +149,18 @@ exports.getChildById = async (req, res) => {
     }
 };
 
+function validateChildAge(dateOfBirth) {
+    if (!dateOfBirth) return true;
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) return true;
+    const today = new Date();
+    let months = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+    if (today.getDate() < dob.getDate()) {
+        months -= 1;
+    }
+    return months >= 0 && months <= 60;
+}
+
 // ==========================================
 // POST /api/children — create a baby profile;
 // the creator becomes its owner caregiver
@@ -174,6 +186,12 @@ exports.createChild = async (req, res) => {
         if (!name || !name.trim()) {
             return res.status(400).json({
                 message: "Baby name is required.",
+            });
+        }
+
+        if (dateOfBirth && !validateChildAge(dateOfBirth)) {
+            return res.status(400).json({
+                message: "BabyNutri is designed for children up to 5 years old (60 months). Please select a valid date of birth within 5 years.",
             });
         }
 
@@ -270,6 +288,12 @@ exports.updateChild = async (req, res) => {
         if (!name || !name.trim()) {
             return res.status(400).json({
                 message: "Baby name is required.",
+            });
+        }
+
+        if (dateOfBirth && !validateChildAge(dateOfBirth)) {
+            return res.status(400).json({
+                message: "BabyNutri is designed for children up to 5 years old (60 months). Please select a valid date of birth within 5 years.",
             });
         }
 

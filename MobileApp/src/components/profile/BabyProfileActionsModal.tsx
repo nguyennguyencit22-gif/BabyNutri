@@ -13,12 +13,13 @@ import { useAppTheme } from '../../theme/useAppTheme';
 interface BabyProfileActionsModalProps {
     visible: boolean;
     onClose: () => void;
+    onGrowthTracking?: () => void;
     onWeaningMealPlan?: () => void;
     onEditBaby: () => void;
-    onAddCaregiver: () => void;
-    onEditEvents: () => void;
-    onConfigureMainScreen: () => void;
-    onReminders: () => void;
+    onAddCaregiver?: () => void;
+    onEditEvents?: () => void;
+    onConfigureMainScreen?: () => void;
+    onReminders?: () => void;
     onCopyCode?: () => void;
     onInputCode?: () => void;
     onCaregiverList?: () => void;
@@ -32,12 +33,10 @@ interface BabyProfileActionsModalProps {
 export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = ({
     visible,
     onClose,
+    onGrowthTracking,
     onWeaningMealPlan,
     onEditBaby,
     onAddCaregiver,
-    onEditEvents,
-    onConfigureMainScreen,
-    onReminders,
     onCopyCode,
     onInputCode,
     onCaregiverList,
@@ -48,42 +47,21 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
 
     const actions = [
         {
-            id: 'weaning-meal-plan',
-            title: 'Weaning Meal Plan',
-            subtitle: "View & manage baby's weekly plan",
-            iconName: 'calendar-month-outline',
-            onPress: onWeaningMealPlan || (() => {}),
-        },
-        {
             id: 'edit',
             title: 'Edit Baby Profile',
             iconName: 'account-edit-outline',
             onPress: onEditBaby,
         },
-        {
-            id: 'caregiver',
-            title: 'Add Parent / Caregiver',
-            iconName: 'account-plus-outline',
-            onPress: onAddCaregiver,
-        },
-        {
-            id: 'events',
-            title: 'Create / Edit Events',
-            iconName: 'calendar-plus-outline',
-            onPress: onEditEvents,
-        },
-        {
-            id: 'configure',
-            title: 'Main Screen Configuration',
-            iconName: 'view-dashboard-outline',
-            onPress: onConfigureMainScreen,
-        },
-        {
-            id: 'reminders',
-            title: 'Weaning Reminders',
-            iconName: 'bell-outline',
-            onPress: onReminders,
-        },
+        ...(onAddCaregiver
+            ? [
+                  {
+                      id: 'caregiver',
+                      title: 'Add Parent / Caregiver',
+                      iconName: 'account-plus-outline',
+                      onPress: onAddCaregiver,
+                  },
+              ]
+            : []),
         ...(onCopyCode
             ? [
                   {
@@ -124,6 +102,28 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                   },
               ]
             : []),
+        ...(onGrowthTracking
+            ? [
+                  {
+                      id: 'growth-tracking',
+                      title: 'Growth Tracking (WHO)',
+                      subtitle: 'View growth chart & BMI history',
+                      iconName: 'chart-line',
+                      onPress: onGrowthTracking,
+                  },
+              ]
+            : []),
+        ...(onWeaningMealPlan
+            ? [
+                  {
+                      id: 'weaning-meal-plan',
+                      title: 'Weaning Meal Plan',
+                      subtitle: "View & manage baby's weekly plan",
+                      iconName: 'calendar-month-outline',
+                      onPress: onWeaningMealPlan,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -139,9 +139,8 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                 />
 
                 <View style={styles.sheet}>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, marginBottom: 12, paddingHorizontal: 4 }}>
-                        ⚙️ Baby Profile Options
-                    </Text>
+                    <View style={styles.dragHandle} />
+
                     {actions.map(action => (
                         <Pressable
                             key={action.id}
@@ -156,11 +155,13 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                                 pressed && styles.actionRowPressed,
                             ]}>
 
-                            <Icon
-                                source={action.iconName}
-                                size={22}
-                                color={colors.primary}
-                            />
+                            <View style={styles.iconContainer}>
+                                <Icon
+                                    source={action.iconName}
+                                    size={20}
+                                    color="#FF3B70"
+                                />
+                            </View>
 
                             {action.subtitle ? (
                                 <View style={styles.actionTextGroup}>
