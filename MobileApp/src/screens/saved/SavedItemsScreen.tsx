@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, StatusBar, Platform } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import TopHeaderBar from '../../components/common/TopHeaderBar';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, StatusBar, Platform, Animated } from 'react-native';
+import { Icon } from 'react-native-paper';
 import ArticleCard from '../../components/articles/ArticleCard';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
@@ -9,46 +8,21 @@ import { articleService } from '../../services/article.service';
 import { recipeService } from '../../services/recipe.service';
 import { ArticleListItem } from '../../types/article';
 import { RecipeListItem } from '../../types/recipe';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from '../../store/store';
-import { clearHistory } from '../../store/historySlice';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store/store';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
 
-const BookmarkIcon = ({ size = 20, color = '#FF6B4A' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-  </Svg>
-);
-
-const BowlIcon = ({ size = 36, color = '#9CA3AF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 21a9 9 0 009-9H3a9 9 0 009 9z" />
-    <Path d="M12 3v9M7 6v6M17 6v6" />
-  </Svg>
-);
-
-const BackIcon = ({ size = 20, color = '#FF6B4A' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
-
-const HistoryIcon = ({ size = 20, color = '#FF6B4A' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </Svg>
-);
-
 const SavedItemsScreen = ({ route, navigation }: any) => {
-  const dispatch = useDispatch<AppDispatch>();
   const initialTab = route?.params?.initialTab || 'history';
   const [activeTab, setActiveTab] = useState<'history' | 'articles' | 'recipes'>(initialTab);
   const [savedArticles, setSavedArticles] = useState<ArticleListItem[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<RecipeListItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   const activities = useSelector((state: RootState) => state.history.activities);
   const { savedArticleIds = [], savedRecipeIds = [] } = useBookmarkStore();
+
+  const tabFadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (route?.params?.initialTab) {
@@ -56,11 +30,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
     }
   }, [route?.params?.initialTab]);
 
-  useEffect(() => {
-    loadSavedData();
-  }, [savedArticleIds, savedRecipeIds]);
-
-  const loadSavedData = async () => {
+  const loadSavedData = useCallback(async () => {
     try {
       const [allArticles, allRecipes] = await Promise.all([
         articleService.getAll().catch(() => []),
@@ -75,15 +45,27 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
 
       setSavedArticles(validArticles.filter((a) => a && safeArticleIds.includes(Number(a.id))));
       setSavedRecipes(validRecipes.filter((r) => r && safeRecipeIds.includes(Number(r.id))));
-    } catch (e) {
-      console.error('Load saved items error:', e);
+    } catch {
+      console.warn('Load saved items warning');
     }
+  }, [savedArticleIds, savedRecipeIds]);
+
+  useEffect(() => {
+    loadSavedData();
+  }, [loadSavedData]);
+
+  const handleTabChange = (newTab: 'history' | 'articles' | 'recipes') => {
+    Animated.sequence([
+      Animated.timing(tabFadeAnim, { toValue: 0.7, duration: 100, useNativeDriver: true }),
+      Animated.timing(tabFadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+    ]).start();
+    setActiveTab(newTab);
   };
 
   const handleArticlePress = (articleId: number) => {
     try {
       navigation.navigate('ArticleDetail', { id: articleId });
-    } catch (e) {
+    } catch {
       navigation.navigate('Articles', { screen: 'ArticleDetail', params: { id: articleId } });
     }
   };
@@ -91,7 +73,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
   const handleRecipePress = (recipeId: number) => {
     try {
       navigation.navigate('RecipeDetail', { id: recipeId });
-    } catch (e) {
+    } catch {
       navigation.navigate('Recipes', { screen: 'RecipeDetail', params: { id: recipeId } });
     }
   };
@@ -105,27 +87,27 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <BackIcon size={20} color="#FF6B4A" />
+            <Icon source="chevron-left" size={24} color="#FF6B4A" />
           </TouchableOpacity>
-          <HistoryIcon size={22} color="#FF6B4A" />
-          <Text style={styles.title}>App Activity & History</Text>
+          <Icon source="heart" size={22} color="#FF6B4A" />
+          <Text style={styles.title}>Favorites & Saved</Text>
         </View>
 
-        {/* Tab Switcher: App Activity History vs Saved Articles vs Favorite Recipes */}
+        {/* Tab Switcher: App Activity Log vs Favorite & Saved Articles vs Favorite Recipes */}
         <View style={styles.tabBar}>
           <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'history' && styles.activeTabBtn]}
-            onPress={() => setActiveTab('history')}
+            onPress={() => handleTabChange('history')}
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>
-              App Log ({activities.length})
+              Activity ({activities.length})
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'articles' && styles.activeTabBtn]}
-            onPress={() => setActiveTab('articles')}
+            onPress={() => handleTabChange('articles')}
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'articles' && styles.activeTabText]}>
@@ -135,7 +117,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
 
           <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'recipes' && styles.activeTabBtn]}
-            onPress={() => setActiveTab('recipes')}
+            onPress={() => handleTabChange('recipes')}
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, activeTab === 'recipes' && styles.activeTabText]}>
@@ -145,73 +127,77 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
         </View>
       </View>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#FF7A59" />
-        </View>
-      ) : activeTab === 'history' ? (
-        <FlatList
-          key="activity-history-log-list"
-          data={activities}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.activityCard}>
-              <View style={styles.activityIconCircle}>
-                <Text style={{ fontSize: 18 }}>{item.icon || '📌'}</Text>
-              </View>
+      <Animated.View style={{ flex: 1, opacity: tabFadeAnim }}>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color="#FF7A59" />
+          </View>
+        ) : activeTab === 'history' ? (
+          <FlatList
+            key="activity-history-log-list"
+            data={activities}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <View style={styles.activityCard}>
+                <View style={styles.activityIconCircle}>
+                  <Text style={{ fontSize: 18 }}>{item.icon || '📌'}</Text>
+                </View>
 
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityTitle}>{item.title}</Text>
-                {!!item.details && (
-                  <Text style={styles.activityDetails}>{item.details}</Text>
-                )}
-                <Text style={styles.activityTime}>{formatRealTimeAgo(item.timestamp)}</Text>
+                <View style={styles.activityInfo}>
+                  <Text style={styles.activityTitle}>{item.title}</Text>
+                  {!!item.details && (
+                    <Text style={styles.activityDetails}>{item.details}</Text>
+                  )}
+                  <Text style={styles.activityTime}>{formatRealTimeAgo(item.timestamp)}</Text>
+                </View>
               </View>
-            </View>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <HistoryIcon size={40} color="#D1D5DB" />
-              <Text style={styles.emptyText}>No activity recorded yet.</Text>
-            </View>
-          }
-        />
-      ) : activeTab === 'articles' ? (
-        <FlatList
-          key="saved-articles-flatlist-1col"
-          data={savedArticles}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <ArticleCard article={item} onPress={() => handleArticlePress(item.id)} />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <BookmarkIcon size={40} color="#D1D5DB" />
-              <Text style={styles.emptyText}>You haven't saved any articles yet.</Text>
-            </View>
-          }
-        />
-      ) : (
-        <FlatList
-          key="saved-recipes-flatlist-2col"
-          data={savedRecipes}
-          keyExtractor={(item) => String(item.id)}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <RecipeCard recipe={item} onPress={() => handleRecipePress(item.id)} />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <BowlIcon size={40} color="#D1D5DB" />
-              <Text style={styles.emptyText}>You haven't saved any recipes yet.</Text>
-            </View>
-          }
-        />
-      )}
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyBox}>
+                <Icon source="history" size={40} color="#D1D5DB" />
+                <Text style={styles.emptyText}>No activity recorded yet.</Text>
+              </View>
+            }
+          />
+        ) : activeTab === 'articles' ? (
+          <FlatList
+            key="saved-articles-flatlist-1col"
+            data={savedArticles}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <ArticleCard article={item} onPress={() => handleArticlePress(item.id)} />
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyBox}>
+                <Icon source="heart-outline" size={40} color="#D1D5DB" />
+                <Text style={styles.emptyText}>You haven't liked or saved any articles yet.</Text>
+                <Text style={styles.emptySubText}>Tap the Heart ❤️ or Bookmark 🔖 button on articles to save them here!</Text>
+              </View>
+            }
+          />
+        ) : (
+          <FlatList
+            key="saved-recipes-flatlist-2col"
+            data={savedRecipes}
+            keyExtractor={(item) => String(item.id)}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <RecipeCard recipe={item} onPress={() => handleRecipePress(item.id)} />
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyBox}>
+                <Icon source="bowl-mix-outline" size={40} color="#D1D5DB" />
+                <Text style={styles.emptyText}>You haven't saved any recipes yet.</Text>
+                <Text style={styles.emptySubText}>Tap the Save 🔖 button on recipes to save them here!</Text>
+              </View>
+            }
+          />
+        )}
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -284,8 +270,9 @@ const styles = StyleSheet.create({
     color: '#FF5F70',
     fontWeight: '600',
   },
-  emptyBox: { alignItems: 'center', marginTop: 60, gap: 8 },
-  emptyText: { color: '#9CA3AF', fontSize: 14, fontWeight: '500' },
+  emptyBox: { alignItems: 'center', marginTop: 60, gap: 8, paddingHorizontal: 20 },
+  emptyText: { color: '#4B3034', fontSize: 15, fontWeight: '700' },
+  emptySubText: { color: '#9CA3AF', fontSize: 12, textAlign: 'center', marginTop: 2, lineHeight: 18 },
 });
 
 export default SavedItemsScreen;

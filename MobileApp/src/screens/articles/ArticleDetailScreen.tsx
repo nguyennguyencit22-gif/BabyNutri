@@ -1,12 +1,15 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Alert, Modal, Pressable } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Alert, Modal, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { Icon } from 'react-native-paper';
 import { articleService } from '../../services/article.service';
 import { Article } from '../../types/article';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
-import type { RootState } from '../../store/Store';
+import type { RootState } from '../../store/store';
+import { useBookmarkStore } from '../../stores/useBookmarkStore';
+import { addActivity } from '../../store/historySlice';
+import StarRating from '../../components/common/StarRating';
 
 interface CommentItem {
   id: number;
@@ -15,18 +18,6 @@ interface CommentItem {
   content: string;
   time: string;
 }
-
-const CommentIcon = ({ size = 18, color = '#2E2E2E' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-  </Svg>
-);
-
-const BackIcon = ({ size = 20, color = '#FF7A59' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
 
 const ArticleDetailScreen = ({ route, navigation }: any) => {
   const id = Number(route?.params?.id);
@@ -40,13 +31,27 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
 
-  const authMode = useSelector((state: RootState) => state.auth.mode);
+  // Save / Bookmark / Rating state
+  const { savedArticleIds = [], toggleBookmarkArticle } = useBookmarkStore();
+  const isSaved = savedArticleIds.includes(id);
+  const [liked, setLiked] = useState(isSaved);
+
+  // Real ratings only (default 0)
+  const [userRating, setUserRating] = useState<number>(0);
+  const [avgRating, setAvgRating] = useState<number>(0);
+  const [ratingCount, setRatingCount] = useState<number>(0);
+
+  const heartScaleAnim = useRef(new Animated.Value(1)).current;
+  const bookmarkScaleAnim = useRef(new Animated.Value(1)).current;
+
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
   const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
 
   const isCurrentUserAuthor = !article?.author || article.author === 'Parent' || article.author === currentUserName;
   const displayAuthor = isCurrentUserAuthor ? currentUserName : article?.author;
+
+  const dispatch = useDispatch();
 
   const loadSavedComments = useCallback(async () => {
     try {
@@ -59,6 +64,88 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     }
   }, [id]);
 
+  const loadRatingData = useCallback(async () => {
+    try {
+      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
+      if (storedRating) {
+        const parsed = JSON.parse(storedRating);
+        const list: number[] = Array.isArray(parsed.ratingsList)
+          ? parsed.ratingsList
+          : (parsed.userRating ? [parsed.userRating] : []);
+        const uRating = parsed.userRating || 0;
+
+        if (list.length > 0) {
+          const sum = list.reduce((a, b) => a + b, 0);
+          const avg = Number((sum / list.length).toFixed(1));
+          setUserRating(uRating);
+          setAvgRating(avg);
+          setRatingCount(list.length);
+          return;
+        }
+      }
+      setUserRating(0);
+      setAvgRating(0);
+      setRatingCount(0);
+    } catch (e) {
+      console.error('Load rating data error:', e);
+      setUserRating(0);
+      setAvgRating(0);
+      setRatingCount(0);
+    }
+  }, [id]);
+
+  const saveRatingData = async (newScore: number) => {
+    try {
+      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
+      let list: number[] = [];
+      if (storedRating) {
+        const parsed = JSON.parse(storedRating);
+        if (Array.isArray(parsed.ratingsList)) {
+          list = parsed.ratingsList;
+        }
+      }
+
+      if (userRating > 0 && list.length > 0) {
+        const userIndex = list.indexOf(userRating);
+        if (userIndex !== -1) {
+          list[userIndex] = newScore;
+        } else {
+          list.push(newScore);
+        }
+      } else {
+        list.push(newScore);
+      }
+
+      const sum = list.reduce((a, b) => a + b, 0);
+      const avg = Number((sum / list.length).toFixed(1));
+
+      setUserRating(newScore);
+      setAvgRating(avg);
+      setRatingCount(list.length);
+
+      await AsyncStorage.setItem(
+        `article_rating_${id}`,
+        JSON.stringify({
+          userRating: newScore,
+          ratingsList: list,
+          avgRating: avg,
+          ratingCount: list.length,
+        })
+      );
+
+      dispatch(addActivity({
+        type: 'rate',
+        title: `Rated article ${newScore}⭐: ${article?.title || 'Article'}`,
+        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        icon: '⭐',
+      }));
+
+      Alert.alert('Evaluation Saved ⭐', `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`);
+    } catch (e) {
+      console.error('Save rating error:', e);
+    }
+  };
+
   const fetchArticleDetail = useCallback(() => {
     setLoading(true);
     articleService.getById(id)
@@ -70,30 +157,48 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   useEffect(() => {
     fetchArticleDetail();
     loadSavedComments();
-  }, [fetchArticleDetail, loadSavedComments]);
+    loadRatingData();
+  }, [fetchArticleDetail, loadSavedComments, loadRatingData]);
 
-  const saveCommentsToStorage = async (updatedComments: CommentItem[]) => {
-    setComments(updatedComments);
+  useEffect(() => {
+    setLiked(isSaved);
+  }, [isSaved]);
+
+  const handleToggleLikeAndSave = () => {
+    const isNowSaved = toggleBookmarkArticle(id);
+    setLiked(isNowSaved);
+
+    Animated.sequence([
+      Animated.timing(heartScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
+    ]).start();
+
+    Animated.sequence([
+      Animated.timing(bookmarkScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.spring(bookmarkScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
+    ]).start();
+
+    if (isNowSaved) {
+      dispatch(addActivity({
+        type: 'like',
+        title: `Liked & Saved: ${article?.title || 'Article'}`,
+        details: 'Added to Favourites & Saved Articles tab',
+        icon: '❤️',
+      }));
+      Alert.alert('Saved to Favourites ❤️', 'This article has been saved in your Saved & Favorite Articles list.');
+    }
+  };
+
+  const saveCommentsToStorage = async (newList: CommentItem[]) => {
+    setComments(newList);
     try {
-      await AsyncStorage.setItem(`article_comments_${id}`, JSON.stringify(updatedComments));
+      await AsyncStorage.setItem(`article_comments_${id}`, JSON.stringify(newList));
     } catch (e) {
       console.error('Save comments error:', e);
     }
   };
 
   const handleAddComment = () => {
-    if (authMode === 'guest') {
-      Alert.alert(
-        'Login Required',
-        'Please sign in to post a comment on this article.',
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Log In', onPress: () => navigation.navigate('Login') },
-        ]
-      );
-      return;
-    }
-
     const text = commentInput.trim();
     if (!text) {
       Alert.alert('Notice', 'Please write a comment first');
@@ -111,6 +216,14 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     const updated = [newComment, ...comments];
     saveCommentsToStorage(updated);
     setCommentInput('');
+
+    dispatch(addActivity({
+      type: 'comment',
+      title: `Commented on: ${article?.title}`,
+      details: `"${text.slice(0, 30)}..."`,
+      icon: '💬',
+    }));
+
     Alert.alert('Success', 'Comment posted successfully!');
   };
 
@@ -162,21 +275,52 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.85}
           >
-            <BackIcon size={20} color="#FF7A59" />
+            <Icon source="chevron-left" size={24} color="#FF7A59" />
           </TouchableOpacity>
         </View>
+
         <View style={styles.content}>
           <Text style={styles.title}>{article.title}</Text>
           <Text style={styles.meta}>
             Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
           </Text>
+
+          {/* Clean 5-Star Rating Row */}
+          <View style={styles.ratingBarRow}>
+            <StarRating
+              rating={avgRating}
+              userRating={userRating}
+              interactive={true}
+              onRate={saveRatingData}
+              showScoreText={true}
+              count={ratingCount}
+            />
+          </View>
+
+          {/* Synced Action Buttons: Like & Save (Synced to Favourites) */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={[styles.actionBtn, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
+              <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
+                <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : '#65676B'} />
+              </Animated.View>
+              <Text style={[styles.actionBtnText, liked && styles.likedText]}>{liked ? 'Liked & Saved' : 'Like Article'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.actionBtn, isSaved && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
+              <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
+                <Icon source={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#FF7A59' : '#65676B'} />
+              </Animated.View>
+              <Text style={[styles.actionBtnText, isSaved && styles.savedText]}>{isSaved ? 'Saved in Favourites' : 'Save Article'}</Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.body}>{article.content}</Text>
 
           <View style={styles.divider} />
 
           {/* Comments section */}
           <View style={styles.commentTitleBox}>
-            <CommentIcon size={18} color="#2E2E2E" />
+            <Icon source="comment-outline" size={20} color="#2E2E2E" />
             <Text style={styles.commentHeader}>Comments ({comments.length})</Text>
           </View>
 
@@ -207,99 +351,160 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
                   </View>
                   <Text style={styles.commentText}>{item.content}</Text>
 
-                  <View style={styles.commentActionRow}>
-                    <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
-                      <Text style={styles.commentActionText}>Edit</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.dotSeparator}>·</Text>
-                    <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
-                      <Text style={[styles.commentActionText, { color: '#DC2626' }]}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {/* Comment Owner Controls: Edit & Delete */}
+                  {item.userName === currentUserName && (
+                    <View style={styles.commentOwnerControls}>
+                      <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
+                        <Text style={styles.controlEditText}>Edit</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.controlDot}>·</Text>
+                      <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
+                        <Text style={styles.controlDeleteText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               </View>
             ))
           )}
         </View>
-
-        {/* Modal for editing comment */}
-        <Modal visible={editModalVisible} transparent animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
-          <Pressable style={styles.modalOverlay} onPress={() => setEditModalVisible(false)}>
-            <View style={styles.editModalBox}>
-              <Text style={styles.editModalTitle}>Edit Comment</Text>
-              <TextInput
-                style={styles.editModalInput}
-                value={editingText}
-                onChangeText={setEditingText}
-                multiline
-                placeholder="Enter updated comment..."
-              />
-              <View style={styles.editModalBtnRow}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditModalVisible(false)}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.saveBtn} onPress={handleConfirmEditComment}>
-                  <Text style={styles.saveBtnText}>Save Changes</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Pressable>
-        </Modal>
       </ScrollView>
+
+      {/* Edit Comment Modal */}
+      <Modal visible={editModalVisible} transparent animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setEditModalVisible(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Comment</Text>
+            <TextInput
+              style={styles.editInput}
+              value={editingText}
+              onChangeText={setEditingText}
+              multiline
+            />
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setEditModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleConfirmEditComment}>
+                <Text style={styles.modalSaveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFBF5' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: 220, backgroundColor: '#EEE' },
-  content: { padding: 18 },
-  title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 8 },
-  meta: { fontSize: 12, color: '#8A8A8A', marginBottom: 16 },
-  body: { fontSize: 15, color: '#3A3A3A', lineHeight: 24 },
-  divider: { height: 1, backgroundColor: '#EAEAEA', marginVertical: 20 },
-  commentTitleBox: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  commentHeader: { fontSize: 17, fontWeight: '700', color: '#2E2E2E' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  commentInput: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 14, marginRight: 10 },
-  sendBtn: { backgroundColor: '#FF7A59', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 11 },
-  sendBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  commentBox: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-start' },
-  commentAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10, backgroundColor: '#EEE' },
-  commentContentBox: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#F0F0F0' },
-  commentHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  commentUser: { fontWeight: '700', fontSize: 13, color: '#2E2E2E' },
-  commentTime: { fontSize: 11, color: '#999999' },
-  commentText: { fontSize: 14, color: '#444444', lineHeight: 19 },
-  commentActionRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 },
-  commentActionText: { fontSize: 12, fontWeight: '600', color: '#65676B' },
-  dotSeparator: { fontSize: 12, color: '#999' },
-  emptyCommentText: { fontSize: 13, color: '#999', fontStyle: 'italic', marginVertical: 10, textAlign: 'center' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  editModalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
-  editModalTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 12 },
-  editModalInput: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 12, fontSize: 14, height: 90, textAlignVertical: 'top', marginBottom: 16 },
-  editModalBtnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  cancelBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#F3F4F6' },
-  cancelBtnText: { color: '#6B7280', fontWeight: '600' },
-  saveBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#FF7A59' },
-  saveBtnText: { color: '#FFFFFF', fontWeight: '700' },
+  image: { width: '100%', height: 260 },
   floatingBackBtn: {
     position: 'absolute',
-    top: 14,
-    left: 14,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    top: 20,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 4,
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    elevation: 4,
   },
+  content: { padding: 18 },
+  title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 6, lineHeight: 28 },
+  meta: { fontSize: 13, color: '#888888', marginBottom: 16 },
+  ratingBarRow: {
+    marginVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFBF0',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+    alignSelf: 'flex-start',
+  },
+  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  actionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
+  },
+  activeActionBtn: {
+    backgroundColor: '#FFF0F2',
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
+  },
+  actionBtnText: { fontSize: 13, fontWeight: '600', color: '#65676B' },
+  likedText: { color: '#FF3B30', fontWeight: '700' },
+  savedText: { color: '#FF7A59', fontWeight: '700' },
+  body: { fontSize: 15, color: '#333333', lineHeight: 24, marginBottom: 20 },
+  divider: { height: 1, backgroundColor: '#EEEEEE', marginVertical: 16 },
+  commentTitleBox: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  commentHeader: { fontSize: 16, fontWeight: '700', color: '#2E2E2E' },
+  inputRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+  commentInput: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#2E2E2E',
+  },
+  sendBtn: {
+    backgroundColor: '#FF7A59',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  emptyCommentText: { fontSize: 13, color: '#999999', fontStyle: 'italic', marginVertical: 10 },
+  commentBox: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 14,
+    backgroundColor: '#FAF7F5',
+    padding: 12,
+    borderRadius: 12,
+  },
+  commentAvatar: { width: 36, height: 36, borderRadius: 18 },
+  commentContentBox: { flex: 1 },
+  commentHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  commentUser: { fontSize: 13, fontWeight: '700', color: '#2E2E2E' },
+  commentTime: { fontSize: 11, color: '#999999' },
+  commentText: { fontSize: 14, color: '#444444', lineHeight: 20 },
+  commentOwnerControls: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
+  controlEditText: { fontSize: 12, color: '#FF7A59', fontWeight: '600' },
+  controlDeleteText: { fontSize: 12, color: '#FF3B30', fontWeight: '600' },
+  controlDot: { fontSize: 12, color: '#999999' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20 },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#2E2E2E', marginBottom: 12 },
+  editInput: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  modalBtnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalCancelBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#EEEEEE' },
+  modalCancelText: { fontSize: 14, fontWeight: '600', color: '#666666' },
+  modalSaveBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#FF7A59' },
+  modalSaveText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });
 
 export default ArticleDetailScreen;

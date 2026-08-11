@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
-
-const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
 
 export const ChildDetailScreen = ({ route, navigation }: any) => {
   const { childId } = route.params || {};
@@ -74,7 +68,7 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <BackIcon size={20} color="#FF5F70" />
+          <Icon source="arrow-left" size={20} color="#FF5F70" />
         </TouchableOpacity>
       </View>
 

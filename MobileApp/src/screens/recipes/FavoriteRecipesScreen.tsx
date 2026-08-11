@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, StatusBar, Platform } from 'react-native';
+import { Icon } from 'react-native-paper';
 
-const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
-import Svg, { Path } from 'react-native-svg';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
-
-const HeartIcon = ({ size = 22, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth={2}>
-    <Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-  </Svg>
-);
-
-const BackIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M15 19l-7-7 7-7" />
-  </Svg>
-);
 
 const FavoriteRecipesScreen = ({ navigation }: any) => {
   const [favoriteRecipes, setFavoriteRecipes] = useState<RecipeListItem[]>([]);
@@ -65,9 +52,9 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <BackIcon size={20} color="#FF5F70" />
+            <Icon source="arrow-left" size={20} color="#FF5F70" />
           </TouchableOpacity>
-          <HeartIcon size={22} color="#FF5F70" />
+          <Icon source="heart" size={22} color="#FF5F70" />
           <Text style={styles.title}>Favorite Recipes</Text>
         </View>
         <Text style={styles.subtitle}>
@@ -91,7 +78,7 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
           )}
           ListEmptyComponent={
             <View style={styles.emptyBox}>
-              <HeartIcon size={44} color="#FFD1D6" />
+              <Icon source="heart-outline" size={44} color="#FFD1D6" />
               <Text style={styles.emptyTitle}>No Favorite Recipes Saved</Text>
               <Text style={styles.emptySub}>
                 Tap the heart icon on any recipe to save it to your favorites list!

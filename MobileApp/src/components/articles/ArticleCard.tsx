@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Share, Alert, Modal, Pressable, Animated, TextInput } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Share, Alert, Modal, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import { ArticleListItem } from '../../types/article';
 import { articleService } from '../../services/article.service';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { useArticleStore } from '../../stores/useArticleStore';
-import { formatRealTimeAgo, useRealTimeTicker } from '../../utils/formatRealTime';
+import { formatRealTimeAgo } from '../../utils/formatRealTime';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { addActivity } from '../../store/historySlice';
+import StarRating from '../common/StarRating';
 
 interface Props {
   article: ArticleListItem;
@@ -17,87 +18,134 @@ interface Props {
   onRefreshList?: () => void;
 }
 
-const HeartIcon = ({ liked, size = 18 }: { liked?: boolean; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={liked ? '#FF3B30' : 'none'} stroke={liked ? '#FF3B30' : '#65676B'} strokeWidth={2}>
-    <Path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-  </Svg>
-);
-
-const CommentIcon = ({ size = 18 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#65676B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-  </Svg>
-);
-
-const ShareIcon = ({ size = 18 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#65676B" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" />
-  </Svg>
-);
-
-const BookmarkIcon = ({ saved, size = 18 }: { saved: boolean; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={saved ? '#FF7A59' : 'none'} stroke={saved ? '#FF7A59' : '#65676B'} strokeWidth={2}>
-    <Path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-  </Svg>
-);
-
-const ThreeDotsIcon = ({ color = '#65676B', size = 18 }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-    <Path d="M6 12a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z" />
-  </Svg>
-);
-
-const GlobeIcon = ({ size = 12, color = '#65676B' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Circle cx="12" cy="12" r="10" />
-    <Path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-  </Svg>
-);
-
-const LockIcon = ({ size = 12, color = '#65676B' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <Path d="M7 11V7a5 5 0 0110 0v4" />
-  </Svg>
-);
-
-const LinkIcon = ({ size = 16, color = '#1C1E21' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-    <Path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-  </Svg>
-);
-
-const FlagIcon = ({ size = 16, color = '#D97706' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" />
-  </Svg>
-);
-
-const TrashIcon = ({ size = 16, color = '#DC2626' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
-  </Svg>
-);
-
 const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
   const { savedArticleIds = [], toggleBookmarkArticle } = useBookmarkStore();
   const { fetchArticles } = useArticleStore();
   const saved = Array.isArray(savedArticleIds) ? savedArticleIds.includes(article.id) : false;
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(saved);
   const [likeCount, setLikeCount] = useState(0);
   const [menuVisible, setMenuVisible] = useState(false);
   const [privacy, setPrivacy] = useState<'public' | 'private'>('public');
 
-  const [quoteModalVisible, setQuoteModalVisible] = useState(false);
-  const [quoteCaption, setQuoteCaption] = useState('');
-  const [sharing, setSharing] = useState(false);
-
   const [commentCount, setCommentCount] = useState(0);
+
+  // Real Rating State (No fake initial numbers, default 0)
+  const [userRating, setUserRating] = useState<number>(0);
+  const [avgRating, setAvgRating] = useState<number>(0);
+  const [ratingCount, setRatingCount] = useState<number>(0);
+
+  const heartScaleAnim = useRef(new Animated.Value(1)).current;
+  const bookmarkScaleAnim = useRef(new Animated.Value(1)).current;
+  const cardScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     loadCommentCount();
+    loadRatingData();
+    loadLikeCount();
   }, [article.id]);
+
+  useEffect(() => {
+    setLiked(saved);
+  }, [saved]);
+
+  const loadLikeCount = async () => {
+    try {
+      const storedLikes = await AsyncStorage.getItem(`article_likes_${article.id}`);
+      if (storedLikes) {
+        setLikeCount(parseInt(storedLikes, 10) || 0);
+      } else {
+        setLikeCount(saved ? 1 : 0);
+      }
+    } catch (e) {
+      console.error('Load like count error:', e);
+    }
+  };
+
+  const loadRatingData = async () => {
+    try {
+      const storedRating = await AsyncStorage.getItem(`article_rating_${article.id}`);
+      if (storedRating) {
+        const parsed = JSON.parse(storedRating);
+        const list: number[] = Array.isArray(parsed.ratingsList)
+          ? parsed.ratingsList
+          : (parsed.userRating ? [parsed.userRating] : []);
+        const uRating = parsed.userRating || 0;
+
+        if (list.length > 0) {
+          const sum = list.reduce((a, b) => a + b, 0);
+          const avg = Number((sum / list.length).toFixed(1));
+          setUserRating(uRating);
+          setAvgRating(avg);
+          setRatingCount(list.length);
+          return;
+        }
+      }
+      setUserRating(0);
+      setAvgRating(0);
+      setRatingCount(0);
+    } catch (e) {
+      console.error('Load rating data error:', e);
+      setUserRating(0);
+      setAvgRating(0);
+      setRatingCount(0);
+    }
+  };
+
+  const saveRatingData = async (newScore: number) => {
+    try {
+      const storedRating = await AsyncStorage.getItem(`article_rating_${article.id}`);
+      let list: number[] = [];
+      if (storedRating) {
+        const parsed = JSON.parse(storedRating);
+        if (Array.isArray(parsed.ratingsList)) {
+          list = parsed.ratingsList;
+        }
+      }
+
+      if (userRating > 0 && list.length > 0) {
+        const userIndex = list.indexOf(userRating);
+        if (userIndex !== -1) {
+          list[userIndex] = newScore;
+        } else {
+          list.push(newScore);
+        }
+      } else {
+        list.push(newScore);
+      }
+
+      const sum = list.reduce((a, b) => a + b, 0);
+      const avg = Number((sum / list.length).toFixed(1));
+
+      setUserRating(newScore);
+      setAvgRating(avg);
+      setRatingCount(list.length);
+
+      await AsyncStorage.setItem(
+        `article_rating_${article.id}`,
+        JSON.stringify({
+          userRating: newScore,
+          ratingsList: list,
+          avgRating: avg,
+          ratingCount: list.length,
+        })
+      );
+
+      dispatch(
+        addActivity({
+          type: 'rate',
+          title: `Rated article ${newScore}⭐: ${article.title}`,
+          details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+          icon: '⭐',
+        })
+      );
+
+      Alert.alert('Thank You!', `You rated this article ${newScore} out of 5 stars ⭐\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`);
+    } catch (e) {
+      console.error('Save rating error:', e);
+    }
+  };
 
   const loadCommentCount = async () => {
     try {
@@ -113,115 +161,85 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
     }
   };
 
-  const heartScaleAnim = useRef(new Animated.Value(1)).current;
+  // Synchronized Heart & Save logic
+  const handleToggleLikeAndSave = async () => {
+    const isNowSaved = toggleBookmarkArticle(article.id);
+    setLiked(isNowSaved);
+    const newCount = isNowSaved ? likeCount + 1 : Math.max(0, likeCount - 1);
+    setLikeCount(newCount);
 
-  const dispatch = useDispatch();
+    try {
+      await AsyncStorage.setItem(`article_likes_${article.id}`, String(newCount));
+    } catch (e) {
+      console.error('Save likes error:', e);
+    }
 
-  const toggleLike = () => {
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    setLikeCount(nextLiked ? likeCount + 1 : likeCount - 1);
+    Animated.sequence([
+      Animated.timing(heartScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
+    ]).start();
 
-    if (nextLiked) {
-      Animated.sequence([
-        Animated.timing(heartScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
-        Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 10, speed: 20, useNativeDriver: true }),
-      ]).start();
+    Animated.sequence([
+      Animated.timing(bookmarkScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
+      Animated.spring(bookmarkScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
+    ]).start();
 
-      dispatch(addActivity({
-        type: 'like',
-        title: `Liked article: ${article.title}`,
-        details: 'Added to your activity log',
-        icon: '❤️',
-      }));
+    if (isNowSaved) {
+      dispatch(
+        addActivity({
+          type: 'like',
+          title: `Liked & Saved: ${article.title}`,
+          details: 'Added to Favourites & Saved Articles tab',
+          icon: '❤️',
+        })
+      );
+      Alert.alert('Saved to Favourites ❤️', 'This article has been added to your Saved & Favorite Articles list.');
     }
   };
 
-  const handleShareOptions = () => {
-    Alert.alert(
-      'Share Article',
-      'How would you like to share this article?',
-      [
-        {
-          text: 'Share with message (Post)',
-          onPress: () => setQuoteModalVisible(true),
-        },
-        {
-          text: 'Share to external apps',
-          onPress: async () => {
-            try {
-              await Share.share({
-                message: `${article.title}\n\n${article.summary || ''}\n\nSee more on BabyNutri app!`,
-                title: article.title,
-              });
-            } catch (e) {
-              console.error(e);
-            }
-          },
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
-  };
-
-  const handleConfirmQuoteShare = async () => {
-    setSharing(true);
+  // External Share function (Web URL + Deep Link)
+  const handleExternalShare = async () => {
     try {
-      await articleService.create({
+      const webUrl = `https://babynutri.app/articles/${article.id}`;
+      await Share.share({
         title: article.title,
-        summary: quoteCaption.trim()
-          ? `"${quoteCaption.trim()}"\n\nShared article from ${article.author || 'Nutrition Expert'}`
-          : `Shared an article by ${article.author || 'Nutrition Expert'}`,
-        content: `${quoteCaption.trim() ? `"${quoteCaption.trim()}"\n\n` : ''}[Original article from ${article.author || 'Nutrition Expert'}]:\n${article.summary || article.title}`,
-        imageUrl: article.image_url,
+        message: `📄 ${article.title}\n\nRead more on BabyNutri Web & App:\n${webUrl}`,
+        url: webUrl,
       });
 
-      setQuoteModalVisible(false);
-      setQuoteCaption('');
-      Alert.alert('Success', 'Posted shared article with your thoughts!');
-      await fetchArticles();
-      onRefreshList?.();
+      dispatch(
+        addActivity({
+          type: 'action',
+          title: `Shared link: ${article.title}`,
+          details: 'External web & app link shared',
+          icon: '🔗',
+        })
+      );
     } catch (e) {
-      console.error('Quote share error:', e);
-      Alert.alert('Error', 'Unable to share article right now');
-    } finally {
-      setSharing(false);
-    }
-  };
-
-  const toggleSave = () => {
-    const isNowSaved = toggleBookmarkArticle(article.id);
-    if (isNowSaved) {
-      Alert.alert('Article Saved', 'Added article to "Saved Articles"');
-    } else {
-      Alert.alert('Unsaved', 'Removed article from saved list');
+      console.error('Share error:', e);
     }
   };
 
   const handleDeleteArticle = () => {
     setMenuVisible(false);
-    Alert.alert(
-      'Delete Article',
-      'Are you sure you want to delete this article?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await articleService.remove(article.id);
-              Alert.alert('Success', 'Article deleted');
-              await fetchArticles();
-              onRefreshList?.();
-            } catch (e) {
-              console.error('Delete article error:', e);
-              Alert.alert('Error', 'Unable to delete this article');
-            }
-          },
+    Alert.alert('Delete Article', 'Are you sure you want to delete this article?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await articleService.remove(article.id);
+            Alert.alert('Success', 'Article deleted');
+            await fetchArticles();
+            onRefreshList?.();
+          } catch (e) {
+            console.error('Delete article error:', e);
+            Alert.alert('Error', 'Unable to delete this article');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleReport = () => {
@@ -231,71 +249,54 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
 
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
-  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
+  const currentUserAvatar =
+    user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
 
-  const isUserArticle = !article.author || article.author === 'Parent' || article.author === 'You (Parent)' || article.author === currentUserName || (user?.email && article.author === user.email.split('@')[0]);
+  const isUserArticle =
+    !article.author ||
+    article.author === 'Parent' ||
+    article.author === 'You (Parent)' ||
+    article.author === currentUserName ||
+    (user?.email && article.author === user.email.split('@')[0]);
   const displayAuthor = isUserArticle ? currentUserName : article.author;
-  const avatarUrl = isUserArticle ? currentUserAvatar : `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author)}&background=FF7A59&color=fff&bold=true`;
-
-  // Kiểm tra xem bài viết này có phải dạng Bài đăng chia sẻ lồng bài gốc không (Quote Shared Post)
-  const isQuotePost = article.summary?.includes('💬 "') || article.summary?.includes(' Shared article');
-  let userCaption = '';
-  let sharedNote = '';
-  if (isQuotePost && article.summary) {
-    const parts = article.summary.split('\n\n');
-    userCaption = parts[0]?.replace(/^💬 "/, '').replace(/"$/, '') || '';
-    sharedNote = parts[1] ? ` ${parts[1]}` : '';
-  }
+  const avatarUrl = isUserArticle
+    ? currentUserAvatar
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author)}&background=FF7A59&color=fff&bold=true`;
 
   return (
-    <View style={styles.card}>
-      {/* Post Header: Avatar + Author + Date + Privacy SVG Icon */}
+    <Animated.View style={[styles.card, { transform: [{ scale: cardScaleAnim }] }]}>
+      {/* Post Header: Avatar + Author + Date + Privacy */}
       <View style={styles.header}>
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         <View style={styles.headerText}>
           <Text style={styles.authorName}>{displayAuthor}</Text>
           <View style={styles.metaRow}>
-            <Text style={styles.postMeta}>
-              {formatRealTimeAgo(article.published_date)} ·{' '}
-            </Text>
+            <Text style={styles.postMeta}>{formatRealTimeAgo(article.published_date)} · </Text>
             {privacy === 'public' ? (
               <View style={styles.privacyBox}>
-                <GlobeIcon size={12} color="#65676B" />
+                <Icon source="earth" size={12} color="#65676B" />
                 <Text style={styles.postMeta}>Public</Text>
               </View>
             ) : (
               <View style={styles.privacyBox}>
-                <LockIcon size={12} color="#65676B" />
+                <Icon source="lock-outline" size={12} color="#65676B" />
                 <Text style={styles.postMeta}>Only me</Text>
               </View>
             )}
           </View>
         </View>
         <TouchableOpacity style={styles.moreBtn} onPress={() => setMenuVisible(true)}>
-          <ThreeDotsIcon size={18} color="#65676B" />
+          <Icon source="dots-horizontal" size={20} color="#65676B" />
         </TouchableOpacity>
       </View>
 
-      {/* Post Content & Title (Lồng Bài Viết Gốc nếu là Bài Đăng Chia Sẻ) */}
+      {/* Post Content & Title */}
       <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.bodyContainer}>
-        {isQuotePost ? (
-          <View style={styles.quoteWrapper}>
-            {!!userCaption && <Text style={styles.quoteCaptionText}>{userCaption}</Text>}
-            {/* Khung bài viết gốc nằm lồng bên trong chuẩn Facebook */}
-            <View style={styles.embeddedOriginalCard}>
-              <Text style={styles.embeddedTag}>{sharedNote || 'Shared Article'}</Text>
-              <Text style={styles.embeddedTitle}>{article.title}</Text>
-            </View>
-          </View>
-        ) : (
-          <>
-            <Text style={styles.title}>{article.title}</Text>
-            {!!article.summary && (
-              <Text style={styles.summary} numberOfLines={3}>
-                {article.summary}
-              </Text>
-            )}
-          </>
+        <Text style={styles.title}>{article.title}</Text>
+        {!!article.summary && (
+          <Text style={styles.summary} numberOfLines={3}>
+            {article.summary}
+          </Text>
         )}
       </TouchableOpacity>
 
@@ -306,51 +307,60 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
         </TouchableOpacity>
       )}
 
-      {/* Dynamic Like & Comment Count Stats Row */}
-      {(likeCount > 0 || commentCount > 0) && (
-        <View style={styles.statsRow}>
-          {likeCount > 0 ? (
-            <View style={styles.likeBox}>
-              <HeartIcon liked={true} size={14} />
-              <Text style={styles.statsText}>{likeCount} likes</Text>
-            </View>
-          ) : <View />}
+      {/* Interactive 5-Star Rating Bar */}
+      <View style={styles.ratingBarContainer}>
+        <Text style={styles.ratingLabel}>Rate article:</Text>
+        <StarRating
+          rating={userRating || avgRating}
+          interactive={true}
+          onRate={saveRatingData}
+          showScoreText={true}
+          count={ratingCount}
+        />
+      </View>
 
-          {commentCount > 0 && (
-            <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-              <Text style={styles.statsText}>{commentCount} comments</Text>
-            </TouchableOpacity>
-          )}
+      {/* Like & Comment Stats Row */}
+      <View style={styles.statsRow}>
+        <View style={styles.likeBox}>
+          <Icon source="heart" size={14} color="#FF3B30" />
+          <Text style={styles.statsText}>{likeCount} likes</Text>
         </View>
-      )}
+
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+          <Text style={styles.statsText}>{commentCount > 0 ? `${commentCount} comments` : '0 comments'}</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.divider} />
 
-      {/* Action Buttons */}
+      {/* Action Buttons: Like, Comment, Share Link, Save */}
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={toggleLike} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.actionBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.7}>
           <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
-            <HeartIcon liked={liked} size={18} />
+            <Icon source={liked ? 'heart' : 'heart-outline'} size={18} color={liked ? '#FF3B30' : '#65676B'} />
           </Animated.View>
           <Text style={[styles.actionLabel, liked && styles.likedLabel]}>{liked ? 'Liked' : 'Like'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
-          <CommentIcon size={18} />
+          <Icon source="comment-outline" size={18} color="#65676B" />
           <Text style={styles.actionLabel}>Comment{commentCount > 0 ? ` (${commentCount})` : ''}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={handleShareOptions} activeOpacity={0.7}>
-          <ShareIcon size={18} />
+        <TouchableOpacity style={styles.actionBtn} onPress={handleExternalShare} activeOpacity={0.7}>
+          <Icon source="share-variant" size={18} color="#65676B" />
           <Text style={styles.actionLabel}>Share</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={toggleSave} activeOpacity={0.7}>
-          <BookmarkIcon saved={saved} size={18} />
+        <TouchableOpacity style={styles.actionBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.7}>
+          <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
+            <Icon source={saved ? 'bookmark' : 'bookmark-outline'} size={18} color={saved ? '#FF7A59' : '#65676B'} />
+          </Animated.View>
+          <Text style={[styles.actionLabel, saved && styles.savedLabel]}>{saved ? 'Saved' : 'Save'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Modal 3 Chấm Action Menu */}
+      {/* Modal 3 Chấm Options */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuBox}>
@@ -365,34 +375,34 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
             >
               {privacy === 'public' ? (
                 <View style={styles.menuRow}>
-                  <LockIcon size={18} color="#1C1E21" />
+                  <Icon source="lock-outline" size={18} color="#1C1E21" />
                   <Text style={styles.menuItemText}>Switch to Private mode</Text>
                 </View>
               ) : (
                 <View style={styles.menuRow}>
-                  <GlobeIcon size={18} color="#1C1E21" />
+                  <Icon source="earth" size={18} color="#1C1E21" />
                   <Text style={styles.menuItemText}>Switch to Public mode</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={handleShareOptions}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleExternalShare}>
               <View style={styles.menuRow}>
-                <LinkIcon size={18} color="#1C1E21" />
-                <Text style={styles.menuItemText}>Share this article</Text>
+                <Icon source="share-variant" size={18} color="#1C1E21" />
+                <Text style={styles.menuItemText}>Share via link</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleReport}>
               <View style={styles.menuRow}>
-                <FlagIcon size={18} color="#D97706" />
+                <Icon source="flag-outline" size={18} color="#D97706" />
                 <Text style={[styles.menuItemText, { color: '#D97706' }]}>Report violating article</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleDeleteArticle}>
               <View style={styles.menuRow}>
-                <TrashIcon size={18} color="#DC2626" />
+                <Icon source="trash-can-outline" size={18} color="#DC2626" />
                 <Text style={[styles.menuItemText, { color: '#DC2626' }]}>Delete article</Text>
               </View>
             </TouchableOpacity>
@@ -403,40 +413,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
           </View>
         </Pressable>
       </Modal>
-
-      {/* Modal Chia sẻ Kèm Lời nhắn (Quote Repost Modal chuẩn Facebook) */}
-      <Modal visible={quoteModalVisible} transparent animationType="slide" onRequestClose={() => setQuoteModalVisible(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setQuoteModalVisible(false)}>
-          <View style={styles.quoteModalBox}>
-            <Text style={styles.quoteModalTitle}>Share article with message</Text>
-            <TextInput
-              style={styles.quoteInput}
-              placeholder="What's on your mind about this article?..."
-              placeholderTextColor="#9CA3AF"
-              value={quoteCaption}
-              onChangeText={setQuoteCaption}
-              multiline
-            />
-
-            {/* Xem trước bài viết gốc được lồng bên dưới */}
-            <View style={styles.previewOriginalBox}>
-              <Text style={styles.previewOriginalLabel}>Original article attached:</Text>
-              <Text style={styles.previewOriginalTitle} numberOfLines={2}>{article.title}</Text>
-              <Text style={styles.previewOriginalAuthor}>Author: {article.author || 'Nutrition Expert'}</Text>
-            </View>
-
-            <View style={styles.quoteBtnRow}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setQuoteModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.shareSubmitBtn} onPress={handleConfirmQuoteShare} disabled={sharing}>
-                <Text style={styles.shareSubmitText}>{sharing ? 'Sharing...' : 'Post Shared Article'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -511,40 +488,26 @@ const styles = StyleSheet.create({
     color: '#333333',
     lineHeight: 20,
   },
-  quoteWrapper: {
-    gap: 8,
-  },
-  quoteCaptionText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  embeddedOriginalCard: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF6B4A',
-  },
-  embeddedTag: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FF6B4A',
-    marginBottom: 4,
-  },
-  embeddedTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
   postImage: {
     width: '100%',
     height: 220,
     backgroundColor: '#F5F5F5',
+  },
+  ratingBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFBF0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#FEF3C7',
+  },
+  ratingLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B45309',
   },
   statsRow: {
     flexDirection: 'row',
@@ -571,24 +534,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 8,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingHorizontal: 6,
+    borderRadius: 8,
   },
   actionLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#65676B',
-    marginLeft: 6,
+    marginLeft: 4,
   },
   likedLabel: {
     color: '#FF3B30',
+    fontWeight: '700',
+  },
+  savedLabel: {
+    color: '#FF7A59',
+    fontWeight: '700',
   },
   modalOverlay: {
     flex: 1,
@@ -634,88 +602,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#65676B',
-  },
-  quoteModalBox: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  quoteModalTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 14,
-  },
-  quoteInput: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
-    height: 90,
-    textAlignVertical: 'top',
-    marginBottom: 14,
-    backgroundColor: '#FAFAFA',
-    color: '#111827',
-  },
-  previewOriginalBox: {
-    backgroundColor: '#FFF8F5',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#FFE0D6',
-    marginBottom: 16,
-  },
-  previewOriginalLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FF6B4A',
-    marginBottom: 4,
-  },
-  previewOriginalTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  previewOriginalAuthor: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-  quoteBtnRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  cancelBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-    backgroundColor: '#F3F4F6',
-  },
-  cancelBtnText: {
-    color: '#6B7280',
-    fontWeight: '700',
-  },
-  shareSubmitBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: '#FF6B4A',
-    shadowColor: '#FF6B4A',
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  shareSubmitText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 });
 

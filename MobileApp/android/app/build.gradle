@@ -78,6 +78,12 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    packagingOptions {
+        doNotStrip "**/*.so"
+        pickFirst "**/libc++_shared.so"
+        pickFirst "**/libfbjni.so"
+    }
+
     externalNativeBuild {
         cmake {
             buildStagingDirectory file("C:/tmp/cxx")
@@ -131,4 +137,4 @@ dependencies {
     }
 }
 
-apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+// apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

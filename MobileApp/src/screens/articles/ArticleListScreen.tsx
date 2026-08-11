@@ -1,20 +1,14 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 import ArticleCard from '../../components/articles/ArticleCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { useArticleStore } from '../../stores/useArticleStore';
-import type { RootState } from '../../store/Store';
+import type { RootState } from '../../store/store';
 
-const PencilIcon = ({ size = 12, color = '#FF7A59' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-  </Svg>
-);
-
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 4;
 
 interface ArticleListScreenProps {
   navigation: any;
@@ -30,9 +24,9 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
-  const isExpert = authMode === 'authenticated' && user?.role === 'expert';
+  const isExpert = authMode === 'authenticated' && (user?.role === 'expert' || (user?.role as any) === 'EXPERT' || user?.role === 'admin');
 
-  const userName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
+  const userName = user?.displayName || (user?.email ? user.email.split('@')[0] : (isExpert ? 'Nutrition Expert' : 'Parent'));
   const avatarUrl = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=FF5F70&color=fff&bold=true`;
 
   useFocusEffect(
@@ -48,125 +42,220 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
     setRefreshing(false);
   };
 
-  const recommendedArticles = useMemo(() => {
-    if (!articles || articles.length === 0) return [];
-    return [...articles].sort((a, b) => (b.id % 5) - (a.id % 5));
-  }, [articles]);
+  // Algorithm sorting articles by real interaction counts & high 5-star ratings (no fake default fallback)
+  const calculateArticleScore = useCallback((art: any) => {
+    const avgRating = Number(art.rating || art.averageRating || 0);
+    const ratingCount = Number(art.rating_count || art.ratingCount || 0);
+    const likes = Number(art.likes_count || art.likes || 0);
+    const comments = Number(art.comments_count || art.comments || 0);
+
+    const score = (avgRating * 25) + Math.min(ratingCount * 3, 60) + (likes * 2) + (comments * 3);
+    return score;
+  }, []);
+
+  const sortedArticles = useMemo(() => {
+    if (!Array.isArray(articles)) return [];
+    return [...articles].sort((a, b) => calculateArticleScore(b) - calculateArticleScore(a));
+  }, [articles, calculateArticleScore]);
 
   const visibleArticles = useMemo(() => {
-    return recommendedArticles.slice(0, page * PAGE_SIZE);
-  }, [recommendedArticles, page]);
+    return sortedArticles.slice(0, page * PAGE_SIZE);
+  }, [sortedArticles, page]);
 
-  const hasMore = visibleArticles.length < recommendedArticles.length;
+  const hasMore = visibleArticles.length < sortedArticles.length;
 
   const handleLoadMore = () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     setTimeout(() => {
-      setPage((prevPage) => prevPage + 1);
+      setPage((prev) => prev + 1);
       setLoadingMore(false);
-    }, 600);
+    }, 400);
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF5F70" /></View>;
+  const handleArticlePress = (articleId: number) => {
+    try {
+      navigation.navigate('ArticleDetail', { id: articleId });
+    } catch {
+      navigation.navigate('Articles', { screen: 'ArticleDetail', params: { id: articleId } });
+    }
+  };
 
-  const renderHeader = () => (
-    <View style={styles.headerBox}>
-      <Text style={styles.headerTitle}>Nutrition Articles</Text>
-
-      {isExpert && (
-        <TouchableOpacity
-          style={styles.postPrompt}
-          onPress={() => navigation.navigate('AddArticle')}
-          activeOpacity={0.8}
-        >
-          <Image
-            source={{ uri: avatarUrl }}
-            style={styles.promptAvatar}
-          />
-          <Text style={styles.promptText}>What's on your mind?...</Text>
-          <View style={styles.badgeContainer}>
-            <PencilIcon size={12} color="#FFFFFF" />
-            <Text style={styles.postBadgeText}>Post</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  const renderFooter = () => {
-    if (!loadingMore) return null;
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color="#FF5F70" />
-        <Text style={styles.footerText}>Loading more articles...</Text>
-      </View>
-    );
+  const handleCreatePress = () => {
+    if (!isExpert) return;
+    try {
+      navigation.navigate('AddArticle');
+    } catch {
+      navigation.navigate('Articles', { screen: 'AddArticle' });
+    }
   };
 
   return (
     <View style={styles.container}>
       {!hideTopHeader && <TopHeaderBar />}
-      <FlatList
-        data={visibleArticles}
-        keyExtractor={(item) => String(item.id)}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        contentContainerStyle={styles.list}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.4}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF5F70']} />}
-        renderItem={({ item }) => (
-          <ArticleCard article={item} onPress={() => navigation.navigate('ArticleDetail', { id: item.id })} />
+
+      {/* Role Notice & Post Action Banner */}
+      <View style={styles.roleBannerContainer}>
+        <View style={styles.authorRow}>
+          <Image source={{ uri: avatarUrl }} style={styles.userAvatar} />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{userName}</Text>
+            <View style={styles.roleTag}>
+              <Text style={styles.roleTagText}>{isExpert ? '✨ Expert Verified' : '👶 Parent Community'}</Text>
+            </View>
+          </View>
+
+          {isExpert && (
+            <TouchableOpacity style={styles.postBtn} onPress={handleCreatePress} activeOpacity={0.85}>
+              <Icon source="pencil" size={14} color="#FF7A59" />
+              <Text style={styles.postBtnText}>Publish Post</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {!isExpert && (
+          <View style={styles.parentNoticeBox}>
+            <Icon source="star" size={14} color="#D97706" />
+            <Text style={styles.parentNoticeText}>
+              Parents can rate 5⭐, comment, like & save articles. Expert posts are verified.
+            </Text>
+          </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No articles on newsfeed yet</Text>}
-      />
-      {isExpert && (
-        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddArticle')} activeOpacity={0.85}>
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
+      </View>
+
+      {loading && articles.length === 0 ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#FF7A59" />
+        </View>
+      ) : (
+        <FlatList
+          key="article-feed-sorted-list"
+          data={visibleArticles}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF7A59']} />
+          }
+          renderItem={({ item }) => (
+            <ArticleCard
+              article={item}
+              onPress={() => handleArticlePress(item.id)}
+              onRefreshList={fetchArticles}
+            />
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color="#FF7A59" />
+                <Text style={styles.footerText}>Loading more top articles...</Text>
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>No articles published yet.</Text>
+              </View>
+            ) : null
+          }
+        />
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF5F2' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF5F2' },
-  headerBox: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 14, backgroundColor: '#FFFFFF', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#FFE4E6', shadowColor: '#FF5F70', shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#4B3034', marginBottom: 12, letterSpacing: -0.3 },
-  postPrompt: {
+  container: { flex: 1, backgroundColor: '#FFF8F5' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  roleBannerContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE0D6',
+    marginBottom: 8,
+  },
+  authorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF0F2',
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#FFE4E6',
   },
-  promptAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
-  promptText: { flex: 1, fontSize: 13, color: '#8E7377', fontWeight: '500' },
-  badgeContainer: {
+  userAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFF0F2',
+    marginRight: 10,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4B3034',
+  },
+  roleTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF0F2',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginTop: 2,
+  },
+  roleTagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF5F70',
+  },
+  postBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#FF5F70',
+    backgroundColor: '#FFF0F2',
+    borderWidth: 1,
+    borderColor: '#FFE4E6',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    shadowColor: '#FF5F70',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  postBadgeText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  list: { paddingBottom: 90 },
-  footerLoader: { paddingVertical: 20, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
-  footerText: { fontSize: 12, color: '#8E7377', fontWeight: '500' },
-  empty: { textAlign: 'center', marginTop: 40, color: '#8E7377', fontSize: 14 },
-  fab: { position: 'absolute', right: 20, bottom: 80, width: 56, height: 56, borderRadius: 28, backgroundColor: '#FF5F70', justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#FF5F70', shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
-  fabText: { color: '#fff', fontSize: 30, lineHeight: 32, fontWeight: '300' },
+  postBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF7A59',
+  },
+  parentNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 10,
+  },
+  parentNoticeText: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#B45309',
+    lineHeight: 15,
+  },
+  listContent: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 4 },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#8E7377',
+  },
+  emptyBox: { alignItems: 'center', marginTop: 40 },
+  emptyText: { color: '#888888', fontSize: 14 },
 });
 
 export default ArticleListScreen;

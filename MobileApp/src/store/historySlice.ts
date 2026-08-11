@@ -5,7 +5,7 @@ const HISTORY_STORAGE_KEY = '@app_history_activities_v1';
 
 export interface ActivityItem {
     id: string;
-    type: 'like' | 'comment' | 'create' | 'delete' | 'save' | 'action';
+    type: 'like' | 'comment' | 'create' | 'delete' | 'save' | 'action' | 'rate';
     title: string;
     details?: string;
     timestamp: string;

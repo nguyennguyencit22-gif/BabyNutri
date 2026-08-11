@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
 import RecipeItem from '../../components/recipes/RecipeItem';
 import CategoryChip from '../../components/recipes/CategoryChip';
-
-const SearchIcon = ({ size = 18, color = '#6B7280' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M21 21l-4.35-4.35M19 11a8 8 0 11-16 0 8 8 0 0116 0z" />
-  </Svg>
-);
 
 const AGE_PRESETS: { label: string; min?: number; max?: number; type?: string }[] = [
   { label: 'All' },
@@ -50,7 +44,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.searchBarBox}>
-        <SearchIcon size={18} color="#FF6B4A" />
+        <Icon source="magnify" size={18} color="#FF6B4A" />
         <TextInput
           style={styles.searchInput}
           placeholder="Enter recipe name or ingredient..."

@@ -1,18 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, FlatList, RefreshControl, ActivityIndicator, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import Svg, { Path } from 'react-native-svg';
+import { Icon } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import type { RootState } from '../../store/store';
 import { useRecipeStore } from '../../stores/useRecipeStore';
-
-const SearchIcon = ({ size = 18, color = '#FF7A59' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M21 21l-4.35-4.35M19 11a8 8 0 11-16 0 8 8 0 0116 0z" />
-  </Svg>
-);
 
 const CATEGORIES = ['All', '6-12 months', '12-24 months', '24+ months'];
 
@@ -86,7 +80,7 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
           onPress={() => navigation.navigate('SearchRecipe')}
           activeOpacity={0.75}
         >
-          <SearchIcon size={18} color="#FF5F70" />
+          <Icon source="magnify" size={18} color="#FF5F70" />
         </TouchableOpacity>
       </View>
 

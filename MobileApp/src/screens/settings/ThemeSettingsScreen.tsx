@@ -5,32 +5,17 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import {
-    useDispatch,
-    useSelector,
-} from 'react-redux';
+import { Icon } from 'react-native-paper';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import createStyles from '../../styles/settings/themeSettingsStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-import type {
-    AppDispatch,
-    RootState,
-} from '../../store/store';
-
-import {
-    setThemeMode,
-} from '../../store/settings/themeSlice';
+import type { AppDispatch, RootState } from '../../store/store';
+import { setThemeMode } from '../../store/settings/themeSlice';
 import type { AppThemeMode } from '../../types/settings/theme';
-
-const CheckIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M20 6L9 17l-5-5" />
-  </Svg>
-);
 
 type ThemeOption = {
     labelKey: string;
@@ -112,7 +97,8 @@ function ThemeSettingsScreen({
                                     styles.radioSelected,
                                 ]}>
                                 {isSelected ? (
-                                    <CheckIcon
+                                    <Icon
+                                        source="check"
                                         size={16}
                                         color={colors.onPrimary}
                                     />
