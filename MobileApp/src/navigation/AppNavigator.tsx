@@ -19,10 +19,12 @@ import MeasurementSettingsScreen from '../screens/settings/MeasurementSettingsSc
 import AboutScreen from '../screens/settings/AboutScreen';
 
 import RecipeDetailScreen from '../screens/recipes/RecipeDetailScreen';
+import RecipeReviewsScreen from '../screens/recipes/RecipeReviewsScreen';
 import AddRecipeScreen from '../screens/recipes/AddRecipeScreen';
 import EditRecipeScreen from '../screens/recipes/EditRecipeScreen';
 import SearchRecipeScreen from '../screens/recipes/SearchRecipeScreen';
 import ArticleDetailScreen from '../screens/articles/ArticleDetailScreen';
+import ArticleReviewsScreen from '../screens/articles/ArticleReviewsScreen';
 import AddArticleScreen from '../screens/articles/AddArticleScreen';
 import SavedItemsScreen from '../screens/saved/SavedItemsScreen';
 import FavoriteRecipesScreen from '../screens/recipes/FavoriteRecipesScreen';
@@ -133,6 +135,11 @@ function AppNavigator() {
         options={{ title: 'Recipe Details', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
+        name="RecipeReviews"
+        component={RecipeReviewsScreen}
+        options={{ title: 'Ratings & Reviews', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
         name="AddRecipe"
         component={AddRecipeScreen}
         options={{ title: 'Add New Recipe', headerTintColor: '#FF5F70' }}
@@ -151,6 +158,11 @@ function AppNavigator() {
         name="ArticleDetail"
         component={ArticleDetailScreen}
         options={{ title: 'Article Details', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
+        name="ArticleReviews"
+        component={ArticleReviewsScreen}
+        options={{ title: 'Ratings & Reviews', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
         name="AddArticle"
