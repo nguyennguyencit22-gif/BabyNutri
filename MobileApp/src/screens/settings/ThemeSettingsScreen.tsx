@@ -99,7 +99,7 @@ function ThemeSettingsScreen({
                                 {isSelected ? (
                                     <Icon
                                         source="check"
-                                        size={16}
+                                        size={20}
                                         color={colors.onPrimary}
                                     />
                                 ) : null}

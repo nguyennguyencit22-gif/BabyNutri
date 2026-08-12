@@ -132,7 +132,7 @@ function AccountSettingsScreen({
                         style={styles.cameraButton}>
                         <Icon
                             source="camera"
-                            size={18}
+                            size={22}
                             color={colors.onPrimary}
                         />
                     </Pressable>
