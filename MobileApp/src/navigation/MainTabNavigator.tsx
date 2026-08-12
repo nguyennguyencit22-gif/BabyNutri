@@ -3,7 +3,7 @@ import { useWindowDimensions, View } from 'react-native';
 import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
-import { Icon } from 'react-native-paper';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';
@@ -25,6 +25,33 @@ const tabBarHorizontalMargin =
 
 const PILL_HEIGHT = 58;
 const PILL_BOTTOM_GAP = 10;
+
+const HomeIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z" />
+    </Svg>
+);
+
+const ChatIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </Svg>
+);
+
+const LayersIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M12 2l9 5-9 5-9-5z" />
+        <Path d="M3 12l9 5 9-5" />
+        <Path d="M3 17l9 5 9-5" />
+    </Svg>
+);
+
+const AccountIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+        <Circle cx="12" cy="7" r="4" />
+    </Svg>
+);
 
 const TabBarBackground = () => {
     const { width } = useWindowDimensions();
@@ -56,16 +83,15 @@ const TabIcon = ({
     focused,
     color,
     size,
-    iconName,
+    IconComponent,
 }: {
     focused: boolean;
     color: string;
     size: number;
-    iconName: string;
+    IconComponent: React.ComponentType<{ size?: number; color?: string }>;
 }) => (
     <View style={styles.iconWrapper}>
-        <Icon
-            source={iconName}
+        <IconComponent
             color={color}
             size={size}
         />
@@ -91,7 +117,7 @@ const HomeTabIcon = ({
         focused={focused}
         color={color}
         size={size}
-        iconName="home-outline"
+        IconComponent={HomeIcon}
     />
 );
 
@@ -108,7 +134,7 @@ const CommunityTabIcon = ({
         focused={focused}
         color={color}
         size={size}
-        iconName="message-outline"
+        IconComponent={ChatIcon}
     />
 );
 
@@ -125,7 +151,7 @@ const LibraryTabIcon = ({
         focused={focused}
         color={color}
         size={size}
-        iconName="layers-outline"
+        IconComponent={LayersIcon}
     />
 );
 
@@ -142,7 +168,7 @@ const ProfileTabIcon = ({
         focused={focused}
         color={color}
         size={size}
-        iconName="account-outline"
+        IconComponent={AccountIcon}
     />
 );
 function MainTabNavigator() {
