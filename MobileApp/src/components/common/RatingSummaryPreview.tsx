@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from './AppIcon';
+import StarRating from './StarRating';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 
@@ -15,22 +16,26 @@ export type ReviewPreviewComment = {
 type Props = {
     avgRating: number;
     ratingCount: number;
+    userRating: number;
+    onRate: (score: number) => void;
     comments: ReviewPreviewComment[];
     onPress: () => void;
 };
 
 // Compact "Ratings & Reviews" teaser for the bottom of a recipe/article
-// detail page — just the headline score + up to 2 comments. Tapping it
-// (or "See all reviews") opens the full breakdown + comment thread on the
-// dedicated Reviews screen (RatingReviewSection).
-const RatingSummaryPreview: React.FC<Props> = ({ avgRating, ratingCount, comments, onPress }) => {
+// detail page — headline score, the interactive tap-to-rate control, and up
+// to 2 comments. Tapping the header, a comment, or "See all reviews" opens
+// the full breakdown + comment thread on the dedicated Reviews screen
+// (RatingReviewSection); the star row itself rates in place without leaving
+// the page.
+const RatingSummaryPreview: React.FC<Props> = ({ avgRating, ratingCount, userRating, onRate, comments, onPress }) => {
     const { colors } = useAppTheme();
     const styles = React.useMemo(() => createStyles(colors), [colors]);
     const preview = comments.slice(0, 2);
 
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
-            <View style={styles.headerRow}>
+        <View style={styles.card}>
+            <TouchableOpacity style={styles.headerRow} onPress={onPress} activeOpacity={0.7}>
                 <Text style={styles.sectionTitle}>Ratings & Reviews</Text>
                 <View style={styles.scoreRow}>
                     <Icon source="star" size={16} color="#F59E0B" />
@@ -38,38 +43,56 @@ const RatingSummaryPreview: React.FC<Props> = ({ avgRating, ratingCount, comment
                     <Text style={styles.countText}>({ratingCount})</Text>
                     <Icon source="chevron-right" size={18} color={colors.textSoft} />
                 </View>
+            </TouchableOpacity>
+
+            <View style={styles.rateRow}>
+                <Text style={styles.rateLabel}>
+                    {userRating > 0 ? 'Your rating' : 'Tap a star to rate'}
+                </Text>
+                <StarRating
+                    rating={avgRating}
+                    userRating={userRating}
+                    interactive
+                    onRate={onRate}
+                    showScoreText={false}
+                    starSize={22}
+                />
             </View>
+
+            <View style={styles.divider} />
 
             {preview.length === 0 ? (
                 <Text style={styles.emptyText}>No reviews yet. Be the first to share your thoughts!</Text>
             ) : (
-                preview.map((item) => (
-                    <View key={item.id} style={styles.commentRow}>
-                        {item.avatar ? (
-                            <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                        ) : (
-                            <View style={[styles.avatar, styles.avatarFallback]}>
-                                <Text style={styles.avatarLetter}>{item.userName.charAt(0).toUpperCase()}</Text>
+                <View style={styles.commentsList}>
+                    {preview.map((item) => (
+                        <TouchableOpacity key={item.id} style={styles.commentRow} onPress={onPress} activeOpacity={0.7}>
+                            {item.avatar ? (
+                                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                            ) : (
+                                <View style={[styles.avatar, styles.avatarFallback]}>
+                                    <Text style={styles.avatarLetter}>{item.userName.charAt(0).toUpperCase()}</Text>
+                                </View>
+                            )}
+                            <View style={styles.commentBody}>
+                                <View style={styles.commentHeaderRow}>
+                                    <Text style={styles.commentUser}>{item.userName}</Text>
+                                    <Text style={styles.commentTime}>{item.time}</Text>
+                                </View>
+                                <Text style={styles.commentText} numberOfLines={2}>{item.content}</Text>
                             </View>
-                        )}
-                        <View style={styles.commentBody}>
-                            <View style={styles.commentHeaderRow}>
-                                <Text style={styles.commentUser}>{item.userName}</Text>
-                                <Text style={styles.commentTime}>{item.time}</Text>
-                            </View>
-                            <Text style={styles.commentText} numberOfLines={2}>{item.content}</Text>
-                        </View>
-                    </View>
-                ))
+                        </TouchableOpacity>
+                    ))}
+                </View>
             )}
 
             {ratingCount > 0 && (
-                <View style={styles.seeAllRow}>
+                <TouchableOpacity style={styles.seeAllRow} onPress={onPress} activeOpacity={0.7}>
                     <Text style={styles.seeAllText}>See all {ratingCount} {ratingCount === 1 ? 'review' : 'reviews'}</Text>
                     <Icon source="chevron-right" size={16} color={colors.primary} />
-                </View>
+                </TouchableOpacity>
             )}
-        </TouchableOpacity>
+        </View>
     );
 };
 
@@ -86,7 +109,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 12,
+    },
+    rateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 14,
+    },
+    rateLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: colors.text,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: colors.border,
+        marginTop: 14,
+        marginBottom: 14,
     },
     sectionTitle: {
         fontSize: 17,
@@ -113,12 +152,12 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         color: colors.textSoft,
         fontStyle: 'italic',
     },
+    commentsList: {
+        gap: 12,
+    },
     commentRow: {
         flexDirection: 'row',
         gap: 12,
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
     },
     avatar: {
         width: 32,

@@ -13,8 +13,9 @@ type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number }
 const EMPTY_BREAKDOWN: RatingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
 // Full "Ratings & Reviews" page for a recipe — reached by tapping the
-// compact RatingSummaryPreview on RecipeDetailScreen. Owns the rate/comment
-// read-write logic that used to live inline on the detail screen.
+// compact RatingSummaryPreview on RecipeDetailScreen. Read-only breakdown +
+// comment thread; the interactive tap-to-rate control lives on the compact
+// preview instead, alongside the 2-comment teaser.
 const RecipeReviewsScreen = ({ route, navigation }: any) => {
   const { colors } = useAppTheme();
   const id = Number(route?.params?.id);
@@ -25,7 +26,6 @@ const RecipeReviewsScreen = ({ route, navigation }: any) => {
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
   const dispatch = useDispatch();
 
-  const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
   const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
@@ -38,21 +38,13 @@ const RecipeReviewsScreen = ({ route, navigation }: any) => {
       setAvgRating(Number(summary.averageRating) || 0);
       setRatingCount(Number(summary.totalRatings) || 0);
       setRatingBreakdown(summary.breakdown || EMPTY_BREAKDOWN);
-
-      if (authMode === 'authenticated') {
-        const mine = await recipeService.getMyRating(id);
-        setUserRating(mine.rating || 0);
-      } else {
-        setUserRating(0);
-      }
     } catch (e) {
       console.error('Load recipe rating error:', e);
-      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
       setRatingBreakdown(EMPTY_BREAKDOWN);
     }
-  }, [id, authMode]);
+  }, [id]);
 
   const loadComments = useCallback(async () => {
     try {
@@ -70,40 +62,6 @@ const RecipeReviewsScreen = ({ route, navigation }: any) => {
       loadComments();
     }, [loadRatingData, loadComments])
   );
-
-  const saveRatingData = async (newScore: number) => {
-    if (authMode === 'guest') {
-      navigation.navigate('Login');
-      return;
-    }
-
-    try {
-      await recipeService.submitRating(id, newScore);
-      const summary = await recipeService.getRatingSummary(id);
-
-      setUserRating(newScore);
-      setAvgRating(Number(summary.averageRating) || 0);
-      setRatingCount(Number(summary.totalRatings) || 0);
-      setRatingBreakdown(summary.breakdown || EMPTY_BREAKDOWN);
-
-      dispatch(addActivity({
-        type: 'rate',
-        title: `Rated recipe ${newScore}⭐: ${recipeName}`,
-        details: `Average rating: ${summary.averageRating}⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
-        icon: '⭐',
-      }));
-
-      appAlert.show(
-        'Evaluation Saved',
-        `You rated "${recipeName}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
-        undefined,
-        'star',
-      );
-    } catch (e) {
-      console.error('Save recipe rating error:', e);
-      Alert.alert('Error', 'Unable to save your rating right now.');
-    }
-  };
 
   // Comments require an account, same gate as rating — guests are sent
   // straight to Login rather than shown a popup.
@@ -164,8 +122,6 @@ const RecipeReviewsScreen = ({ route, navigation }: any) => {
           avgRating={avgRating}
           ratingCount={ratingCount}
           breakdown={ratingBreakdown}
-          userRating={userRating}
-          onRate={saveRatingData}
           comments={comments.map((item) => ({
             id: item.id,
             userName: item.userName,

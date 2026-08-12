@@ -36,11 +36,13 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [liked, setLiked] = useState(isSaved);
 
   // Real ratings only (default 0)
+  const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
+  const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
 
@@ -68,23 +70,89 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         const list: number[] = Array.isArray(parsed.ratingsList)
           ? parsed.ratingsList
           : (parsed.userRating ? [parsed.userRating] : []);
+        const uRating = parsed.userRating || 0;
 
         if (list.length > 0) {
           const sum = list.reduce((a, b) => a + b, 0);
           const avg = Number((sum / list.length).toFixed(1));
+          setUserRating(uRating);
           setAvgRating(avg);
           setRatingCount(list.length);
           return;
         }
       }
+      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
     } catch (e) {
       console.error('Load rating data error:', e);
+      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
     }
   }, [id]);
+
+  const saveRatingData = async (newScore: number) => {
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
+    try {
+      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
+      let list: number[] = [];
+      if (storedRating) {
+        const parsed = JSON.parse(storedRating);
+        if (Array.isArray(parsed.ratingsList)) {
+          list = parsed.ratingsList;
+        }
+      }
+
+      if (userRating > 0 && list.length > 0) {
+        const userIndex = list.indexOf(userRating);
+        if (userIndex !== -1) {
+          list[userIndex] = newScore;
+        } else {
+          list.push(newScore);
+        }
+      } else {
+        list.push(newScore);
+      }
+
+      const sum = list.reduce((a, b) => a + b, 0);
+      const avg = Number((sum / list.length).toFixed(1));
+
+      setUserRating(newScore);
+      setAvgRating(avg);
+      setRatingCount(list.length);
+
+      await AsyncStorage.setItem(
+        `article_rating_${id}`,
+        JSON.stringify({
+          userRating: newScore,
+          ratingsList: list,
+          avgRating: avg,
+          ratingCount: list.length,
+        })
+      );
+
+      dispatch(addActivity({
+        type: 'rate',
+        title: `Rated article ${newScore}⭐: ${article?.title || 'Article'}`,
+        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        icon: '⭐',
+      }));
+
+      appAlert.show(
+        'Evaluation Saved',
+        `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        undefined,
+        'star',
+      );
+    } catch (e) {
+      console.error('Save rating error:', e);
+    }
+  };
 
   const fetchArticleDetail = useCallback(() => {
     setLoading(true);
@@ -197,6 +265,8 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
           <RatingSummaryPreview
             avgRating={avgRating}
             ratingCount={ratingCount}
+            userRating={userRating}
+            onRate={saveRatingData}
             comments={comments.map((item) => ({
               id: item.id,
               userName: item.userName,

@@ -38,6 +38,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const saved = savedRecipeIds.includes(id);
   const [liked, setLiked] = useState(saved);
 
+  const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
   const [comments, setComments] = useState<Awaited<ReturnType<typeof recipeService.getComments>>>([]);
@@ -87,12 +88,20 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       const summary = await recipeService.getRatingSummary(id);
       setAvgRating(Number(summary.averageRating) || 0);
       setRatingCount(Number(summary.totalRatings) || 0);
+
+      if (authMode === 'authenticated') {
+        const mine = await recipeService.getMyRating(id);
+        setUserRating(mine.rating || 0);
+      } else {
+        setUserRating(0);
+      }
     } catch (e) {
       console.error('Load recipe rating error:', e);
+      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
     }
-  }, [id]);
+  }, [id, authMode]);
 
   const loadComments = useCallback(async () => {
     try {
@@ -103,6 +112,43 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       setComments([]);
     }
   }, [id]);
+
+  // Rating requires an account — it's tied to the signed-in user's row in
+  // recipe_ratings so it can be edited/averaged server-side. Guests can
+  // still see everyone else's average (loadRatingData above), they just
+  // can't add their own.
+  const saveRatingData = async (newScore: number) => {
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
+    try {
+      await recipeService.submitRating(id, newScore);
+      const summary = await recipeService.getRatingSummary(id);
+
+      setUserRating(newScore);
+      setAvgRating(Number(summary.averageRating) || 0);
+      setRatingCount(Number(summary.totalRatings) || 0);
+
+      dispatch(addActivity({
+        type: 'rate',
+        title: `Rated recipe ${newScore}⭐: ${recipe?.name || 'Recipe'}`,
+        details: `Average rating: ${summary.averageRating}⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
+        icon: '⭐',
+      }));
+
+      appAlert.show(
+        'Evaluation Saved',
+        `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
+        undefined,
+        'star',
+      );
+    } catch (e) {
+      console.error('Save recipe rating error:', e);
+      Alert.alert('Error', 'Unable to save your rating right now.');
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -386,6 +432,8 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           <RatingSummaryPreview
             avgRating={avgRating}
             ratingCount={ratingCount}
+            userRating={userRating}
+            onRate={saveRatingData}
             comments={comments.map((item) => ({
               id: item.id,
               userName: item.userName,

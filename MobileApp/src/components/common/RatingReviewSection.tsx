@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from './AppIcon';
-import StarRating from './StarRating';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 
@@ -19,8 +18,6 @@ type Props = {
     avgRating: number;
     ratingCount: number;
     breakdown: { 5: number; 4: number; 3: number; 2: number; 1: number };
-    userRating: number;
-    onRate: (score: number) => void;
     comments: ReviewComment[];
     commentInput: string;
     onChangeCommentInput: (text: string) => void;
@@ -29,16 +26,14 @@ type Props = {
     onDeleteComment?: (id: number | string) => void;
 };
 
-// Shared "Rating & Reviews" block for recipe/article detail screens — a
-// summary card (big score + star breakdown bars, like a typical shop app's
-// review header) followed by a tap-to-rate row and the comment thread.
-// Lives at the bottom of the page, after the main content.
+// Shared "Rating & Reviews" detail block — a summary card (big score + star
+// breakdown bars) followed by the full comment thread. The interactive
+// tap-to-rate control lives on the compact RatingSummaryPreview instead, so
+// this component is read-only display + comments.
 const RatingReviewSection: React.FC<Props> = ({
     avgRating,
     ratingCount,
     breakdown,
-    userRating,
-    onRate,
     comments,
     commentInput,
     onChangeCommentInput,
@@ -87,22 +82,6 @@ const RatingReviewSection: React.FC<Props> = ({
                         );
                     })}
                 </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.ratePromptRow}>
-                <Text style={styles.ratePromptLabel}>
-                    {userRating > 0 ? 'Your rating' : 'Tap a star to rate'}
-                </Text>
-                <StarRating
-                    rating={avgRating}
-                    userRating={userRating}
-                    interactive
-                    onRate={onRate}
-                    showScoreText={false}
-                    starSize={24}
-                />
             </View>
 
             <View style={styles.divider} />
@@ -243,16 +222,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         height: 1,
         backgroundColor: colors.border,
         marginVertical: 16,
-    },
-    ratePromptRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    ratePromptLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: colors.text,
     },
     commentTitleBox: {
         flexDirection: 'row',

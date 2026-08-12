@@ -30,9 +30,10 @@ interface CommentItem {
 }
 
 // Full "Ratings & Reviews" page for an article — reached by tapping the
-// compact RatingSummaryPreview on ArticleDetailScreen. Owns the rate/comment
-// read-write logic (all local/AsyncStorage) that used to live inline on the
-// detail screen, including the comment-edit modal.
+// compact RatingSummaryPreview on ArticleDetailScreen. Read-only breakdown +
+// comment thread (with the comment-edit modal); the interactive tap-to-rate
+// control lives on the compact preview instead, alongside the 2-comment
+// teaser.
 const ArticleReviewsScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
@@ -45,7 +46,6 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
 
-  const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
   const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
@@ -84,25 +84,21 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
         const list: number[] = Array.isArray(parsed.ratingsList)
           ? parsed.ratingsList
           : (parsed.userRating ? [parsed.userRating] : []);
-        const uRating = parsed.userRating || 0;
 
         if (list.length > 0) {
           const sum = list.reduce((a, b) => a + b, 0);
           const avg = Number((sum / list.length).toFixed(1));
-          setUserRating(uRating);
           setAvgRating(avg);
           setRatingCount(list.length);
           setRatingBreakdown(computeBreakdown(list));
           return;
         }
       }
-      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
       setRatingBreakdown(EMPTY_BREAKDOWN);
     } catch (e) {
       console.error('Load rating data error:', e);
-      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
       setRatingBreakdown(EMPTY_BREAKDOWN);
@@ -113,69 +109,6 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
     loadSavedComments();
     loadRatingData();
   }, [loadSavedComments, loadRatingData]);
-
-  const saveRatingData = async (newScore: number) => {
-    if (authMode === 'guest') {
-      navigation.navigate('Login');
-      return;
-    }
-
-    try {
-      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
-      let list: number[] = [];
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        if (Array.isArray(parsed.ratingsList)) {
-          list = parsed.ratingsList;
-        }
-      }
-
-      if (userRating > 0 && list.length > 0) {
-        const userIndex = list.indexOf(userRating);
-        if (userIndex !== -1) {
-          list[userIndex] = newScore;
-        } else {
-          list.push(newScore);
-        }
-      } else {
-        list.push(newScore);
-      }
-
-      const sum = list.reduce((a, b) => a + b, 0);
-      const avg = Number((sum / list.length).toFixed(1));
-
-      setUserRating(newScore);
-      setAvgRating(avg);
-      setRatingCount(list.length);
-      setRatingBreakdown(computeBreakdown(list));
-
-      await AsyncStorage.setItem(
-        `article_rating_${id}`,
-        JSON.stringify({
-          userRating: newScore,
-          ratingsList: list,
-          avgRating: avg,
-          ratingCount: list.length,
-        })
-      );
-
-      dispatch(addActivity({
-        type: 'rate',
-        title: `Rated article ${newScore}⭐: ${articleTitleRef.current}`,
-        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
-        icon: '⭐',
-      }));
-
-      appAlert.show(
-        'Evaluation Saved',
-        `You rated "${articleTitleRef.current}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
-        undefined,
-        'star',
-      );
-    } catch (e) {
-      console.error('Save rating error:', e);
-    }
-  };
 
   const saveCommentsToStorage = async (newList: CommentItem[]) => {
     setComments(newList);
@@ -263,8 +196,6 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
           avgRating={avgRating}
           ratingCount={ratingCount}
           breakdown={ratingBreakdown}
-          userRating={userRating}
-          onRate={saveRatingData}
           comments={comments.map((item) => ({
             id: item.id,
             userName: item.userName,
