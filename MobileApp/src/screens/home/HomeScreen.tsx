@@ -26,7 +26,6 @@ import {
 } from '../../services/home.service';
 import { useFocusEffect } from '@react-navigation/native';
 import { getJourneyImage } from '../../constants/home/journeyImages';
-import { getRecipeImage } from '../../constants/home/recipeImages';
 
 const EMPTY_HOME_DATA: HomeData = {
     popularCategories: [],
@@ -278,7 +277,7 @@ function HomeScreen({ navigation }: any) {
                             <RecipeCard
                                 title={item.title}
                                 time={item.time}
-                                image={getRecipeImage(item.id, item.image)}
+                                image={{ uri: item.image }}
                                 rating={item.rating}
                                 ratingCount={item.ratingCount}
                                 onPress={() =>
