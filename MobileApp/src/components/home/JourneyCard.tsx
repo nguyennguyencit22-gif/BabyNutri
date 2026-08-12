@@ -12,6 +12,7 @@ type JourneyCardProps = {
     description: string;
     colorMonths: string;
     image?: ImageSourcePropType;
+    onPress?: () => void;
 };
 
 const BLOB_PATH =
@@ -22,7 +23,8 @@ function JourneyCard(
         title,
         description,
         colorMonths,
-        image, }: JourneyCardProps
+        image,
+        onPress, }: JourneyCardProps
 ) {
     const { t } = useTranslation();
     // title/description come from the journey_items table, so they go
@@ -84,6 +86,8 @@ function JourneyCard(
                     labelStyle={styles.buttonLabel}
                     buttonColor="#FFC62F"
                     textColor="#5B0010"
+                    onPress={onPress}
+                    disabled={!onPress}
                 >
                     {t('home.letsGo')}
                 </Button>

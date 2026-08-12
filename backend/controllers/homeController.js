@@ -49,7 +49,7 @@ exports.getHomeData = async (req, res) => {
         `);
 
         const [journeyRows] = await db.query(`
-            SELECT id, age_label AS age, title, description, color_month AS colorMonth, image_key AS imageKey
+            SELECT id, age_label AS age, title, description, color_month AS colorMonth, image_key AS imageKey, article_id AS articleId
             FROM journey_items
             ORDER BY sort_order ASC, id ASC
         `);

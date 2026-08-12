@@ -198,6 +198,7 @@ function HomeScreen({ navigation }: any) {
                                 description={item.description}
                                 colorMonths={item.colorMonth}
                                 image={getJourneyImage(item.imageKey)}
+                                onPress={item.articleId ? () => navigation.navigate('ArticleDetail', { id: item.articleId }) : undefined}
                             />
                         )}
                     />

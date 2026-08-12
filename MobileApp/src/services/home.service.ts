@@ -24,6 +24,7 @@ export type HomeJourneyItem = {
     description: string;
     colorMonth: string;
     imageKey: string | null;
+    articleId: number | null;
 };
 
 export type HomeData = {
