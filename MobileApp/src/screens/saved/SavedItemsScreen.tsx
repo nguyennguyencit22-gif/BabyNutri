@@ -114,7 +114,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, { color: colors.textSoft }, activeTab === 'articles' && styles.activeTabText]}>
-              Saved ({savedArticleIds.length})
+              Favorite Article ({savedArticleIds.length})
             </Text>
           </TouchableOpacity>
 
@@ -124,7 +124,7 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             activeOpacity={0.8}
           >
             <Text style={[styles.tabText, { color: colors.textSoft }, activeTab === 'recipes' && styles.activeTabText]}>
-              Favorites ({savedRecipeIds.length})
+              Favorite Recipe ({savedRecipeIds.length})
             </Text>
           </TouchableOpacity>
         </View>
