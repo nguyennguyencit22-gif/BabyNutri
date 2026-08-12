@@ -43,7 +43,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const [ratingCount, setRatingCount] = useState<number>(0);
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
-  const bookmarkScaleAnim = useRef(new Animated.Value(1)).current;
 
   const dispatch = useDispatch();
 
@@ -215,11 +214,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
     ]).start();
 
-    Animated.sequence([
-      Animated.timing(bookmarkScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
-      Animated.spring(bookmarkScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
-    ]).start();
-
     if (authMode === 'authenticated') {
       recipeService.toggleFavorite(id).catch((e) => {
         console.error('Sync favorite to server error:', e);
@@ -381,7 +375,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
             </View>
           )}
 
-          {/* Social Bar: Like, Share Link, Save, Post */}
+          {/* Social Bar: Like, Share Link, Post */}
           <View style={[styles.socialBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <TouchableOpacity style={styles.socialBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
@@ -395,15 +389,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
             <TouchableOpacity style={styles.socialBtn} onPress={handleExternalShare} activeOpacity={0.8}>
               <Icon source="share-variant" size={20} color={colors.textSoft} />
               <Text style={[styles.socialText, { color: colors.textSoft }]}>Share</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.socialBtn} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
-              <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
-                <Icon source={saved ? 'bookmark' : 'bookmark-outline'} size={20} color={saved ? '#FF7A59' : colors.textSoft} />
-              </Animated.View>
-              <Text style={[styles.socialText, { color: colors.textSoft }, saved && { color: '#FF7A59', fontWeight: '700' }]}>
-                {saved ? 'Saved' : 'Save'}
-              </Text>
             </TouchableOpacity>
 
             {isExpert && (

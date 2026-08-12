@@ -44,7 +44,6 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [ratingCount, setRatingCount] = useState<number>(0);
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
-  const bookmarkScaleAnim = useRef(new Animated.Value(1)).current;
 
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
@@ -175,11 +174,6 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       Animated.spring(heartScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
     ]).start();
 
-    Animated.sequence([
-      Animated.timing(bookmarkScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
-      Animated.spring(bookmarkScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
-    ]).start();
-
     if (isNowSaved) {
       dispatch(addActivity({
         type: 'like',
@@ -299,20 +293,13 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             />
           </View>
 
-          {/* Action Buttons: Like & Save */}
+          {/* Action Button: Like (also saves to Favourites) */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
                 <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : colors.textSoft} />
               </Animated.View>
               <Text style={[styles.actionBtnText, { color: colors.text }, liked && styles.likedText]}>{liked ? 'Liked & Saved' : 'Like Article'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, isSaved && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
-              <Animated.View style={{ transform: [{ scale: bookmarkScaleAnim }] }}>
-                <Icon source={isSaved ? 'bookmark' : 'bookmark-outline'} size={20} color={isSaved ? '#FF7A59' : colors.textSoft} />
-              </Animated.View>
-              <Text style={[styles.actionBtnText, { color: colors.text }, isSaved && styles.savedText]}>{isSaved ? 'Saved in Favourites' : 'Save Article'}</Text>
             </TouchableOpacity>
           </View>
 
