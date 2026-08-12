@@ -34,6 +34,7 @@ import { loadPersistedBabies } from './src/store/babySlice';
 import { loadPersistedHistory } from './src/store/historySlice';
 
 import AppNavigator from './src/navigation/AppNavigator';
+import AppAlert from './src/components/common/AppAlert';
 
 import { useAppTheme } from './src/theme/useAppTheme';
 
@@ -86,6 +87,7 @@ function AppContent() {
       <NavigationContainer theme={navigationTheme}>
         <AppNavigator />
       </NavigationContainer>
+      <AppAlert />
     </PaperProvider>
   );
 }

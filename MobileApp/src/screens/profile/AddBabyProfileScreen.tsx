@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-    Alert,
     ScrollView,
     StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Text } from 'react-native-paper';
+import { appAlert } from '../../utils/appAlert';
 
 import BabyAvatarPicker from '../../components/profile/BabyAvatarPicker';
 import ProfileColorPicker from '../../components/profile/ProfileColorPicker';
@@ -126,9 +126,11 @@ function AddBabyProfileScreen({ navigation }: any) {
 
         const ageMonths = calculateBabyAgeInMonths(dateOfBirth.toISOString());
         if (ageMonths > 60) {
-            Alert.alert(
+            appAlert.show(
                 'Age Limit Exceeded',
                 'BabyNutri is designed for infants and children up to 5 years old (60 months). Please select a valid date of birth within 5 years.',
+                undefined,
+                'warning',
             );
             return false;
         }
@@ -162,14 +164,16 @@ function AddBabyProfileScreen({ navigation }: any) {
         );
 
         if (saveBaby.rejected.match(result)) {
-            Alert.alert(
+            appAlert.show(
                 'Error',
                 'Could not save the baby profile. Please try again.',
+                undefined,
+                'error',
             );
             return;
         }
 
-        Alert.alert(
+        appAlert.show(
             'Success',
             'Baby profile has been created.',
             [
@@ -178,8 +182,8 @@ function AddBabyProfileScreen({ navigation }: any) {
                     onPress: () => navigation.goBack(),
                 },
             ],
+            'baby',
         );
-        navigation.goBack();
     };
 
     return (

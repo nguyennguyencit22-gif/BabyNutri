@@ -19,6 +19,7 @@ import Icon from '../../components/common/AppIcon';
 
 import { useAppTheme } from '../../theme/useAppTheme';
 import { getRecipeImage } from '../../constants/recipeImages';
+import { appAlert } from '../../utils/appAlert';
 
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -127,7 +128,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         icon: '⭐',
       }));
 
-      Alert.alert('Evaluation Saved ⭐', `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`);
+      appAlert.show(
+        'Evaluation Saved',
+        `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
+        undefined,
+        'star',
+      );
     } catch (e) {
       console.error('Save recipe rating error:', e);
       Alert.alert('Error', 'Unable to save your rating right now.');
@@ -227,7 +233,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         details: 'Added to Favorite Recipes tab',
         icon: '❤️',
       }));
-      Alert.alert('Saved to Favorites ❤️', `"${recipe?.name}" has been added to your Favorite Recipes tab.`);
+      appAlert.show(
+        'Saved to Favorites',
+        `"${recipe?.name}" has been added to your Favorite Recipes tab.`,
+        undefined,
+        'heart',
+      );
     }
   };
 
