@@ -20,13 +20,17 @@ interface BabyProfileActionsModalProps {
     onEditEvents?: () => void;
     onConfigureMainScreen?: () => void;
     onReminders?: () => void;
+    // Only the owner caregiver can invite others (backend enforces this
+    // too) — pass onCopyCode only when the selected baby's permission is
+    // 'owner', which hides the row entirely for editors. Guests get a
+    // different row instead (see showLoginPromptForCode below), since for
+    // them the fix is "log in", not "you lack permission".
+    invitationCode?: string | null;
     onCopyCode?: () => void;
     onInputCode?: () => void;
     onCaregiverList?: () => void;
     onMeasurementSettings?: () => void;
-    invitationCode?: string | null;
     showLoginPromptForCode?: boolean;
-    onRequestLoginForCode?: () => void;
     onRequestLogin?: () => void;
 }
 
@@ -37,10 +41,16 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
     onWeaningMealPlan,
     onEditBaby,
     onAddCaregiver,
+    onEditEvents,
+    onConfigureMainScreen,
+    onReminders,
+    invitationCode,
     onCopyCode,
     onInputCode,
     onCaregiverList,
     onMeasurementSettings,
+    showLoginPromptForCode,
+    onRequestLogin,
 }) => {
     const { colors } = useAppTheme();
     const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -48,17 +58,47 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
     const actions = [
         {
             id: 'edit',
-            title: 'Edit Baby Profile',
-            iconName: 'account-edit-outline',
+            title: 'Edit baby profile',
+            iconName: 'pencil-outline',
             onPress: onEditBaby,
         },
         ...(onAddCaregiver
             ? [
                   {
                       id: 'caregiver',
-                      title: 'Add Parent / Caregiver',
+                      title: 'Add parent / caregiver',
                       iconName: 'account-plus-outline',
                       onPress: onAddCaregiver,
+                  },
+              ]
+            : []),
+        ...(onEditEvents
+            ? [
+                  {
+                      id: 'events',
+                      title: 'Create / Edit events',
+                      iconName: 'calendar-edit',
+                      onPress: onEditEvents,
+                  },
+              ]
+            : []),
+        ...(onConfigureMainScreen
+            ? [
+                  {
+                      id: 'configure',
+                      title: 'Main screen configuration',
+                      iconName: 'view-dashboard-edit-outline',
+                      onPress: onConfigureMainScreen,
+                  },
+              ]
+            : []),
+        ...(onReminders
+            ? [
+                  {
+                      id: 'reminders',
+                      title: 'Reminders',
+                      iconName: 'bell-outline',
+                      onPress: onReminders,
                   },
               ]
             : []),
@@ -66,12 +106,23 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
             ? [
                   {
                       id: 'copy-code',
-                      title: 'Get Caregiver Code',
-                      iconName: 'qrcode-scan',
+                      title: "Copy baby's code",
+                      subtitle: invitationCode ?? 'Generating…',
+                      iconName: 'content-copy',
                       onPress: onCopyCode,
                   },
               ]
-            : []),
+            : showLoginPromptForCode && onRequestLogin
+                ? [
+                      {
+                          id: 'copy-code',
+                          title: "Copy baby's code",
+                          subtitle: "Log in to get baby's code",
+                          iconName: 'content-copy',
+                          onPress: onRequestLogin,
+                      },
+                  ]
+                : []),
         ...(onInputCode
             ? [
                   {
@@ -131,7 +182,9 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
             visible={visible}
             transparent
             animationType="fade"
+            statusBarTranslucent
             onRequestClose={onClose}>
+
             <View style={styles.overlay}>
                 <Pressable
                     style={styles.backdrop}
@@ -139,29 +192,23 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                 />
 
                 <View style={styles.sheet}>
-                    <View style={styles.dragHandle} />
-
                     {actions.map(action => (
                         <Pressable
                             key={action.id}
                             onPress={() => {
                                 onClose();
-                                setTimeout(() => {
-                                    action.onPress();
-                                }, 100);
+                                action.onPress();
                             }}
                             style={({ pressed }) => [
                                 styles.actionRow,
                                 pressed && styles.actionRowPressed,
                             ]}>
 
-                            <View style={styles.iconContainer}>
-                                <Icon
-                                    source={action.iconName}
-                                    size={20}
-                                    color="#FF3B70"
-                                />
-                            </View>
+                            <Icon
+                                source={action.iconName}
+                                size={24}
+                                color={colors.text}
+                            />
 
                             {action.subtitle ? (
                                 <View style={styles.actionTextGroup}>
