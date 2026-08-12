@@ -42,6 +42,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
   const [comments, setComments] = useState<Awaited<ReturnType<typeof recipeService.getComments>>>([]);
+  const [commentInput, setCommentInput] = useState('');
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -157,6 +158,34 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       loadComments();
     }, [fetchDetail, loadRatingData, loadComments])
   );
+
+  // Comments require an account, same gate as rating — guests are sent
+  // straight to Login rather than shown a popup.
+  const handleAddComment = async () => {
+    const text = commentInput.trim();
+    if (!text) return;
+
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
+    try {
+      await recipeService.addComment(id, text);
+      setCommentInput('');
+      await loadComments();
+
+      dispatch(addActivity({
+        type: 'action',
+        title: `Commented on recipe: ${recipe?.name || 'Recipe'}`,
+        details: text,
+        icon: '💬',
+      }));
+    } catch (e) {
+      console.error('Add recipe comment error:', e);
+      Alert.alert('Error', 'Unable to post your comment right now.');
+    }
+  };
 
   useEffect(() => {
     setLiked(saved);
@@ -441,6 +470,9 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
               content: item.content,
               time: new Date(item.createdAt).toLocaleDateString(),
             }))}
+            commentInput={commentInput}
+            onChangeCommentInput={setCommentInput}
+            onSendComment={handleAddComment}
             onPress={() => navigation.navigate('RecipeReviews', { id, name: recipe.name })}
           />
         </View>

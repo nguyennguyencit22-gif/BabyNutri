@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from './AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
@@ -19,25 +19,19 @@ type Props = {
     ratingCount: number;
     breakdown: { 5: number; 4: number; 3: number; 2: number; 1: number };
     comments: ReviewComment[];
-    commentInput: string;
-    onChangeCommentInput: (text: string) => void;
-    onSendComment: () => void;
     onEditComment?: (id: number | string, currentText: string) => void;
     onDeleteComment?: (id: number | string) => void;
 };
 
 // Shared "Rating & Reviews" detail block — a summary card (big score + star
-// breakdown bars) followed by the full comment thread. The interactive
-// tap-to-rate control lives on the compact RatingSummaryPreview instead, so
-// this component is read-only display + comments.
+// breakdown bars) followed by the full comment thread. Both the interactive
+// tap-to-rate control and the "write a comment" input live on the compact
+// RatingSummaryPreview instead, so this component is read-only display.
 const RatingReviewSection: React.FC<Props> = ({
     avgRating,
     ratingCount,
     breakdown,
     comments,
-    commentInput,
-    onChangeCommentInput,
-    onSendComment,
     onEditComment,
     onDeleteComment,
 }) => {
@@ -89,19 +83,6 @@ const RatingReviewSection: React.FC<Props> = ({
             <View style={styles.commentTitleBox}>
                 <Icon source="comment-outline" size={18} color={colors.text} />
                 <Text style={styles.commentHeader}>Comments ({comments.length})</Text>
-            </View>
-
-            <View style={styles.inputRow}>
-                <TextInput
-                    style={styles.commentInput}
-                    placeholder="Write a comment..."
-                    placeholderTextColor={colors.textSoft}
-                    value={commentInput}
-                    onChangeText={onChangeCommentInput}
-                />
-                <TouchableOpacity style={styles.sendBtn} onPress={onSendComment} activeOpacity={0.85}>
-                    <Text style={styles.sendBtnText}>Send</Text>
-                </TouchableOpacity>
             </View>
 
             {comments.length === 0 ? (
@@ -233,32 +214,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         fontSize: 15,
         fontWeight: '700',
         color: colors.text,
-    },
-    inputRow: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: 16,
-    },
-    commentInput: {
-        flex: 1,
-        backgroundColor: colors.surfaceAlt,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        fontSize: 14,
-        color: colors.text,
-    },
-    sendBtn: {
-        backgroundColor: colors.primary,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sendBtnText: {
-        color: colors.onPrimary,
-        fontWeight: '700',
-        fontSize: 14,
     },
     emptyCommentText: {
         fontSize: 13,

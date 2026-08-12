@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import Icon from './AppIcon';
 import StarRating from './StarRating';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -19,16 +19,29 @@ type Props = {
     userRating: number;
     onRate: (score: number) => void;
     comments: ReviewPreviewComment[];
+    commentInput: string;
+    onChangeCommentInput: (text: string) => void;
+    onSendComment: () => void;
     onPress: () => void;
 };
 
 // Compact "Ratings & Reviews" teaser for the bottom of a recipe/article
-// detail page — headline score, the interactive tap-to-rate control, and up
-// to 2 comments. Tapping the header, a comment, or "See all reviews" opens
-// the full breakdown + comment thread on the dedicated Reviews screen
-// (RatingReviewSection); the star row itself rates in place without leaving
-// the page.
-const RatingSummaryPreview: React.FC<Props> = ({ avgRating, ratingCount, userRating, onRate, comments, onPress }) => {
+// detail page — headline score, the interactive tap-to-rate control, a
+// "write a comment" box, and up to 2 comments. Tapping the header, a
+// comment, or "See all reviews" opens the full breakdown + comment thread
+// on the dedicated Reviews screen (RatingReviewSection); rating and posting
+// a comment both happen in place without leaving the page.
+const RatingSummaryPreview: React.FC<Props> = ({
+    avgRating,
+    ratingCount,
+    userRating,
+    onRate,
+    comments,
+    commentInput,
+    onChangeCommentInput,
+    onSendComment,
+    onPress,
+}) => {
     const { colors } = useAppTheme();
     const styles = React.useMemo(() => createStyles(colors), [colors]);
     const preview = comments.slice(0, 2);
@@ -60,6 +73,19 @@ const RatingSummaryPreview: React.FC<Props> = ({ avgRating, ratingCount, userRat
             </View>
 
             <View style={styles.divider} />
+
+            <View style={styles.inputRow}>
+                <TextInput
+                    style={styles.commentInput}
+                    placeholder="Write a comment..."
+                    placeholderTextColor={colors.textSoft}
+                    value={commentInput}
+                    onChangeText={onChangeCommentInput}
+                />
+                <TouchableOpacity style={styles.sendBtn} onPress={onSendComment} activeOpacity={0.85}>
+                    <Text style={styles.sendBtnText}>Send</Text>
+                </TouchableOpacity>
+            </View>
 
             {preview.length === 0 ? (
                 <Text style={styles.emptyText}>No reviews yet. Be the first to share your thoughts!</Text>
@@ -146,6 +172,32 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         fontSize: 13,
         color: colors.textSoft,
         marginRight: 2,
+    },
+    inputRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 14,
+    },
+    commentInput: {
+        flex: 1,
+        backgroundColor: colors.surfaceAlt,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        fontSize: 14,
+        color: colors.text,
+    },
+    sendBtn: {
+        backgroundColor: colors.primary,
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sendBtnText: {
+        color: colors.onPrimary,
+        fontWeight: '700',
+        fontSize: 14,
     },
     emptyText: {
         fontSize: 13,

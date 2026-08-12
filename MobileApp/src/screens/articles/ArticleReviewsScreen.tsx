@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, Text, Modal, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { articleService } from '../../services/article.service';
 import type { RootState } from '../../store/store';
-import { addActivity } from '../../store/historySlice';
 import RatingReviewSection from '../../components/common/RatingReviewSection';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { appAlert } from '../../utils/appAlert';
@@ -31,15 +30,14 @@ interface CommentItem {
 
 // Full "Ratings & Reviews" page for an article — reached by tapping the
 // compact RatingSummaryPreview on ArticleDetailScreen. Read-only breakdown +
-// comment thread (with the comment-edit modal); the interactive tap-to-rate
-// control lives on the compact preview instead, alongside the 2-comment
-// teaser.
-const ArticleReviewsScreen = ({ route, navigation }: any) => {
+// full comment thread (with the edit modal); the interactive tap-to-rate
+// control and "write a comment" input both live on the compact preview
+// instead, alongside the 2-comment teaser.
+const ArticleReviewsScreen = ({ route }: any) => {
   const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
   const articleTitleRef = useRef(route?.params?.name || 'Article');
 
-  const [commentInput, setCommentInput] = useState('');
   const [comments, setComments] = useState<CommentItem[]>([]);
 
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -50,12 +48,8 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
   const [ratingCount, setRatingCount] = useState<number>(0);
   const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
 
-  const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
-  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     articleService.getById(id)
@@ -119,40 +113,6 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const handleAddComment = () => {
-    if (authMode === 'guest') {
-      navigation.navigate('Login');
-      return;
-    }
-
-    const text = commentInput.trim();
-    if (!text) {
-      appAlert.show('Notice', 'Please write a comment first');
-      return;
-    }
-
-    const newComment: CommentItem = {
-      id: Date.now(),
-      userName: currentUserName,
-      avatar: currentUserAvatar,
-      content: text,
-      time: 'Just now',
-    };
-
-    const updated = [newComment, ...comments];
-    saveCommentsToStorage(updated);
-    setCommentInput('');
-
-    dispatch(addActivity({
-      type: 'comment',
-      title: `Commented on: ${articleTitleRef.current}`,
-      details: `"${text.slice(0, 30)}..."`,
-      icon: '💬',
-    }));
-
-    appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
-  };
-
   const openEditModal = (commentId: number, currentText: string) => {
     setEditingCommentId(commentId);
     setEditingText(currentText);
@@ -205,9 +165,6 @@ const ArticleReviewsScreen = ({ route, navigation }: any) => {
             canEdit: item.userName === currentUserName,
             canDelete: item.userName === currentUserName,
           }))}
-          commentInput={commentInput}
-          onChangeCommentInput={setCommentInput}
-          onSendComment={handleAddComment}
           onEditComment={(commentId, currentText) => openEditModal(Number(commentId), currentText)}
           onDeleteComment={(commentId) => handleDeleteComment(Number(commentId))}
         />

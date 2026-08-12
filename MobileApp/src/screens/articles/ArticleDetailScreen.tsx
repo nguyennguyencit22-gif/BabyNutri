@@ -29,6 +29,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
   const [comments, setComments] = useState<CommentItem[]>([]);
+  const [commentInput, setCommentInput] = useState('');
 
   // Save / Bookmark / Rating state
   const { savedArticleIds = [], toggleBookmarkArticle } = useBookmarkStore();
@@ -45,6 +46,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
+  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
 
   const isCurrentUserAuthor = !article?.author || article.author === 'Parent' || article.author === currentUserName;
   const displayAuthor = isCurrentUserAuthor ? currentUserName : article?.author;
@@ -172,6 +174,49 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     setLiked(isSaved);
   }, [isSaved]);
 
+  const saveCommentsToStorage = async (newList: CommentItem[]) => {
+    setComments(newList);
+    try {
+      await AsyncStorage.setItem(`article_comments_${id}`, JSON.stringify(newList));
+    } catch (e) {
+      console.error('Save comments error:', e);
+    }
+  };
+
+  const handleAddComment = () => {
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
+    const text = commentInput.trim();
+    if (!text) {
+      appAlert.show('Notice', 'Please write a comment first');
+      return;
+    }
+
+    const newComment: CommentItem = {
+      id: Date.now(),
+      userName: currentUserName,
+      avatar: currentUserAvatar,
+      content: text,
+      time: 'Just now',
+    };
+
+    const updated = [newComment, ...comments];
+    saveCommentsToStorage(updated);
+    setCommentInput('');
+
+    dispatch(addActivity({
+      type: 'comment',
+      title: `Commented on: ${article?.title}`,
+      details: `"${text.slice(0, 30)}..."`,
+      icon: '💬',
+    }));
+
+    appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
+  };
+
   const handleToggleLikeAndSave = () => {
     const isNowSaved = toggleBookmarkArticle(id);
     setLiked(isNowSaved);
@@ -274,6 +319,9 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
               content: item.content,
               time: item.time,
             }))}
+            commentInput={commentInput}
+            onChangeCommentInput={setCommentInput}
+            onSendComment={handleAddComment}
             onPress={() => navigation.navigate('ArticleReviews', { id, name: article.title })}
           />
         </View>
