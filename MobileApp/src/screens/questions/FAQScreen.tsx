@@ -188,7 +188,7 @@ const FAQScreen = () => {
                       {mainTab === 'myQuestions' && (
                         <View style={[styles.faqBadge, { backgroundColor: isAnswered ? '#ECFDF5' : '#FEF3C7' }]}>
                           <Text style={[styles.faqBadgeText, { color: isAnswered ? '#10B981' : '#D97706' }]}>
-                            {isAnswered ? '✓ Answered' : '⏳ Pending'}
+                            {isAnswered ? 'Answered' : 'Pending'}
                           </Text>
                         </View>
                       )}
