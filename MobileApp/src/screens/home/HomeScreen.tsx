@@ -18,7 +18,7 @@ import { FlatList, Pressable } from "react-native";
 import JourneyCard from '@/components/home/JourneyCard';
 import ExpertCard from '../../components/home/ExpertCard';
 import RecipeCard from '../../components/home/RecipeCard';
-import HomeBabyHeader from '@/components/home/HomeBabyHeader';
+import TopHeaderBar from '@/components/common/TopHeaderBar';
 import { useAppTheme } from '../../theme/useAppTheme';
 import {
     fetchHomeData,
@@ -113,9 +113,9 @@ function HomeScreen({ navigation }: any) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
 
-            <HomeBabyHeader />
+            <TopHeaderBar />
 
             <ScrollView
                 showsVerticalScrollIndicator={false}

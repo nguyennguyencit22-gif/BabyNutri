@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+import { getOrCreateInvitationCode } from '../../services/child.service';
+import BabySwitcherModal from '../home/BabySwitcherModal';
+import BabyProfileActionsModal from '../profile/BabyProfileActionsModal';
 
 const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
 
@@ -44,43 +48,104 @@ const BookOpenOutlineIcon = ({ size = 16, color = '#0284C7' }: IconProps) => (
   </Svg>
 );
 
+// Single header bar shared by the Home tab and every other tab (Community,
+// Library, Recipes, Articles, Meal Scheduler...). Visually it follows the
+// Home tab's original design (solid-color avatar, bold primary-colored
+// name, borderless soft-pink icon circles); functionally it carries over
+// Home's baby-switcher dropdown + quick-actions sheet (previously only on
+// Home, in HomeBabyHeader) alongside the heart/bell actions that already
+// lived here (previously only on the other tabs).
 const TopHeaderBar: React.FC = () => {
   const { colors, isDark } = useAppTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<any>();
   const [notifVisible, setNotifVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(2);
+  const [showBabySwitcher, setShowBabySwitcher] = useState(false);
+  const [showBabyActions, setShowBabyActions] = useState(false);
+  const [invitationCode, setInvitationCode] = useState<string | null>(null);
 
   const babies = useSelector((state: RootState) => state.baby.babies);
   const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
   const selectedBaby = babies.find(b => String(b.id) === String(selectedBabyId)) || babies[0];
+  const hasMultipleBaby = babies.length > 1;
+
+  const sessionMode = useSelector((state: RootState) => state.auth.mode);
+  const isAuthenticated = sessionMode === 'authenticated';
 
   const babyName = selectedBaby ? selectedBaby.name : 'Baby Profile';
-  const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Select baby';
-  const babyColor = selectedBaby?.profileColor || '#FF7A59';
+  const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile';
+  const babyColor = selectedBaby?.profileColor || colors.primary;
 
   const handleOpenNotification = () => {
     setUnreadCount(0);
     setNotifVisible(true);
   };
 
+  const handleOpenBabyActions = () => {
+    setShowBabyActions(true);
+    setInvitationCode(null);
+
+    if (sessionMode === 'authenticated' && selectedBaby?.permission === 'owner') {
+      getOrCreateInvitationCode(Number(selectedBaby.id))
+        .then(({ code }) => setInvitationCode(code))
+        .catch(() => setInvitationCode(null));
+    }
+  };
+
+  const handleCloseBabyActions = () => {
+    setShowBabyActions(false);
+  };
+
+  const handleCopyCode = () => {
+    if (!invitationCode) {
+      return;
+    }
+
+    Clipboard.setString(invitationCode);
+    Alert.alert('Copied', `Invitation code ${invitationCode} copied to clipboard.`);
+  };
+
+  const handleEditBaby = () => {
+    if (!selectedBaby) {
+      return;
+    }
+
+    handleCloseBabyActions();
+    navigation.navigate('EditBabyProfile', { babyId: selectedBaby.id });
+  };
+
   return (
     <View style={styles.headerContainer}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
-      
+
       {/* Baby Profile Section */}
-      <TouchableOpacity 
-        style={styles.profileSection} 
-        onPress={() => navigation.navigate('ProfileTab')}
+      <TouchableOpacity
+        style={styles.profileSection}
+        onPress={() => {
+          if (!selectedBaby) {
+            navigation.navigate('AddBabyProfile');
+          } else {
+            handleOpenBabyActions();
+          }
+        }}
         activeOpacity={0.8}
       >
-        <View style={[styles.avatarBorder, { backgroundColor: babyColor, width: 38, height: 38, borderRadius: 19, justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
+        <View style={[styles.avatar, { backgroundColor: babyColor }]}>
+          <Text style={styles.avatarLabel}>
             {babyName.charAt(0).toUpperCase()}
           </Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{babyName}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{babyName}</Text>
+
+            {hasMultipleBaby && (
+              <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
+                <Text style={styles.arrow}>▼</Text>
+              </Pressable>
+            )}
+          </View>
           <Text style={styles.greetingText}>{babyAgeText}</Text>
         </View>
       </TouchableOpacity>
@@ -88,21 +153,21 @@ const TopHeaderBar: React.FC = () => {
       {/* Header Action Buttons */}
       <View style={styles.actionSection}>
         {/* Heart Favorites Button */}
-        <TouchableOpacity 
-          style={styles.iconBtn} 
-          onPress={() => navigation.navigate('SavedItems')} 
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => navigation.navigate('SavedItems')}
           activeOpacity={0.8}
         >
-          <HeartOutlineIcon size={20} color="#FF5F70" />
+          <HeartOutlineIcon size={20} color={colors.primary} />
         </TouchableOpacity>
 
         {/* Notifications Button */}
-        <TouchableOpacity 
-          style={styles.iconBtn} 
-          onPress={handleOpenNotification} 
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={handleOpenNotification}
           activeOpacity={0.8}
         >
-          <BellOutlineIcon size={20} color={colors.text} />
+          <BellOutlineIcon size={20} color={colors.primary} />
           {unreadCount > 0 && <View style={styles.badgeDot} />}
         </TouchableOpacity>
       </View>
@@ -119,7 +184,7 @@ const TopHeaderBar: React.FC = () => {
             </View>
 
             <View style={styles.notifList}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
               >
@@ -133,7 +198,7 @@ const TopHeaderBar: React.FC = () => {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('ProfileTab'); }}
               >
@@ -147,7 +212,7 @@ const TopHeaderBar: React.FC = () => {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.notifItem}
                 onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
               >
@@ -164,6 +229,60 @@ const TopHeaderBar: React.FC = () => {
           </View>
         </Pressable>
       </Modal>
+
+      <BabySwitcherModal
+        visible={showBabySwitcher}
+        onClose={() => setShowBabySwitcher(false)}
+      />
+
+      <BabyProfileActionsModal
+        visible={showBabyActions}
+        onClose={handleCloseBabyActions}
+        onGrowthTracking={() => {
+          handleCloseBabyActions();
+          navigation.navigate('GrowthTracking', { childId: selectedBaby?.id });
+        }}
+        onWeaningMealPlan={() => {
+          handleCloseBabyActions();
+          navigation.navigate('MealPlanList', { childId: selectedBaby?.id });
+        }}
+        onEditBaby={handleEditBaby}
+        onAddCaregiver={() => {
+          if (!selectedBaby) {
+            return;
+          }
+          console.log('Add caregiver:', selectedBaby.id);
+        }}
+        onEditEvents={() => {
+          if (!selectedBaby) {
+            return;
+          }
+          console.log('Edit events:', selectedBaby.id);
+        }}
+        onConfigureMainScreen={() => {
+          if (!selectedBaby) {
+            return;
+          }
+          console.log('Configure main screen:', selectedBaby.id);
+        }}
+        onReminders={() => {
+          if (!selectedBaby) {
+            return;
+          }
+          console.log('Reminders:', selectedBaby.id);
+        }}
+        invitationCode={invitationCode}
+        onCopyCode={
+          isAuthenticated && selectedBaby?.permission === 'owner'
+            ? handleCopyCode
+            : undefined
+        }
+        showLoginPromptForCode={!isAuthenticated}
+        onRequestLogin={() => {
+          handleCloseBabyActions();
+          navigation.navigate('Login');
+        }}
+      />
     </View>
   );
 };
@@ -174,56 +293,65 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    paddingTop: statusBarHeight + 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    borderBottomColor: colors.borderDashed,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    paddingHorizontal: 20,
+    paddingTop: statusBarHeight + 12,
+    paddingBottom: 18,
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  avatarBorder: {
-    padding: 2,
-    borderRadius: 22,
-    backgroundColor: colors.primarySoft,
-    marginRight: 10,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: colors.borderDashedPrimary,
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  avatarLabel: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 20,
   },
   userInfo: {
+    marginLeft: 14,
     justifyContent: 'center',
   },
-  greetingText: {
-    fontSize: 11,
-    color: colors.textSoft,
-    fontWeight: '500',
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  arrow: {
+    marginLeft: 8,
     fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
+    color: colors.textSoft,
+  },
+  greetingText: {
+    marginTop: 4,
+    fontSize: 15,
+    color: colors.textSoft,
   },
   actionSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   iconBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: colors.borderDashedPrimary,
+    backgroundColor: colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
