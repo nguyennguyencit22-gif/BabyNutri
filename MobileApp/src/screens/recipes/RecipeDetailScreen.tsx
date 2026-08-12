@@ -238,18 +238,10 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     }
   };
 
+  // mealPlanService persists to AsyncStorage keyed by childId (guest babies
+  // included), with backend sync only as a best-effort extra — it doesn't
+  // require an account, so there's nothing here to gate behind login.
   const handleOpenScheduleModal = () => {
-    if (authMode === 'guest') {
-      Alert.alert(
-        'Login Required',
-        'Please log in to schedule meal plans for your baby.',
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Log In', onPress: () => navigation.navigate('Login') },
-        ]
-      );
-      return;
-    }
     setScheduleModalVisible(true);
   };
 
