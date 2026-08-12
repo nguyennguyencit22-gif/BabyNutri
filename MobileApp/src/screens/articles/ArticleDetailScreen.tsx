@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Alert, Modal, Pressable, Animated } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Modal, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -11,6 +11,7 @@ import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { addActivity } from '../../store/historySlice';
 import StarRating from '../../components/common/StarRating';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { appAlert } from '../../utils/appAlert';
 
 interface CommentItem {
   id: number;
@@ -45,6 +46,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
+  const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
   const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
@@ -96,6 +98,11 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   }, [id]);
 
   const saveRatingData = async (newScore: number) => {
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
     try {
       const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
       let list: number[] = [];
@@ -141,7 +148,12 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         icon: '⭐',
       }));
 
-      Alert.alert('Evaluation Saved ⭐', `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`);
+      appAlert.show(
+        'Evaluation Saved',
+        `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        undefined,
+        'star',
+      );
     } catch (e) {
       console.error('Save rating error:', e);
     }
@@ -181,7 +193,12 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         details: 'Added to Favourites & Saved Articles tab',
         icon: '❤️',
       }));
-      Alert.alert('Saved to Favourites ❤️', 'This article has been saved in your Saved & Favorite Articles list.');
+      appAlert.show(
+        'Saved to Favourites',
+        'This article has been saved in your Saved & Favorite Articles list.',
+        undefined,
+        'heart',
+      );
     }
   };
 
@@ -195,9 +212,14 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   };
 
   const handleAddComment = () => {
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
     const text = commentInput.trim();
     if (!text) {
-      Alert.alert('Notice', 'Please write a comment first');
+      appAlert.show('Notice', 'Please write a comment first');
       return;
     }
 
@@ -220,7 +242,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       icon: '💬',
     }));
 
-    Alert.alert('Success', 'Comment posted successfully!');
+    appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
   };
 
   const openEditModal = (commentId: number, currentText: string) => {
@@ -241,7 +263,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   };
 
   const handleDeleteComment = (commentId: number) => {
-    Alert.alert(
+    appAlert.show(
       'Delete Comment',
       'Are you sure you want to delete this comment?',
       [
@@ -254,7 +276,8 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             saveCommentsToStorage(updated);
           },
         },
-      ]
+      ],
+      'warning',
     );
   };
 
