@@ -2,7 +2,9 @@ import React from 'react';
 import {
     Alert,
     ScrollView,
+    TouchableOpacity,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import {
     SafeAreaView,
 } from 'react-native-safe-area-context';
@@ -54,6 +56,8 @@ import type {
 import createStyles from '@/styles/profile/editBabyProfileStyles';
 import DeleteBabyProfileModal from '@/components/profile/DeleteBabyProfileModal';
 import { useAppTheme } from '@/theme/useAppTheme';
+import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
+
 function EditBabyProfileScreen({
     navigation,
     route,
@@ -71,7 +75,7 @@ function EditBabyProfileScreen({
     const baby = useSelector(
         (state: RootState) =>
             state.baby.babies.find(
-                item => item.id === babyId,
+                item => String(item.id) === String(babyId),
             ),
     );
 
@@ -91,12 +95,15 @@ function EditBabyProfileScreen({
             baby?.gender ?? 'boy',
         );
 
-    const [dateOfBirth, setDateOfBirth] =
-        React.useState(
-            baby
-                ? new Date(baby.dateOfBirth)
-                : new Date(),
-        );
+    const parseInitialDate = (dob?: string): Date => {
+        if (!dob) return new Date();
+        const parsed = new Date(dob);
+        return isNaN(parsed.getTime()) ? new Date() : parsed;
+    };
+
+    const [dateOfBirth, setDateOfBirth] = React.useState<Date>(
+        parseInitialDate(baby?.dateOfBirth)
+    );
 
     const [weightText, setWeightText] = React.useState(
         baby?.weight ? String(baby.weight) : '',
@@ -166,6 +173,15 @@ function EditBabyProfileScreen({
         if (babyName.trim().length < 2) {
             setNameError(
                 'Baby name must contain at least 2 characters.',
+            );
+            return false;
+        }
+
+        const ageMonths = calculateBabyAgeInMonths(dateOfBirth.toISOString());
+        if (ageMonths > 60) {
+            Alert.alert(
+                'Age Limit Exceeded',
+                'BabyNutri is designed for infants and children up to 5 years old (60 months). Please select a valid date of birth within 5 years.',
             );
             return false;
         }
@@ -314,13 +330,15 @@ function EditBabyProfileScreen({
                 }
             />
 
-            <IconButton
-                icon="delete"
-                size={24}
-                iconColor={colors.text}
+            <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => setShowDeleteModal(true)}
-            />
+                activeOpacity={0.7}
+            >
+                <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+                </Svg>
+            </TouchableOpacity>
 
             <DeleteBabyProfileModal
                 visible={showDeleteModal}

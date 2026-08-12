@@ -5,6 +5,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import {
     Icon,
 } from 'react-native-paper';
@@ -26,6 +27,7 @@ import {
     fetchHomeData,
     HomeData,
 } from '../../services/home.service';
+import { useFocusEffect } from '@react-navigation/native';
 import { getJourneyImage } from '../../constants/home/journeyImages';
 import { getRecipeImage } from '../../constants/home/recipeImages';
 
@@ -37,7 +39,7 @@ const EMPTY_HOME_DATA: HomeData = {
     weaningFeatures: [],
 };
 
-function HomeScreen() {
+function HomeScreen({ navigation }: any) {
     const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
     const [homeData, setHomeData] = React.useState<HomeData>(EMPTY_HOME_DATA);
     const [loading, setLoading] = React.useState(true);
@@ -67,9 +69,11 @@ function HomeScreen() {
         }
     }, []);
 
-    React.useEffect(() => {
-        loadHomeData();
-    }, [loadHomeData]);
+    useFocusEffect(
+        React.useCallback(() => {
+            loadHomeData();
+        }, [loadHomeData])
+    );
 
     const {
         popularCategories,
@@ -163,11 +167,10 @@ function HomeScreen() {
                             key={item}
                             style={styles.featureItem}>
                             <View style={styles.featureIcon}>
-                                <Icon
-                                    source="emoticon-kiss-outline"
-                                    color='#ffe45a'
-                                    size={20}
-                                />
+                                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#FF5F70" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                                    <Circle cx="12" cy="12" r="10" />
+                                    <Path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
+                                </Svg>
                             </View>
 
                             <Text style={styles.featureText}>
@@ -282,10 +285,7 @@ function HomeScreen() {
                                 rating={item.rating}
                                 ratingCount={item.ratingCount}
                                 onPress={() =>
-                                    console.log(
-                                        'Recipe selected:',
-                                        item.title,
-                                    )
+                                    navigation.navigate('RecipeDetail', { recipeId: item.id, id: item.id })
                                 }
                             />
                         )}

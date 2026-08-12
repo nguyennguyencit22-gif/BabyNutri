@@ -7,17 +7,25 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
 
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
+        borderRadius: 16,
 
+        marginVertical: 4,
+        marginHorizontal: 4,
         paddingHorizontal: 16,
-        backgroundColor: colors.background,
+        backgroundColor: colors.surfaceAlt,
     },
 
     avatar: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
 
         alignItems: 'center',
         justifyContent: 'center',
@@ -26,7 +34,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     avatarText: {
         color: colors.primary,
         fontSize: 24,
-        fontWeight: '500',
+        fontWeight: '600',
     },
 
     info: {
@@ -37,7 +45,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     name: {
         color: colors.text,
         fontSize: 17,
-        fontWeight: '500',
+        fontWeight: '600',
     },
 
     age: {
@@ -50,6 +58,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.danger,
+        borderRadius: 14,
     },
 
     deleteText: {

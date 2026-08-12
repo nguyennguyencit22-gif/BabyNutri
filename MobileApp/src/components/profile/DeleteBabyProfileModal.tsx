@@ -5,10 +5,16 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
 
 import createStyles from '../../styles/profile/deleteBabyProfileModalStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+const CheckIcon = ({ size = 18, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M20 6L9 17l-5-5" />
+  </Svg>
+);
 
 type DeleteBabyProfileModalProps = {
     visible: boolean;
@@ -52,7 +58,6 @@ function DeleteBabyProfileModal({
         <Modal
             visible={visible}
             transparent
-            statusBarTranslucent
             animationType="fade"
             onRequestClose={onCancel}>
 
@@ -94,9 +99,8 @@ function DeleteBabyProfileModal({
                                 styles.checkboxSelected,
                             ]}>
                             {isConfirmed ? (
-                                <Icon
-                                    source="check"
-                                    size={20}
+                                <CheckIcon
+                                    size={16}
                                     color={colors.onPrimary}
                                 />
                             ) : null}

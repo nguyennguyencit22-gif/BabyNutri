@@ -123,6 +123,45 @@ exports.getChildren = async (req, res) => {
 };
 
 // ==========================================
+// GET /api/children/:id — single baby profile
+// ==========================================
+exports.getChildById = async (req, res) => {
+    try {
+        const parentId = req.user.id;
+
+        const [rows] = await db.query(
+            `${SELECT_CHILDREN} WHERE cp.id = ? AND cc.user_id = ? GROUP BY cp.id, cc.permission`,
+            [req.params.id, parentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "Baby profile not found.",
+            });
+        }
+
+        return res.json(toResponseShape(rows[0]));
+    } catch (err) {
+        console.error("getChildById error:", err);
+        return res.status(500).json({
+            message: "Failed to fetch baby profile",
+        });
+    }
+};
+
+function validateChildAge(dateOfBirth) {
+    if (!dateOfBirth) return true;
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime())) return true;
+    const today = new Date();
+    let months = (today.getFullYear() - dob.getFullYear()) * 12 + (today.getMonth() - dob.getMonth());
+    if (today.getDate() < dob.getDate()) {
+        months -= 1;
+    }
+    return months >= 0 && months <= 60;
+}
+
+// ==========================================
 // POST /api/children — create a baby profile;
 // the creator becomes its owner caregiver
 // ==========================================
@@ -147,6 +186,12 @@ exports.createChild = async (req, res) => {
         if (!name || !name.trim()) {
             return res.status(400).json({
                 message: "Baby name is required.",
+            });
+        }
+
+        if (dateOfBirth && !validateChildAge(dateOfBirth)) {
+            return res.status(400).json({
+                message: "BabyNutri is designed for children up to 5 years old (60 months). Please select a valid date of birth within 5 years.",
             });
         }
 
@@ -243,6 +288,12 @@ exports.updateChild = async (req, res) => {
         if (!name || !name.trim()) {
             return res.status(400).json({
                 message: "Baby name is required.",
+            });
+        }
+
+        if (dateOfBirth && !validateChildAge(dateOfBirth)) {
+            return res.status(400).json({
+                message: "BabyNutri is designed for children up to 5 years old (60 months). Please select a valid date of birth within 5 years.",
             });
         }
 

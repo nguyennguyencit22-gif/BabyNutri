@@ -6,21 +6,16 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-    Icon,
-    Text,
-} from 'react-native-paper';
+import { Text, Icon } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
-import {
-    logoutFromFirebase,
-} from '../../services/firebaseAuthService';
+import { logoutFromFirebase } from '../../services/firebaseAuthService';
 
-import createStyles from '@/styles/settings/accountSettingStyles';
-import { useAppTheme } from '@/theme/useAppTheme';
+import createStyles from '../../styles/settings/accountSettingStyles';
+import { useAppTheme } from '../../theme/useAppTheme';
 
-import type { RootState } from '../../store/Store';
+import type { RootState } from '../../store/store';
 
 function AccountSettingsScreen({
     navigation,
@@ -104,7 +99,6 @@ function AccountSettingsScreen({
     );
 
     const email = user?.email || 'No email';
-
     const photoURL = user?.photoURL;
 
     return (
@@ -138,7 +132,7 @@ function AccountSettingsScreen({
                         style={styles.cameraButton}>
                         <Icon
                             source="camera"
-                            size={22}
+                            size={18}
                             color={colors.onPrimary}
                         />
                     </Pressable>
@@ -178,4 +172,3 @@ function AccountSettingsScreen({
 }
 
 export default AccountSettingsScreen;
-

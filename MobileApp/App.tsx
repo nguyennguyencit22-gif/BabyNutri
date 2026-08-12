@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
 } from 'react-native';
@@ -26,20 +26,26 @@ import {
 
 import './src/i18n';
 
-import { store } from './src/store/Store';
-import type { AppDispatch } from './src/store/Store';
+import { store } from './src/store/store';
+import type { AppDispatch } from './src/store/store';
 import { restoreLanguage } from './src/store/settings/languageSlice';
+import { restoreThemeMode } from './src/store/settings/themeSlice';
+import { loadPersistedBabies } from './src/store/babySlice';
+import { loadPersistedHistory } from './src/store/historySlice';
 
 import AppNavigator from './src/navigation/AppNavigator';
 
 import { useAppTheme } from './src/theme/useAppTheme';
 
 function AppContent() {
-  const { isDark, colors } = useAppTheme();
   const dispatch = useDispatch<AppDispatch>();
+  const { isDark, colors } = useAppTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(restoreLanguage());
+    dispatch(restoreThemeMode());
+    dispatch(loadPersistedBabies());
+    dispatch(loadPersistedHistory());
   }, [dispatch]);
 
   const paperTheme = {

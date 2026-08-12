@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 
 import type {
     AppDispatch,
-} from '../../store/Store';
+} from '../../store/store';
 
 import {
     loginFailed,
@@ -15,7 +15,6 @@ import {
     Image,
     Linking,
     Pressable,
-
     ScrollView,
     Text,
     View,
@@ -54,7 +53,6 @@ function LoginScreen({ navigation }: any) {
         }
     };
 
-
     const handleGoogleLogin = async () => {
         if (loading) {
             return;
@@ -69,10 +67,6 @@ function LoginScreen({ navigation }: any) {
                 firebaseIdToken,
             } = await loginWithGoogle();
 
-            // Exchanges the Firebase ID token for our own backend JWT.
-            // The backend is the only source of truth for role — a brand
-            // new account always comes back as Parent; Expert/Admin only
-            // ever come from a row an admin already created.
             const {
                 user: backendUser,
             } = await loginWithFirebaseToken(firebaseIdToken);
@@ -100,8 +94,6 @@ function LoginScreen({ navigation }: any) {
                 }),
             );
 
-            // Now that state.auth.mode === 'authenticated', pull this
-            // parent's real baby profiles from MySQL into Redux.
             await dispatch(loadBabies());
 
             navigation.reset({

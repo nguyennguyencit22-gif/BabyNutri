@@ -18,6 +18,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         marginTop: 92,
         marginHorizontal: 20,
 
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
+
         borderRadius: 24,
         paddingHorizontal: 16,
         paddingTop: 18,
@@ -43,19 +47,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     },
 
     babyRow: {
-        minHeight: 76,
+        minHeight: 72,
         flexDirection: 'row',
         alignItems: 'center',
 
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashed,
 
-        paddingHorizontal: 8,
+        paddingHorizontal: 12,
+        marginVertical: 4,
         borderRadius: 16,
+        backgroundColor: colors.surface,
     },
 
     babyRowSelected: {
         backgroundColor: colors.surfaceAlt,
+        borderColor: colors.borderDashedPrimary,
     },
 
     babyRowPressed: {
@@ -64,6 +72,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
     avatar: {
         elevation: 3,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: colors.borderDashedPrimary,
+        borderRadius: 22,
     },
 
     avatarLabel: {

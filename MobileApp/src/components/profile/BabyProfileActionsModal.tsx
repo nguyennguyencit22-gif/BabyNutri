@@ -10,96 +10,120 @@ import { Icon } from 'react-native-paper';
 import createStyles from '../../styles/profile/babyProfileActionsModalStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-type BabyProfileActionsModalProps = {
+interface BabyProfileActionsModalProps {
     visible: boolean;
     onClose: () => void;
+    onGrowthTracking?: () => void;
+    onWeaningMealPlan?: () => void;
     onEditBaby: () => void;
-    onAddCaregiver: () => void;
-    onEditEvents: () => void;
-    onConfigureMainScreen: () => void;
-    onReminders: () => void;
-    // Only the owner caregiver can invite others (backend enforces this
-    // too) — pass onCopyCode only when the selected baby's permission is
-    // 'owner', which hides the row entirely for editors. Guests get a
-    // different row instead (see showLoginPromptForCode below), since for
-    // them the fix is "log in", not "you lack permission".
-    invitationCode?: string | null;
+    onAddCaregiver?: () => void;
+    onEditEvents?: () => void;
+    onConfigureMainScreen?: () => void;
+    onReminders?: () => void;
     onCopyCode?: () => void;
+    onInputCode?: () => void;
+    onCaregiverList?: () => void;
+    onMeasurementSettings?: () => void;
+    invitationCode?: string | null;
     showLoginPromptForCode?: boolean;
+    onRequestLoginForCode?: () => void;
     onRequestLogin?: () => void;
-};
+}
 
-function BabyProfileActionsModal({
+export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = ({
     visible,
     onClose,
+    onGrowthTracking,
+    onWeaningMealPlan,
     onEditBaby,
     onAddCaregiver,
-    onEditEvents,
-    onConfigureMainScreen,
-    onReminders,
-    invitationCode,
     onCopyCode,
-    showLoginPromptForCode,
-    onRequestLogin,
-}: BabyProfileActionsModalProps) {
+    onInputCode,
+    onCaregiverList,
+    onMeasurementSettings,
+}) => {
     const { colors } = useAppTheme();
-    const styles = React.useMemo(
-        () => createStyles(colors),
-        [colors],
-    );
+    const styles = React.useMemo(() => createStyles(colors), [colors]);
 
     const actions = [
         {
             id: 'edit',
-            title: 'Edit baby profile',
-            icon: 'pencil-outline',
+            title: 'Edit Baby Profile',
+            iconName: 'account-edit-outline',
             onPress: onEditBaby,
         },
-        {
-            id: 'caregiver',
-            title: 'Add parent / caregiver',
-            icon: 'account-plus-outline',
-            onPress: onAddCaregiver,
-        },
-        {
-            id: 'events',
-            title: 'Create / Edit events',
-            icon: 'calendar-edit',
-            onPress: onEditEvents,
-        },
-        {
-            id: 'configure',
-            title: 'Main screen configuration',
-            icon: 'view-dashboard-edit-outline',
-            onPress: onConfigureMainScreen,
-        },
-        {
-            id: 'reminders',
-            title: 'Reminders',
-            icon: 'bell-outline',
-            onPress: onReminders,
-        },
+        ...(onAddCaregiver
+            ? [
+                  {
+                      id: 'caregiver',
+                      title: 'Add Parent / Caregiver',
+                      iconName: 'account-plus-outline',
+                      onPress: onAddCaregiver,
+                  },
+              ]
+            : []),
         ...(onCopyCode
             ? [
-                {
-                    id: 'copy-code',
-                    title: "Copy baby's code",
-                    subtitle: invitationCode ?? 'Generating…',
-                    icon: 'content-copy',
-                    onPress: onCopyCode,
-                },
-            ]
-            : showLoginPromptForCode && onRequestLogin
-                ? [
-                    {
-                        id: 'copy-code',
-                        title: "Copy baby's code",
-                        subtitle: "Log in to get baby's code",
-                        icon: 'content-copy',
-                        onPress: onRequestLogin,
-                    },
-                ]
-                : []),
+                  {
+                      id: 'copy-code',
+                      title: 'Get Caregiver Code',
+                      iconName: 'qrcode-scan',
+                      onPress: onCopyCode,
+                  },
+              ]
+            : []),
+        ...(onInputCode
+            ? [
+                  {
+                      id: 'input-code',
+                      title: 'Enter Caregiver Code',
+                      iconName: 'key-outline',
+                      onPress: onInputCode,
+                  },
+              ]
+            : []),
+        ...(onCaregiverList
+            ? [
+                  {
+                      id: 'caregiver-list',
+                      title: 'Caregiver List',
+                      iconName: 'account-group-outline',
+                      onPress: onCaregiverList,
+                  },
+              ]
+            : []),
+        ...(onMeasurementSettings
+            ? [
+                  {
+                      id: 'measurement-settings',
+                      title: 'Measurement Settings',
+                      iconName: 'scale-bathroom',
+                      onPress: onMeasurementSettings,
+                  },
+              ]
+            : []),
+        ...(onGrowthTracking
+            ? [
+                  {
+                      id: 'growth-tracking',
+                      title: 'Growth Tracking (WHO)',
+                      subtitle: 'View growth chart & BMI history',
+                      iconName: 'chart-line',
+                      onPress: onGrowthTracking,
+                  },
+              ]
+            : []),
+        ...(onWeaningMealPlan
+            ? [
+                  {
+                      id: 'weaning-meal-plan',
+                      title: 'Weaning Meal Plan',
+                      subtitle: "View & manage baby's weekly plan",
+                      iconName: 'calendar-month-outline',
+                      onPress: onWeaningMealPlan,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -107,9 +131,7 @@ function BabyProfileActionsModal({
             visible={visible}
             transparent
             animationType="fade"
-            statusBarTranslucent
             onRequestClose={onClose}>
-
             <View style={styles.overlay}>
                 <Pressable
                     style={styles.backdrop}
@@ -117,23 +139,29 @@ function BabyProfileActionsModal({
                 />
 
                 <View style={styles.sheet}>
+                    <View style={styles.dragHandle} />
+
                     {actions.map(action => (
                         <Pressable
                             key={action.id}
                             onPress={() => {
                                 onClose();
-                                action.onPress();
+                                setTimeout(() => {
+                                    action.onPress();
+                                }, 100);
                             }}
                             style={({ pressed }) => [
                                 styles.actionRow,
                                 pressed && styles.actionRowPressed,
                             ]}>
 
-                            <Icon
-                                source={action.icon}
-                                size={24}
-                                color={colors.text}
-                            />
+                            <View style={styles.iconContainer}>
+                                <Icon
+                                    source={action.iconName}
+                                    size={20}
+                                    color="#FF3B70"
+                                />
+                            </View>
 
                             {action.subtitle ? (
                                 <View style={styles.actionTextGroup}>
@@ -155,6 +183,6 @@ function BabyProfileActionsModal({
             </View>
         </Modal>
     );
-}
+};
 
 export default BabyProfileActionsModal;

@@ -4,38 +4,18 @@ import {
     Text,
     View,
 } from 'react-native';
-
-import {
-    SafeAreaView,
-} from 'react-native-safe-area-context';
-
-import {
-    Icon,
-} from 'react-native-paper';
-
-import {
-    useDispatch,
-    useSelector,
-} from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Icon } from 'react-native-paper';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
-
-import type {
-    AppDispatch,
-    RootState,
-} from '../../store/Store';
-
-import {
-    setThemeMode,
-} from '../../store/settings/themeSlice';
-
-import type {
-    AppThemeMode,
-} from '../../types/settings/theme';
-
 import createStyles from '../../styles/settings/themeSettingsStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+import type { AppDispatch, RootState } from '../../store/store';
+import { setThemeMode } from '../../store/settings/themeSlice';
+import type { AppThemeMode } from '../../types/settings/theme';
 
 type ThemeOption = {
     labelKey: string;
@@ -83,7 +63,6 @@ function ThemeSettingsScreen({
 
     return (
         <SafeAreaView style={styles.safeArea}>
-
             <ProfileHeader
                 title={t('theme.title')}
                 onBack={() =>
@@ -120,7 +99,7 @@ function ThemeSettingsScreen({
                                 {isSelected ? (
                                     <Icon
                                         source="check"
-                                        size={20}
+                                        size={16}
                                         color={colors.onPrimary}
                                     />
                                 ) : null}

@@ -1,21 +1,24 @@
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Android Emulator maps 10.0.2.2 back to the host machine's localhost.
-// If you run on a physical device, switch this to your computer's LAN IP
-// (e.g. http://192.168.x.x:5000/api); on iOS Simulator use http://localhost:5000/api.
 export const API_BASE_URL = 'http://10.0.2.2:5000/api';
 
 const AUTH_TOKEN_KEY = '@babynutri/authToken';
 
 export async function getAuthToken(): Promise<string | null> {
-    return AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) return token;
+    return AsyncStorage.getItem('accessToken');
 }
 
 export async function setAuthToken(token: string | null): Promise<void> {
     if (token) {
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
+        await AsyncStorage.setItem('accessToken', token);
     } else {
         await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+        await AsyncStorage.removeItem('accessToken');
     }
 }
 
@@ -76,3 +79,38 @@ export function apiPut<T>(path: string, data?: unknown): Promise<T> {
 export function apiDelete<T>(path: string): Promise<T> {
     return request<T>(path, { method: 'DELETE' });
 }
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+api.interceptors.request.use(
+  async (config) => {
+    const token = await getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      console.warn('[API Error]', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.warn('[API Error] No response received from server:', error.message);
+    } else {
+      console.warn('[API Error]', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;

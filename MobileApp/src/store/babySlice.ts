@@ -3,6 +3,7 @@ import {
     createSlice,
     PayloadAction,
 } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type {
     BabyProfile,
@@ -10,7 +11,7 @@ import type {
 
 import type {
     RootState,
-} from './Store';
+} from './store';
 
 import {
     createChild,
@@ -23,14 +24,66 @@ import {
 
 import { PROFILE_COLORS } from '../constants/profile/babyProfileData';
 
+const BABY_STORAGE_KEY = '@baby_profiles_storage_v1';
+
 type BabyState = {
     babies: BabyProfile[];
     selectedBabyId: string | null;
+    isLoaded: boolean;
+};
+
+const DEFAULT_BABY: BabyProfile = {
+    id: 'baby-default-1',
+    name: 'Minh An',
+    dateOfBirth: '2025-12-01T00:00:00.000Z',
+    gender: 'boy',
+    profileColor: '#FF7A59',
+    allergies: [],
+    nutritionGoal: 'Weight Gain',
+    foodPreferences: ['Porridge', 'Fruit Smoothies'],
 };
 
 const initialState: BabyState = {
-    babies: [],
-    selectedBabyId: null,
+    babies: [DEFAULT_BABY],
+    selectedBabyId: 'baby-default-1',
+    isLoaded: false,
+};
+
+// AsyncThunk to load persisted baby profiles from AsyncStorage on app startup
+export const loadPersistedBabies = createAsyncThunk(
+    'baby/loadPersistedBabies',
+    async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem(BABY_STORAGE_KEY);
+            if (jsonValue != null) {
+                const parsed = JSON.parse(jsonValue);
+                if (Array.isArray(parsed.babies) && parsed.babies.length > 0) {
+                    return {
+                        babies: parsed.babies as BabyProfile[],
+                        selectedBabyId: (parsed.selectedBabyId || parsed.babies[0].id) as string,
+                    };
+                }
+            }
+        } catch (e) {
+            console.error('Error loading persisted baby profiles:', e);
+        }
+        return {
+            babies: [DEFAULT_BABY],
+            selectedBabyId: 'baby-default-1',
+        };
+    }
+);
+
+// Helper function to persist state
+const saveToStorage = async (babies: BabyProfile[], selectedBabyId: string | null) => {
+    try {
+        await AsyncStorage.setItem(
+            BABY_STORAGE_KEY,
+            JSON.stringify({ babies, selectedBabyId })
+        );
+    } catch (e) {
+        console.error('Error saving baby profiles to AsyncStorage:', e);
+    }
 };
 
 // The `child_profiles.gender` column already holds legacy values like
@@ -91,56 +144,43 @@ const babySlice = createSlice({
         ) => {
             state.babies.push(action.payload);
 
-            // Nếu đây là baby đầu tiên,
-            // tự động chọn baby đó.
             if (!state.selectedBabyId) {
-                state.selectedBabyId =
-                    action.payload.id;
+                state.selectedBabyId = action.payload.id;
             }
+            saveToStorage(state.babies, state.selectedBabyId);
         },
 
         updateBaby: (
             state,
             action: PayloadAction<BabyProfile>,
         ) => {
-            const babyIndex =
-                state.babies.findIndex(
-                    baby =>
-                        baby.id ===
-                        action.payload.id,
-                );
+            const babyIndex = state.babies.findIndex(
+                baby => baby.id === action.payload.id,
+            );
 
             if (babyIndex !== -1) {
-                state.babies[babyIndex] =
-                    action.payload;
+                state.babies[babyIndex] = action.payload;
             }
+            saveToStorage(state.babies, state.selectedBabyId);
         },
 
         deleteBaby: (
             state,
             action: PayloadAction<string>,
         ) => {
-            const deletedBabyId =
-                action.payload;
+            const deletedBabyId = action.payload;
 
-            state.babies =
-                state.babies.filter(
-                    baby =>
-                        baby.id !==
-                        deletedBabyId,
-                );
+            state.babies = state.babies.filter(
+                baby => baby.id !== deletedBabyId,
+            );
 
-            // Nếu baby đang được chọn bị xóa,
-            // chọn baby đầu tiên còn lại.
-            if (
-                state.selectedBabyId ===
-                deletedBabyId
-            ) {
+            if (state.selectedBabyId === deletedBabyId) {
                 state.selectedBabyId =
                     state.babies.length > 0
                         ? state.babies[0].id
                         : null;
             }
+            saveToStorage(state.babies, state.selectedBabyId);
         },
 
         // Replaces the whole list — used to hydrate Redux from MySQL right
@@ -167,23 +207,29 @@ const babySlice = createSlice({
             state,
             action: PayloadAction<string>,
         ) => {
-            const babyExists =
-                state.babies.some(
-                    baby =>
-                        baby.id ===
-                        action.payload,
-                );
+            const babyExists = state.babies.some(
+                baby => baby.id === action.payload,
+            );
 
             if (babyExists) {
-                state.selectedBabyId =
-                    action.payload;
+                state.selectedBabyId = action.payload;
             }
+            saveToStorage(state.babies, state.selectedBabyId);
         },
 
         clearBabies: state => {
             state.babies = [];
             state.selectedBabyId = null;
+            saveToStorage([], null);
         },
+    },
+
+    extraReducers: (builder) => {
+        builder.addCase(loadPersistedBabies.fulfilled, (state, action) => {
+            state.babies = action.payload.babies;
+            state.selectedBabyId = action.payload.selectedBabyId;
+            state.isLoaded = true;
+        });
     },
 });
 
@@ -196,11 +242,7 @@ export const {
     clearBabies,
 } = babySlice.actions;
 
-// ==========================================
-// Thunks — the ONE place that decides guest vs
-// authenticated. Screens call these, never the
-// raw reducers above, when saving user input.
-// ==========================================
+import { addActivity } from './historySlice';
 
 // Call once right after a real login succeeds, to replace whatever guest
 // data was in Redux with this parent's actual rows from MySQL.
@@ -220,11 +262,17 @@ export const saveBaby = createAsyncThunk<
 >('baby/saveBaby', async (baby, { getState, dispatch }) => {
     if (getState().auth.mode !== 'authenticated') {
         dispatch(addBaby(baby));
-        return;
+    } else {
+        const created = await createChild(toBackendPayload(baby));
+        dispatch(addBaby(fromBackendChild(created)));
     }
 
-    const created = await createChild(toBackendPayload(baby));
-    dispatch(addBaby(fromBackendChild(created)));
+    dispatch(addActivity({
+        type: 'create',
+        title: `Created baby profile for ${baby.name}`,
+        details: `Gender: ${baby.gender} · Added to profiles`,
+        icon: '👶',
+    }));
 });
 
 export const editBaby = createAsyncThunk<
@@ -232,24 +280,41 @@ export const editBaby = createAsyncThunk<
 >('baby/editBaby', async (baby, { getState, dispatch }) => {
     if (getState().auth.mode !== 'authenticated') {
         dispatch(updateBaby(baby));
-        return;
+    } else {
+        const updated = await updateChildApi(
+            Number(baby.id),
+            toBackendPayload(baby),
+        );
+        dispatch(updateBaby(fromBackendChild(updated)));
     }
 
-    const updated = await updateChildApi(
-        Number(baby.id),
-        toBackendPayload(baby),
-    );
-    dispatch(updateBaby(fromBackendChild(updated)));
+    dispatch(addActivity({
+        type: 'action',
+        title: `Updated baby profile for ${baby.name}`,
+        details: 'Saved latest profile updates',
+        icon: '✏️',
+    }));
 });
 
 export const removeBaby = createAsyncThunk<
     void, string, { state: RootState }
 >('baby/removeBaby', async (babyId, { getState, dispatch }) => {
+    const existingBaby = getState().baby.babies.find(b => String(b.id) === String(babyId));
+
     if (getState().auth.mode === 'authenticated') {
         await deleteChildApi(Number(babyId));
     }
 
     dispatch(deleteBaby(babyId));
+
+    if (existingBaby) {
+        dispatch(addActivity({
+            type: 'delete',
+            title: `Deleted baby profile for ${existingBaby.name}`,
+            details: 'Profile removed',
+            icon: '🗑️',
+        }));
+    }
 });
 
 export default babySlice.reducer;

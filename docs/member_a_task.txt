@@ -1,0 +1,211 @@
+Công việc của Member A
+1. Vai trò chính
+Leader / Core Frontend / Authentication
+Bạn chịu trách nhiệm:
+Thiết lập cấu trúc ứng dụng mobile. 
+Navigation giữa các màn hình. 
+Đăng ký, đăng nhập và đăng xuất. 
+Trang chủ. 
+Hồ sơ người dùng. 
+Các component giao diện dùng chung. 
+Kết nối API Auth và User. 
+Hỗ trợ tích hợp code của Member B và Member C. 
+2. Các màn hình cần làm
+Bạn có thể phụ trách khoảng 
+7 màn hình
+:
+Nếu nhóm không làm Splash Screen thì có thể thay bằng:
+About Screen; 
+Change Password Screen; 
+Logout Confirmation Screen. 
+3. Folder bạn phụ trách
+Trong 
+MobieReport#/src/
+, bạn nên tạo:
+src/
+├── assets/
+│   ├── images/
+│   └── icons/
+│
+├── components/
+│   └── common/
+│       ├── AppButton.tsx
+│       ├── AppInput.tsx
+│       ├── Header.tsx
+│       ├── Loading.tsx
+│       └── EmptyState.tsx
+│
+├── navigation/
+│   ├── AppNavigator.tsx
+│   ├── AuthNavigator.tsx
+│   ├── MainNavigator.tsx
+│   └── navigationTypes.ts
+│
+├── screens/
+│   ├── auth/
+│   │   ├── LoginScreen.tsx
+│   │   └── RegisterScreen.tsx
+│   │
+│   ├── home/
+│   │   └── HomeScreen.tsx
+│   │
+│   ├── profile/
+│   │   ├── ProfileScreen.tsx
+│   │   └── EditProfileScreen.tsx
+│   │
+│   └── settings/
+│       └── SettingsScreen.tsx
+│
+├── services/
+│   ├── apiClient.ts
+│   ├── authService.ts
+│   └── userService.ts
+│
+├── context/
+│   └── AuthContext.tsx
+│
+├── constants/
+│   ├── colors.ts
+│   ├── routes.ts
+│   └── api.ts
+│
+├── types/
+│   ├── auth.ts
+│   └── user.ts
+│
+└── utils/
+    ├── validation.ts
+└── storage.ts
+4. Chức năng chi tiết
+Authentication
+Login
+Nhập email. 
+Nhập mật khẩu. 
+Kiểm tra ô trống. 
+Kiểm tra định dạng email. 
+Gọi Login API. 
+Lưu token. 
+Chuyển sang Home sau khi đăng nhập thành công. 
+Hiển thị lỗi khi đăng nhập thất bại. 
+Register
+Nhập họ tên. 
+Nhập email. 
+Nhập mật khẩu. 
+Xác nhận mật khẩu. 
+Kiểm tra dữ liệu nhập. 
+Gọi Register API. 
+Chuyển về Login hoặc tự động đăng nhập. 
+Logout
+Hiển thị hộp thoại xác nhận. 
+Xóa token. 
+Xóa thông tin đăng nhập tạm. 
+Chuyển về Login. 
+Home Screen
+Trang Home nên có:
+Lời chào người dùng. 
+Thông tin ngắn về BabyNutri. 
+Menu chuyển đến: 
+Recipes; 
+Articles; 
+Child Profiles; 
+Meal Plans; 
+Questions/FAQ. 
+Có thể thêm một số recipe hoặc article nổi bật. 
+Member A chỉ làm phần layout và navigation. Dữ liệu Recipe, Article, Child hoặc Meal Plan sẽ do các thành viên khác cung cấp.
+Profile
+Profile Screen
+Hiển thị tên. 
+Email. 
+Ảnh đại diện. 
+Nút Edit Profile. 
+Nút Settings. 
+Nút Logout. 
+Edit Profile Screen
+Chỉnh sửa tên. 
+Chỉnh sửa email hoặc số điện thoại nếu có. 
+Chọn ảnh đại diện nếu nhóm làm chức năng upload. 
+Gọi Update Profile API. 
+Hiển thị thông báo thành công hoặc thất bại.
+5. API bạn phụ trách
+Theo yêu cầu đề bài, nhóm phải có API đăng nhập, đăng ký, lấy và cập nhật hồ sơ. Đây chính là phần API phù hợp với Member A. 
+Response nên ở dạng JSON, ví dụ:
+6. Navigation cần thiết kế
+Luồng cơ bản:
+Bạn nên tạo hai luồng:
+Sau đó 
+AppNavigator
+ kiểm tra:
+7. Thứ tự làm việc đề xuất
+Giai đoạn 1 — Setup
+Kiểm tra ứng dụng React Native chạy được. 
+Cài navigation. 
+Tạo các folder cần thiết. 
+Tạo constants và navigation types. 
+Tạo các màn hình rỗng để kiểm tra chuyển trang. 
+Commit gợi ý:
+ setup project structure and navigation
+Giai đoạn 2 — Authentication UI
+Tạo 
+AppInput
+. 
+Tạo 
+AppButton
+. 
+Làm Login Screen. 
+Làm Register Screen. 
+Thêm validation. 
+Commit:
+ add login and register screens
+Giai đoạn 3 — Authentication logic
+Tạo 
+apiClient.ts
+. 
+Tạo 
+authService.ts
+. 
+Tạo 
+AuthContext
+. 
+Lưu token. 
+Xử lý login/logout. 
+Commit:
+ 
+integrate authentication APIs
+Giai đoạn 4 — Home và Profile
+Home Screen. 
+Profile Screen. 
+Edit Profile Screen. 
+Settings và Logout. 
+Commit:
+ add home and user profile features
+Giai đoạn 5 — Testing và tích hợp
+Kiểm tra navigation. 
+Test nhập sai email/mật khẩu. 
+Test API thất bại. 
+Test logout. 
+Kết nối màn hình của B và C vào navigation. 
+Sửa conflict khi merge. 
+Commit:
+ test and integrate main application modules
+8. Test case bạn cần chuẩn bị
+9. Phần tài liệu bạn viết
+Trong report, bạn phụ trách:
+Project structure. 
+Mobile navigation design. 
+Authentication flow. 
+Login và Register UI. 
+Home Screen. 
+User Profile. 
+API Auth/User. 
+Test cases của phần mình. 
+Screenshots kết quả. 
+Những khó khăn và cách giải quyết. 
+Trong presentation, bạn có thể trình bày:
+Công nghệ React Native. 
+Cấu trúc frontend. 
+Navigation. 
+Demo Login/Register. 
+Demo Home/Profile. 
+Cách tích hợp các module.
+10. Việc bạn nên làm ngay bây giờ
+Trước khi code, kiểm tra branch hiện tại trong GitHub Desktop phải là:
