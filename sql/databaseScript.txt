@@ -197,12 +197,12 @@ CREATE TABLE recipes (
 
 INSERT INTO recipes (id, name, description, image_url, expert_id, cooking_time, prep_time, serves, month_age, meal_type_id, calories, protein, fat, carbohydrate)
 VALUES
-(1, 'Bright Starts Brekkie Bowl', 'Perfect for hot summer days', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624', 2, 0, 5, 1, 7, 2, 180, 5, 4, 30),
-(2, 'Three Ways With Yummy Yogurt Pots', 'Yogurt is one of our go-to', 'https://images.unsplash.com/photo-1547592180-85f173990554', 2, 0, 5, 1, 7, 4, 150, 6, 3, 22),
-(3, 'Rise + Shine Scrambly Eggs', 'These speedy scrambly eggs', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398', 2, 0, 5, 1, 7, 1, 210, 12, 14, 2),
+(1, 'Bright Starts Brekkie Bowl', 'Perfect for hot summer days', 'https://images.unsplash.com/photo-1682622110332-d50f50b7146d', 2, 0, 5, 1, 7, 2, 180, 5, 4, 30),
+(2, 'Three Ways With Yummy Yogurt Pots', 'Yogurt is one of our go-to', 'https://images.unsplash.com/photo-1753173302910-8470505e6994', 2, 0, 5, 1, 7, 4, 150, 6, 3, 22),
+(3, 'Rise + Shine Scrambly Eggs', 'These speedy scrambly eggs', 'https://images.unsplash.com/photo-1687630433865-f86f07be989a', 2, 0, 5, 1, 7, 1, 210, 12, 14, 2),
 (4, 'Broc N Roll Cheesy Chive Pasta', 'Ready in just 15 minutes', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624', 2, 10, 5, 1, 7, 3, 260, 9, 8, 38),
-(5, 'My First Chicken Curry', 'This recipe is a great way', 'https://images.unsplash.com/photo-1547592180-85f173990554', 2, 15, 5, 1, 7, 4, 290, 18, 10, 32),
-(6, 'My First Chicken Curry Alt', 'This recipe is a great way', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398', 2, 15, 5, 1, 7, 2, 290, 18, 10, 32);
+(5, 'My First Chicken Curry', 'This recipe is a great way', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398', 2, 15, 5, 1, 7, 4, 290, 18, 10, 32),
+(6, 'My First Chicken Curry Alt', 'This recipe is a great way', 'https://images.unsplash.com/photo-1708782344490-9026aaa5eec7', 2, 15, 5, 1, 7, 2, 290, 18, 10, 32);
 
 -- ==========================================
 -- 7. INGREDIENTS
