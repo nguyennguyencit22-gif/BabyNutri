@@ -9,10 +9,22 @@ import { formatRealTimeAgo } from '../../utils/formatRealTime';
 import type { RootState } from '../../store/store';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { addActivity } from '../../store/historySlice';
-import StarRating from '../../components/common/StarRating';
+import RatingReviewSection from '../../components/common/RatingReviewSection';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { appAlert } from '../../utils/appAlert';
 import { getArticleImage, isLocalArticleImage } from '../../constants/articleImages';
+
+type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number };
+const EMPTY_BREAKDOWN: RatingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+const computeBreakdown = (list: number[]): RatingBreakdown => {
+  const breakdown = { ...EMPTY_BREAKDOWN };
+  list.forEach((score) => {
+    const rounded = Math.round(score) as 1 | 2 | 3 | 4 | 5;
+    if (rounded >= 1 && rounded <= 5) breakdown[rounded] += 1;
+  });
+  return breakdown;
+};
 
 interface CommentItem {
   id: number;
@@ -44,6 +56,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
+  const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -84,17 +97,20 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
           setUserRating(uRating);
           setAvgRating(avg);
           setRatingCount(list.length);
+          setRatingBreakdown(computeBreakdown(list));
           return;
         }
       }
       setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
+      setRatingBreakdown(EMPTY_BREAKDOWN);
     } catch (e) {
       console.error('Load rating data error:', e);
       setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
+      setRatingBreakdown(EMPTY_BREAKDOWN);
     }
   }, [id]);
 
@@ -131,6 +147,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       setUserRating(newScore);
       setAvgRating(avg);
       setRatingCount(list.length);
+      setRatingBreakdown(computeBreakdown(list));
 
       await AsyncStorage.setItem(
         `article_rating_${id}`,
@@ -330,18 +347,6 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
           </Text>
 
-          {/* Rating Row */}
-          <View style={[styles.ratingBarRow, { backgroundColor: isDark ? '#3A2E31' : '#FFFBF0', borderColor: isDark ? '#5A3D42' : '#FEF3C7' }]}>
-            <StarRating
-              rating={avgRating}
-              userRating={userRating}
-              interactive={true}
-              onRate={saveRatingData}
-              showScoreText={true}
-              count={ratingCount}
-            />
-          </View>
-
           {/* Action Buttons: Like (also saves to Favourites) & Share */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
@@ -359,58 +364,27 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
           <Text style={[styles.body, { color: colors.text }]}>{article.content}</Text>
 
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          {/* Comments section */}
-          <View style={styles.commentTitleBox}>
-            <Icon source="comment-outline" size={20} color={colors.text} />
-            <Text style={[styles.commentHeader, { color: colors.text }]}>Comments ({comments.length})</Text>
-          </View>
-
-          {/* Input box */}
-          <View style={styles.inputRow}>
-            <TextInput
-              style={[styles.commentInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
-              placeholder="Write a comment..."
-              placeholderTextColor={colors.textSoft}
-              value={commentInput}
-              onChangeText={setCommentInput}
-            />
-            <TouchableOpacity style={styles.sendBtn} onPress={handleAddComment}>
-              <Text style={styles.sendBtnText}>Send</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Comments list */}
-          {comments.length === 0 ? (
-            <Text style={[styles.emptyCommentText, { color: colors.textSoft }]}>No comments yet. Be the first to share your thoughts!</Text>
-          ) : (
-            comments.map((item) => (
-              <View key={item.id} style={[styles.commentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
-                <View style={styles.commentContentBox}>
-                  <View style={styles.commentHeaderRow}>
-                    <Text style={[styles.commentUser, { color: colors.text }]}>{item.userName}</Text>
-                    <Text style={[styles.commentTime, { color: colors.textSoft }]}>{item.time}</Text>
-                  </View>
-                  <Text style={[styles.commentText, { color: colors.text }]}>{item.content}</Text>
-
-                  {/* Comment Owner Controls */}
-                  {item.userName === currentUserName && (
-                    <View style={styles.commentOwnerControls}>
-                      <TouchableOpacity onPress={() => openEditModal(item.id, item.content)}>
-                        <Text style={styles.controlEditText}>Edit</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.controlDot}>·</Text>
-                      <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
-                        <Text style={styles.controlDeleteText}>Delete</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              </View>
-            ))
-          )}
+          <RatingReviewSection
+            avgRating={avgRating}
+            ratingCount={ratingCount}
+            breakdown={ratingBreakdown}
+            userRating={userRating}
+            onRate={saveRatingData}
+            comments={comments.map((item) => ({
+              id: item.id,
+              userName: item.userName,
+              avatar: item.avatar,
+              content: item.content,
+              time: item.time,
+              canEdit: item.userName === currentUserName,
+              canDelete: item.userName === currentUserName,
+            }))}
+            commentInput={commentInput}
+            onChangeCommentInput={setCommentInput}
+            onSendComment={handleAddComment}
+            onEditComment={(commentId, currentText) => openEditModal(Number(commentId), currentText)}
+            onDeleteComment={(commentId) => handleDeleteComment(Number(commentId))}
+          />
         </View>
       </ScrollView>
 
@@ -462,16 +436,6 @@ const styles = StyleSheet.create({
   content: { padding: 18 },
   title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 6, lineHeight: 28 },
   meta: { fontSize: 13, color: '#888888', marginBottom: 16 },
-  ratingBarRow: {
-    marginVertical: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFBF0',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FEF3C7',
-    alignSelf: 'flex-start',
-  },
   actionRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   actionBtn: {
     flex: 1,
@@ -492,47 +456,8 @@ const styles = StyleSheet.create({
   actionBtnText: { fontSize: 13, fontWeight: '600', color: '#65676B' },
   likedText: { color: '#FF3B30', fontWeight: '700' },
   savedText: { color: '#FF7A59', fontWeight: '700' },
-  body: { fontSize: 15, color: '#333333', lineHeight: 24, marginBottom: 20 },
+  body: { fontSize: 15, color: '#333333', lineHeight: 24, marginBottom: 4 },
   divider: { height: 1, backgroundColor: '#EEEEEE', marginVertical: 16 },
-  commentTitleBox: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  commentHeader: { fontSize: 16, fontWeight: '700', color: '#2E2E2E' },
-  inputRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
-  commentInput: {
-    flex: 1,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#2E2E2E',
-  },
-  sendBtn: {
-    backgroundColor: '#FF7A59',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  emptyCommentText: { fontSize: 13, color: '#999999', fontStyle: 'italic', marginVertical: 10 },
-  commentBox: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 14,
-    backgroundColor: '#FAF7F5',
-    padding: 12,
-    borderRadius: 12,
-  },
-  commentAvatar: { width: 36, height: 36, borderRadius: 18 },
-  commentContentBox: { flex: 1 },
-  commentHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  commentUser: { fontSize: 13, fontWeight: '700', color: '#2E2E2E' },
-  commentTime: { fontSize: 11, color: '#999999' },
-  commentText: { fontSize: 14, color: '#444444', lineHeight: 20 },
-  commentOwnerControls: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
-  controlEditText: { fontSize: 12, color: '#FF7A59', fontWeight: '600' },
-  controlDeleteText: { fontSize: 12, color: '#FF3B30', fontWeight: '600' },
-  controlDot: { fontSize: 12, color: '#999999' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20 },
   modalTitle: { fontSize: 16, fontWeight: '700', color: '#2E2E2E', marginBottom: 12 },

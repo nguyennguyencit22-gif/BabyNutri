@@ -12,6 +12,7 @@ const {
     getRecipeRatingSummary,
     getMyRating,
     createComment,
+    deleteComment,
     createOrUpdateRating,
     toggleFavorite,
     getMyFavorites
@@ -30,6 +31,7 @@ router.delete("/:id", auth, deleteRecipe);
 
 router.get("/:id/comments", getRecipeComments);
 router.post("/:id/comments", auth, createComment);
+router.delete("/:id/comments/:commentId", auth, deleteComment);
 router.get("/:id/ratings", getRecipeRatings);
 router.post("/:id/rating", auth, createOrUpdateRating);
 router.get("/:id/rating-summary", getRecipeRatingSummary);

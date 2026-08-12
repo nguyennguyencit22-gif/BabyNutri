@@ -103,7 +103,7 @@ exports.getRecipeComments = async (req, res) => {
     try {
         const recipeId = req.params.id;
         const [rows] = await db.query(`
-            SELECT rc.id, rc.content, u.full_name AS userName
+            SELECT rc.id, rc.content, rc.user_id AS userId, rc.created_at AS createdAt, u.full_name AS userName, u.avatar
             FROM recipe_comments rc
             JOIN users u ON rc.user_id = u.id
             WHERE rc.recipe_id = ?
@@ -126,14 +126,44 @@ exports.createComment = async (req, res) => {
             return res.status(400).json({ message: "Content is required" });
         }
 
-        await db.query(
+        const [result] = await db.query(
             `INSERT INTO recipe_comments (recipe_id, user_id, content) VALUES (?, ?, ?)`,
             [recipeId, userId, content]
         );
-        res.json({ message: "Comment added successfully" });
+        res.json({ id: result.insertId, message: "Comment added successfully" });
     } catch (err) {
         console.error("createComment error:", err);
         res.status(500).json({ message: "Failed to create comment", error: err.message });
+    }
+};
+
+exports.deleteComment = async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [existing] = await db.query(
+            `SELECT user_id FROM recipe_comments WHERE id = ?`,
+            [commentId]
+        );
+
+        if (!existing.length) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        if (existing[0].user_id !== userId) {
+            return res.status(403).json({ message: "You can only delete your own comment" });
+        }
+
+        await db.query(`DELETE FROM recipe_comments WHERE id = ?`, [commentId]);
+        res.json({ message: "Comment deleted" });
+    } catch (err) {
+        console.error("deleteComment error:", err);
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -165,7 +195,18 @@ exports.getRecipeRatingSummary = async (req, res) => {
             FROM recipe_ratings
             WHERE recipe_id = ?
         `, [recipeId]);
-        res.json(rows[0]);
+
+        const [breakdownRows] = await db.query(`
+            SELECT rating, COUNT(*) AS count
+            FROM recipe_ratings
+            WHERE recipe_id = ?
+            GROUP BY rating
+        `, [recipeId]);
+
+        const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        breakdownRows.forEach((r) => { breakdown[r.rating] = r.count; });
+
+        res.json({ ...rows[0], breakdown });
     } catch (err) {
         console.error("getRecipeRatingSummary error:", err);
         res.status(500).json({ message: "Failed to fetch rating summary", error: err.message });

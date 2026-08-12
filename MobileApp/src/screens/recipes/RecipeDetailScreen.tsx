@@ -11,7 +11,7 @@ import { Recipe } from '../../types/recipe';
 import IngredientItem from '../../components/recipes/IngredientItem';
 import type { RootState } from '../../store/store';
 import { addActivity } from '../../store/historySlice';
-import StarRating from '../../components/common/StarRating';
+import RatingReviewSection from '../../components/common/RatingReviewSection';
 
 import Icon from '../../components/common/AppIcon';
 
@@ -20,6 +20,9 @@ import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { getRecipeImage } from '../../constants/recipeImages';
 import { appAlert } from '../../utils/appAlert';
+
+type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number };
+const EMPTY_BREAKDOWN: RatingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -41,6 +44,11 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
+  const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
+
+  const [comments, setComments] = useState<Awaited<ReturnType<typeof recipeService.getComments>>>([]);
+  const [commentInput, setCommentInput] = useState('');
+  const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -87,6 +95,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       const summary = await recipeService.getRatingSummary(id);
       setAvgRating(Number(summary.averageRating) || 0);
       setRatingCount(Number(summary.totalRatings) || 0);
+      setRatingBreakdown(summary.breakdown || EMPTY_BREAKDOWN);
 
       if (authMode === 'authenticated') {
         const mine = await recipeService.getMyRating(id);
@@ -99,8 +108,19 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
+      setRatingBreakdown(EMPTY_BREAKDOWN);
     }
   }, [id, authMode]);
+
+  const loadComments = useCallback(async () => {
+    try {
+      const list = await recipeService.getComments(id);
+      setComments(list);
+    } catch (e) {
+      console.error('Load recipe comments error:', e);
+      setComments([]);
+    }
+  }, [id]);
 
   // Rating requires an account — it's tied to the signed-in user's row in
   // recipe_ratings so it can be edited/averaged server-side. Guests can
@@ -143,8 +163,61 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     useCallback(() => {
       fetchDetail();
       loadRatingData();
-    }, [fetchDetail, loadRatingData])
+      loadComments();
+    }, [fetchDetail, loadRatingData, loadComments])
   );
+
+  // Comments require an account, same gate as rating — guests are sent
+  // straight to Login rather than shown a popup.
+  const handleAddComment = async () => {
+    const text = commentInput.trim();
+    if (!text) return;
+
+    if (authMode === 'guest') {
+      navigation.navigate('Login');
+      return;
+    }
+
+    try {
+      await recipeService.addComment(id, text);
+      setCommentInput('');
+      await loadComments();
+
+      dispatch(addActivity({
+        type: 'action',
+        title: `Commented on recipe: ${recipe?.name || 'Recipe'}`,
+        details: text,
+        icon: '💬',
+      }));
+    } catch (e) {
+      console.error('Add recipe comment error:', e);
+      Alert.alert('Error', 'Unable to post your comment right now.');
+    }
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    appAlert.show(
+      'Delete Comment',
+      'Are you sure you want to delete this comment?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await recipeService.deleteComment(id, commentId);
+              await loadComments();
+            } catch (e) {
+              console.error('Delete recipe comment error:', e);
+              Alert.alert('Error', 'Unable to delete this comment right now.');
+            }
+          },
+        },
+      ],
+      'warning',
+    );
+  };
 
   useEffect(() => {
     setLiked(saved);
@@ -336,18 +409,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         <View style={styles.content}>
           <Text style={[styles.title, { color: colors.text }]}>{recipe.name}</Text>
           {!!recipe.expertName && <Text style={styles.author}>Expert: {recipe.expertName}</Text>}
-          
-          {/* Rating Row */}
-          <View style={[styles.ratingBarRow, { backgroundColor: isDark ? '#3A2E31' : '#FFFBF0', borderColor: isDark ? '#5A3D42' : '#FEF3C7' }]}>
-            <StarRating
-              rating={avgRating}
-              userRating={userRating}
-              interactive={true}
-              onRate={saveRatingData}
-              showScoreText={true}
-              count={ratingCount}
-            />
-          </View>
 
           {/* Primary Action: Add to Schedule Button */}
           <TouchableOpacity 
@@ -428,6 +489,27 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
               <Text style={[styles.stepText, { color: colors.text }]}>{step}</Text>
             </View>
           ))}
+
+          <RatingReviewSection
+            avgRating={avgRating}
+            ratingCount={ratingCount}
+            breakdown={ratingBreakdown}
+            userRating={userRating}
+            onRate={saveRatingData}
+            comments={comments.map((item) => ({
+              id: item.id,
+              userName: item.userName,
+              avatar: item.avatar,
+              content: item.content,
+              time: new Date(item.createdAt).toLocaleDateString(),
+              canEdit: false,
+              canDelete: item.userName === currentUserName,
+            }))}
+            commentInput={commentInput}
+            onChangeCommentInput={setCommentInput}
+            onSendComment={handleAddComment}
+            onDeleteComment={(commentId) => handleDeleteComment(Number(commentId))}
+          />
         </View>
       </ScrollView>
 
@@ -513,16 +595,6 @@ const styles = StyleSheet.create({
   content: { padding: 18 },
   title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 4 },
   author: { fontSize: 13, color: '#FF7A59', fontWeight: '600', marginBottom: 12 },
-  ratingBarRow: {
-    marginVertical: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFBF0',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FEF3C7',
-    alignSelf: 'flex-start',
-  },
   schedulePrimaryBtn: {
     backgroundColor: '#FF5F70',
     paddingVertical: 12,

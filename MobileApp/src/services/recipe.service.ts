@@ -9,6 +9,17 @@ import {
 
 const BASE = '/recipes';
 
+export type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number };
+
+export type RecipeComment = {
+  id: number;
+  userId: number;
+  userName: string;
+  avatar: string | null;
+  content: string;
+  createdAt: string;
+};
+
 export const recipeService = {
   getAll: async (): Promise<RecipeListItem[]> => {
     const res = await api.get(BASE);
@@ -32,7 +43,7 @@ export const recipeService = {
     const res = await api.get(`${BASE}/search`, { params });
     return res.data;
   },
-  getRatingSummary: async (id: number): Promise<{ totalRatings: number; averageRating: number }> => {
+  getRatingSummary: async (id: number): Promise<{ totalRatings: number; averageRating: number; breakdown: RatingBreakdown }> => {
     const res = await api.get(`${BASE}/${id}/rating-summary`);
     return res.data;
   },
@@ -50,5 +61,16 @@ export const recipeService = {
   getMyFavorites: async (): Promise<number[]> => {
     const res = await api.get(`${BASE}/favorites/mine`);
     return res.data;
+  },
+  getComments: async (id: number): Promise<RecipeComment[]> => {
+    const res = await api.get(`${BASE}/${id}/comments`);
+    return res.data;
+  },
+  addComment: async (id: number, content: string): Promise<{ id: number }> => {
+    const res = await api.post(`${BASE}/${id}/comments`, { content });
+    return res.data;
+  },
+  deleteComment: async (id: number, commentId: number): Promise<void> => {
+    await api.delete(`${BASE}/${id}/comments/${commentId}`);
   },
 };
