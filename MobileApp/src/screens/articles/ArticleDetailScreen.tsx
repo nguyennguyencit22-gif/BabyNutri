@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Modal, Pressable, Animated } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Modal, Pressable, Animated, Share } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -203,6 +203,27 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     }
   };
 
+  const handleExternalShare = async () => {
+    if (!article) return;
+    try {
+      const webUrl = `https://babynutri.app/articles/${article.id}`;
+      await Share.share({
+        title: article.title,
+        message: `📖 ${article.title}\n\n${article.summary || ''}\n\nRead more on Web & App:\n${webUrl}`,
+        url: webUrl,
+      });
+
+      dispatch(addActivity({
+        type: 'action',
+        title: `Shared article link: ${article.title}`,
+        details: 'External web & app link shared',
+        icon: '🔗',
+      }));
+    } catch (e) {
+      console.error('Share article error:', e);
+    }
+  };
+
   const saveCommentsToStorage = async (newList: CommentItem[]) => {
     setComments(newList);
     try {
@@ -321,13 +342,18 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             />
           </View>
 
-          {/* Action Button: Like (also saves to Favourites) */}
+          {/* Action Buttons: Like (also saves to Favourites) & Share */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }, liked && styles.activeActionBtn]} onPress={handleToggleLikeAndSave} activeOpacity={0.8}>
               <Animated.View style={{ transform: [{ scale: heartScaleAnim }] }}>
                 <Icon source={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? '#FF3B30' : colors.textSoft} />
               </Animated.View>
               <Text style={[styles.actionBtnText, { color: colors.text }, liked && styles.likedText]}>{liked ? 'Liked & Saved' : 'Like Article'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={handleExternalShare} activeOpacity={0.8}>
+              <Icon source="share-variant" size={20} color={colors.textSoft} />
+              <Text style={[styles.actionBtnText, { color: colors.text }]}>Share</Text>
             </TouchableOpacity>
           </View>
 
