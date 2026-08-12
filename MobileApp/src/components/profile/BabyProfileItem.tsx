@@ -5,13 +5,30 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import ReanimatedSwipeable from
     'react-native-gesture-handler/ReanimatedSwipeable';
 
 import createStyles from '../../styles/profile/babyProfileItemStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+const DragHandleIcon = ({ size = 28, color = '#4B3034' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <Circle cx="9" cy="6" r="1.5" />
+        <Circle cx="15" cy="6" r="1.5" />
+        <Circle cx="9" cy="12" r="1.5" />
+        <Circle cx="15" cy="12" r="1.5" />
+        <Circle cx="9" cy="18" r="1.5" />
+        <Circle cx="15" cy="18" r="1.5" />
+    </Svg>
+);
+
+const DeleteOutlineIcon = ({ size = 26, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+    </Svg>
+);
 
 type BabyProfileItemProps = {
     name: string;
@@ -59,8 +76,7 @@ function BabyProfileItem({
             onPress={handleDelete}
             style={styles.deleteAction}
         >
-            <Icon
-                source="delete-outline"
+            <DeleteOutlineIcon
                 size={26}
                 color={colors.onPrimary}
             />
@@ -104,8 +120,7 @@ function BabyProfileItem({
                 <Pressable
                     onPress={onPress}
                     style={styles.container}>
-                    <Icon
-                        source="drag"
+                    <DragHandleIcon
                         size={28}
                         color={colors.text}
                     />
