@@ -3,14 +3,13 @@ import {
     Alert,
     View,
     Pressable,
-    TouchableOpacity,
 } from 'react-native';
 
 import {
     Avatar,
+    IconButton,
     Text,
 } from 'react-native-paper';
-import Svg, { Path } from 'react-native-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useSelector } from 'react-redux';
@@ -34,12 +33,6 @@ import BabySwitcherModal from './BabySwitcherModal';
 import BabyProfileActionsModal from '../profile/BabyProfileActionsModal';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { getOrCreateInvitationCode } from '../../services/child.service';
-
-const BellIcon = ({ size = 20, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-  </Svg>
-);
 
 function HomeBabyHeader() {
 
@@ -132,15 +125,12 @@ function HomeBabyHeader() {
         <View style={styles.container}>
 
             <Pressable
-                style={({ pressed }) => [
-                    styles.userInfo,
-                    pressed && { opacity: 0.8 },
-                ]}
+                style={styles.userInfo}
                 onPress={() => {
                     if (!selectedBaby) {
                         navigation.navigate('AddBabyProfile');
                     } else {
-                        setShowBabySwitcher(true);
+                        handleOpenBabyActions();
                     }
                 }}>
 
@@ -212,20 +202,17 @@ function HomeBabyHeader() {
 
             <View style={styles.rightActions}>
 
-                <TouchableOpacity
-                    style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 19,
-                        backgroundColor: colors.primarySoft || '#FFF0F2',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
+                <IconButton
+                    icon="bell-outline"
+                    size={22}
+                    iconColor={
+                        colors.primary
+                    }
+                    containerColor={
+                        colors.primarySoft
+                    }
                     onPress={() => { }}
-                    activeOpacity={0.8}
-                >
-                    <BellIcon size={20} color={colors.primary} />
-                </TouchableOpacity>
+                />
 
                 <View
                     style={
