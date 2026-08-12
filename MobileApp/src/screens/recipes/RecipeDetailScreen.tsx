@@ -11,7 +11,7 @@ import { Recipe } from '../../types/recipe';
 import IngredientItem from '../../components/recipes/IngredientItem';
 import type { RootState } from '../../store/store';
 import { addActivity } from '../../store/historySlice';
-import RatingReviewSection from '../../components/common/RatingReviewSection';
+import RatingSummaryPreview from '../../components/common/RatingSummaryPreview';
 
 import Icon from '../../components/common/AppIcon';
 
@@ -20,9 +20,6 @@ import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { getRecipeImage } from '../../constants/recipeImages';
 import { appAlert } from '../../utils/appAlert';
-
-type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number };
-const EMPTY_BREAKDOWN: RatingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -41,14 +38,9 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   const saved = savedRecipeIds.includes(id);
   const [liked, setLiked] = useState(saved);
 
-  const [userRating, setUserRating] = useState<number>(0);
   const [avgRating, setAvgRating] = useState<number>(0);
   const [ratingCount, setRatingCount] = useState<number>(0);
-  const [ratingBreakdown, setRatingBreakdown] = useState<RatingBreakdown>(EMPTY_BREAKDOWN);
-
   const [comments, setComments] = useState<Awaited<ReturnType<typeof recipeService.getComments>>>([]);
-  const [commentInput, setCommentInput] = useState('');
-  const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
 
   const heartScaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -95,22 +87,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       const summary = await recipeService.getRatingSummary(id);
       setAvgRating(Number(summary.averageRating) || 0);
       setRatingCount(Number(summary.totalRatings) || 0);
-      setRatingBreakdown(summary.breakdown || EMPTY_BREAKDOWN);
-
-      if (authMode === 'authenticated') {
-        const mine = await recipeService.getMyRating(id);
-        setUserRating(mine.rating || 0);
-      } else {
-        setUserRating(0);
-      }
     } catch (e) {
       console.error('Load recipe rating error:', e);
-      setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
-      setRatingBreakdown(EMPTY_BREAKDOWN);
     }
-  }, [id, authMode]);
+  }, [id]);
 
   const loadComments = useCallback(async () => {
     try {
@@ -122,43 +104,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     }
   }, [id]);
 
-  // Rating requires an account — it's tied to the signed-in user's row in
-  // recipe_ratings so it can be edited/averaged server-side. Guests can
-  // still see everyone else's average (loadRatingData above), they just
-  // can't add their own.
-  const saveRatingData = async (newScore: number) => {
-    if (authMode === 'guest') {
-      navigation.navigate('Login');
-      return;
-    }
-
-    try {
-      await recipeService.submitRating(id, newScore);
-      const summary = await recipeService.getRatingSummary(id);
-
-      setUserRating(newScore);
-      setAvgRating(Number(summary.averageRating) || 0);
-      setRatingCount(Number(summary.totalRatings) || 0);
-
-      dispatch(addActivity({
-        type: 'rate',
-        title: `Rated recipe ${newScore}⭐: ${recipe?.name || 'Recipe'}`,
-        details: `Average rating: ${summary.averageRating}⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
-        icon: '⭐',
-      }));
-
-      appAlert.show(
-        'Evaluation Saved',
-        `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
-        undefined,
-        'star',
-      );
-    } catch (e) {
-      console.error('Save recipe rating error:', e);
-      Alert.alert('Error', 'Unable to save your rating right now.');
-    }
-  };
-
   useFocusEffect(
     useCallback(() => {
       fetchDetail();
@@ -166,58 +111,6 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       loadComments();
     }, [fetchDetail, loadRatingData, loadComments])
   );
-
-  // Comments require an account, same gate as rating — guests are sent
-  // straight to Login rather than shown a popup.
-  const handleAddComment = async () => {
-    const text = commentInput.trim();
-    if (!text) return;
-
-    if (authMode === 'guest') {
-      navigation.navigate('Login');
-      return;
-    }
-
-    try {
-      await recipeService.addComment(id, text);
-      setCommentInput('');
-      await loadComments();
-
-      dispatch(addActivity({
-        type: 'action',
-        title: `Commented on recipe: ${recipe?.name || 'Recipe'}`,
-        details: text,
-        icon: '💬',
-      }));
-    } catch (e) {
-      console.error('Add recipe comment error:', e);
-      Alert.alert('Error', 'Unable to post your comment right now.');
-    }
-  };
-
-  const handleDeleteComment = (commentId: number) => {
-    appAlert.show(
-      'Delete Comment',
-      'Are you sure you want to delete this comment?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await recipeService.deleteComment(id, commentId);
-              await loadComments();
-            } catch (e) {
-              console.error('Delete recipe comment error:', e);
-              Alert.alert('Error', 'Unable to delete this comment right now.');
-            }
-          },
-        },
-      ],
-      'warning',
-    );
-  };
 
   useEffect(() => {
     setLiked(saved);
@@ -490,25 +383,17 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
             </View>
           ))}
 
-          <RatingReviewSection
+          <RatingSummaryPreview
             avgRating={avgRating}
             ratingCount={ratingCount}
-            breakdown={ratingBreakdown}
-            userRating={userRating}
-            onRate={saveRatingData}
             comments={comments.map((item) => ({
               id: item.id,
               userName: item.userName,
               avatar: item.avatar,
               content: item.content,
               time: new Date(item.createdAt).toLocaleDateString(),
-              canEdit: false,
-              canDelete: item.userName === currentUserName,
             }))}
-            commentInput={commentInput}
-            onChangeCommentInput={setCommentInput}
-            onSendComment={handleAddComment}
-            onDeleteComment={(commentId) => handleDeleteComment(Number(commentId))}
+            onPress={() => navigation.navigate('RecipeReviews', { id, name: recipe.name })}
           />
         </View>
       </ScrollView>
