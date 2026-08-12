@@ -51,10 +51,6 @@ function ProfileScreen({
     const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
-    const userRole = user?.role?.toLowerCase() ?? 'guest';
-
-    const isExpert = userRole === 'expert';
-    const isAdmin = userRole === 'admin';
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,
@@ -105,12 +101,6 @@ function ProfileScreen({
         }, 100);
     };
 
-    const getRoleTitle = () => {
-        if (isAdmin) return 'System Admin';
-        if (isExpert) return 'Nutrition Expert';
-        return 'Parent';
-    };
-
     const handleShareApp = async () => {
         try {
             const appLink = 'https://babynutri.app/download';
@@ -136,7 +126,7 @@ function ProfileScreen({
                 {/* USER PROFILE CARD */}
                 {isAuthenticated ? (
                     <ProfileSummaryCard
-                        name={`${user.displayName || 'BabyNutri User'} (${getRoleTitle()})`}
+                        name={user.displayName || 'BabyNutri Parent'}
                         email={user.email}
                         imageUrl={user.photoURL}
                         onChangePhoto={() => {
@@ -191,7 +181,7 @@ function ProfileScreen({
 
                 <ProfileMenuItem
                     title="Enter invitation code"
-                    leftIcon="plus"
+                    leftIcon="message-text-outline"
                     onPress={() => {
                         navigation.navigate('InvitationCode');
                     }}
