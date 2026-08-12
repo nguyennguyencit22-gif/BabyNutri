@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { RecipeListItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { getRecipeImage } from '../../constants/recipeImages';
 
 interface Props {
   recipe: RecipeListItem;
@@ -17,7 +18,7 @@ const RecipeItem: React.FC<Props> = ({ recipe, onPress }) => {
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Image source={{ uri: recipe.image_url }} style={[styles.thumb, { backgroundColor: isDark ? '#3A2E31' : '#EEE' }]} />
+      <Image source={getRecipeImage(recipe.id, recipe.image_url)} style={[styles.thumb, { backgroundColor: isDark ? '#3A2E31' : '#EEE' }]} />
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{recipe.name}</Text>
         <Text style={[styles.meta, { color: colors.textSoft }]}>{recipe.month_age}+ months • {recipe.calories} kcal • {recipe.cooking_time} mins</Text>

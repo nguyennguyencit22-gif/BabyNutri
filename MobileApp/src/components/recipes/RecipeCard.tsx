@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from '../common/AppIcon';
 import { RecipeListItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { getRecipeImage } from '../../constants/recipeImages';
 
 interface Props {
   recipe: RecipeListItem;
@@ -59,7 +60,7 @@ const RecipeCard: React.FC<Props> = ({ recipe, onPress }) => {
         style={{ flex: 1 }}
       >
         <View style={styles.imageContainer}>
-          <Image source={{ uri: recipe.image_url }} style={[styles.image, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]} />
+          <Image source={getRecipeImage(recipe.id, recipe.image_url)} style={[styles.image, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]} />
           <View style={styles.ageBadge}>
             <Text style={styles.ageText}>{recipe.month_age}+ months</Text>
           </View>

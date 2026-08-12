@@ -19,6 +19,7 @@ import Icon from '../../components/common/AppIcon';
 
 
 import { useAppTheme } from '../../theme/useAppTheme';
+import { getRecipeImage } from '../../constants/recipeImages';
 
 const RecipeDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -357,7 +358,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={{ position: 'relative' }}>
-          <Image source={{ uri: recipe.image_url }} style={styles.image} />
+          <Image source={getRecipeImage(recipe.id, recipe.image_url)} style={styles.image} />
           <TouchableOpacity 
             style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]} 
             onPress={() => navigation.goBack()}

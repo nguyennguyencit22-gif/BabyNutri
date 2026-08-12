@@ -23,6 +23,7 @@ import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
 import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { getRecipeImage } from '../../constants/recipeImages';
 
 const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): string => {
   const now = new Date();
@@ -662,7 +663,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               renderItem={({ item }) => (
                 <View style={[styles.recCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <TouchableOpacity onPress={() => handleViewRecipeDetail(item.id)} activeOpacity={0.88}>
-                    <Image source={{ uri: item.image_url || (item as any).image }} style={styles.recImg} />
+                    <Image source={getRecipeImage(item.id, item.image_url || (item as any).image)} style={styles.recImg} />
                     <Text style={[styles.recName, { color: colors.text }]} numberOfLines={2}>{item.name}</Text>
                     <Text style={styles.recCategory}>{item.month_age ? `${item.month_age}+ months` : 'Safe dish'}</Text>
                   </TouchableOpacity>
@@ -722,7 +723,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
               ) : (
                 slotDishes.map((dish, idx) => (
                   <View key={idx} style={[styles.dishRow, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-                    <Image source={{ uri: dish.image_url || dish.image }} style={styles.dishThumb} />
+                    <Image source={getRecipeImage(dish.id, dish.image_url || dish.image)} style={styles.dishThumb} />
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text style={[styles.dishName, { color: colors.text }]}>{dish.name}</Text>
