@@ -14,7 +14,7 @@ import type { RootState } from '../../store/store';
 import { addActivity } from '../../store/historySlice';
 import StarRating from '../../components/common/StarRating';
 
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 
 
 

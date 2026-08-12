@@ -21,7 +21,7 @@ import type { RootState } from '../../store/store';
 import { useRecipeStore } from '../../stores/useRecipeStore';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): string => {

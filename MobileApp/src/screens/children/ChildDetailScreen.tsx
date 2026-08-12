@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
 import { useAppTheme } from '../../theme/useAppTheme';

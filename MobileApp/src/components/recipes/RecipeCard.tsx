@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Icon } from 'react-native-paper';
+import Icon from '../common/AppIcon';
 import { RecipeListItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
 

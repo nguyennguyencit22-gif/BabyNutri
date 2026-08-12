@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import RecipeCard from '../../components/recipes/RecipeCard';

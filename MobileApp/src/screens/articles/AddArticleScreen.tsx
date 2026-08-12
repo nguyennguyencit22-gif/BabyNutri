@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { useSelector } from 'react-redux';
 import { articleService } from '../../services/article.service';
 import { useArticleStore } from '../../stores/useArticleStore';

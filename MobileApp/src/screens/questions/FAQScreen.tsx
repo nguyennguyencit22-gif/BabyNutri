@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, LayoutAnimation, Platform, UIManager, Alert, Modal, Pressable, ScrollView } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { questionService } from '../../services/questionService';
 import { Question } from '../../types/question';
 

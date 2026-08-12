@@ -6,7 +6,7 @@ import { mealPlanService } from '../../services/mealPlanService';
 import { MealPlan, Meal } from '../../types/meal-plan';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 
 export const MealPlanDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();

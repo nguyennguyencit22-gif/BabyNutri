@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText, G, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { Icon } from 'react-native-paper';
+import Icon from '../common/AppIcon';
 import { GrowthRecord, WHOStandardPoint } from '../../services/growth.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 

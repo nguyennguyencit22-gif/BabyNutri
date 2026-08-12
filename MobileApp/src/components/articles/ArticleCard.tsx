@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Share, Alert, Modal, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Icon } from 'react-native-paper';
+import Icon from '../common/AppIcon';
 import { ArticleListItem } from '../../types/article';
 import { articleService } from '../../services/article.service';
 import { useBookmarkStore } from '../../stores/useBookmarkStore';

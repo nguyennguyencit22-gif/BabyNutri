@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, FlatList, RefreshControl, ActivityIndicator, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { useSelector } from 'react-redux';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';

@@ -10,7 +10,7 @@ import {
     Alert,
     ScrollView,
 } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../common/AppIcon';
 import { GrowthRecord, GrowthRecordInput } from '../../services/growth.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 

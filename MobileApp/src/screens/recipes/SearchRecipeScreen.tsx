@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
 import RecipeItem from '../../components/recipes/RecipeItem';

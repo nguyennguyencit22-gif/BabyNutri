@@ -10,7 +10,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/Store';

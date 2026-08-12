@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from './AppIcon';
 
 interface StarRatingProps {
   rating: number; // 0 to 5

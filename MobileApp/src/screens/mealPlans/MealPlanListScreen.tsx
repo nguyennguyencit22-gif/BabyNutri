@@ -9,7 +9,7 @@ import { MealPlan, Meal } from '../../types/meal-plan';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 
 const toLocalIso = (d: Date) => {
   const y = d.getFullYear();

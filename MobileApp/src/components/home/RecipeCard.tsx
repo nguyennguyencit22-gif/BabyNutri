@@ -6,7 +6,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Icon from '../common/AppIcon';
 import { useTranslation } from 'react-i18next';
 
 import styles from '../../styles/home/recipeCardStyles';

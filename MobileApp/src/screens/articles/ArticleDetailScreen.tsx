@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, Alert, Modal, Pressable, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
-import { Icon } from 'react-native-paper';
+import Icon from '../../components/common/AppIcon';
 import { articleService } from '../../services/article.service';
 import { Article } from '../../types/article';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
