@@ -551,3 +551,60 @@ exports.searchRecipes = async (req, res) => {
         res.status(500).json({ message: "Failed to search recipes", error: err.message });
     }
 };
+
+// ==========================================
+// AI / SMART RECIPE RECOMMENDATIONS & MEAL PLANNER
+// ==========================================
+exports.recommendRecipes = async (req, res) => {
+    try {
+        const { monthAge, allergies } = req.body;
+        const babyAge = Number(monthAge || 6);
+        const allergyList = Array.isArray(allergies) ? allergies : [];
+
+        let sql = `
+            SELECT
+                r.id,
+                r.name,
+                r.description,
+                r.image_url AS imageUrl,
+                r.cooking_time AS cookingTime,
+                r.month_age AS monthAge,
+                r.calories,
+                r.protein,
+                r.fat,
+                r.carbohydrate,
+                mt.name AS mealType,
+                COALESCE(AVG(rr.rating), 4.8) AS avgRating
+            FROM recipes r
+            LEFT JOIN meal_types mt ON r.meal_type_id = mt.id
+            LEFT JOIN recipe_ratings rr ON rr.recipe_id = r.id
+            WHERE r.month_age <= ?
+        `;
+
+        const params = [babyAge];
+
+        // Filter out recipes that match excluded allergies if any
+        if (allergyList.length > 0) {
+            sql += ` AND r.id NOT IN (
+                SELECT ra.recipe_id
+                FROM recipe_allergies ra
+                JOIN allergies a ON ra.allergy_id = a.id
+                WHERE a.name IN (?)
+            )`;
+            params.push(allergyList);
+        }
+
+        sql += ` GROUP BY r.id ORDER BY avgRating DESC, r.month_age DESC, r.calories DESC LIMIT 12`;
+
+        const [rows] = await db.query(sql, params);
+
+        return res.json({
+            babyAgeMonths: babyAge,
+            recommendations: rows,
+            matchedCount: rows.length
+        });
+    } catch (err) {
+        console.error("recommendRecipes error:", err);
+        return res.status(500).json({ message: "Failed to generate recommendations", error: err.message });
+    }
+};

@@ -7,6 +7,7 @@ const {
     updateRecipe,
     deleteRecipe,
     searchRecipes,
+    recommendRecipes,
     getRecipeComments,
     getRecipeRatings,
     getRecipeRatingSummary,
@@ -20,8 +21,8 @@ const {
 } = require("../controllers/recipeController");
 const auth = require("../middleware/auth");
 
-// Search / favorites / mine đặt TRƯỚC "/:id" để không bị nuốt route
 router.get("/search", searchRecipes);
+router.post("/recommend", recommendRecipes);
 router.get("/favorites/mine", auth, getMyFavorites);
 router.get("/mine", auth, getMyRecipes);
 

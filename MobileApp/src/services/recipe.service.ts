@@ -88,4 +88,8 @@ export const recipeService = {
       commentCount: Number(r.commentCount) || 0,
     }));
   },
+  getRecommendations: async (monthAge: number, allergies: string[]): Promise<{ babyAgeMonths: number; recommendations: RecipeListItem[] }> => {
+    const res = await api.post(`${BASE}/recommend`, { monthAge, allergies });
+    return res.data;
+  },
 };
