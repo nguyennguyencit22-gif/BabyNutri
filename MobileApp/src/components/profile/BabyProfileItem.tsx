@@ -118,7 +118,13 @@ function BabyProfileItem({
                 </View>
 
                 <Pressable
-                    onPress={onPress}
+                    onPress={() => {
+                        if (onEdit) {
+                            onEdit();
+                        } else if (onPress) {
+                            onPress();
+                        }
+                    }}
                     style={styles.container}>
                     <DragHandleIcon
                         size={28}
