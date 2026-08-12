@@ -4,11 +4,14 @@ import {
     createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { useSelector } from 'react-redux';
 
 import HomeScreen from '../screens/home/HomeScreen';
+import ExpertHomeScreen from '../screens/experts/ExpertHomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';
 import LibraryScreen from '../screens/library/LibraryScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
+import type { RootState } from '../store/store';
 
 import type {
     MainTabParamList,
@@ -171,6 +174,10 @@ const ProfileTabIcon = ({
     />
 );
 function MainTabNavigator() {
+    const authMode = useSelector((state: RootState) => state.auth.mode);
+    const user = useSelector((state: RootState) => state.auth.user);
+    const isExpertOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
+
     return (
         <Tab.Navigator
             initialRouteName="HomeTab"
@@ -218,7 +225,7 @@ function MainTabNavigator() {
 
             <Tab.Screen
                 name="HomeTab"
-                component={HomeScreen}
+                component={isExpertOrAdmin ? ExpertHomeScreen : HomeScreen}
                 options={{
                     tabBarIcon: HomeTabIcon,
                 }}

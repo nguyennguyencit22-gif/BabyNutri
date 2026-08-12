@@ -140,4 +140,9 @@ export const articleService = {
       console.warn('Backend delete error:', e);
     }
   },
+
+  getMine: async (): Promise<ArticleListItem[]> => {
+    const res = await api.get(`${BASE}/mine`);
+    return res.data;
+  },
 };

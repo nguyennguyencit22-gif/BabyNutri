@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -27,6 +27,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const id = Number(route?.params?.id);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [commentInput, setCommentInput] = useState('');
@@ -45,6 +46,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
+  const isStaffOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
   const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
 
@@ -242,6 +244,38 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     }
   };
 
+  const handleEdit = () => {
+    navigation.navigate('EditArticle', { id });
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Article',
+      'Are you sure you want to delete this article?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await articleService.remove(id);
+              Alert.alert('Success', 'Article deleted', [
+                { text: 'OK', onPress: () => navigation.goBack() },
+              ]);
+            } catch (e) {
+              console.error('Delete article error:', e);
+              Alert.alert('Error', 'Unable to delete this article');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleExternalShare = async () => {
     if (!article) return;
     try {
@@ -289,6 +323,20 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
           <Text style={[styles.meta, { color: colors.textSoft }]}>
             Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
           </Text>
+
+          {/* Edit & Delete Article Buttons (Only Expert or Admin) */}
+          {isStaffOrAdmin && (
+            <View style={styles.editDeleteRow}>
+              <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
+                <Icon source="pencil" size={18} color="#FF7A59" />
+                <Text style={styles.editBtnText}>Edit Article</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} disabled={deleting}>
+                <Icon source="delete-outline" size={18} color="#DC2626" />
+                <Text style={styles.deleteBtnText}>{deleting ? 'Deleting...' : 'Delete Article'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Action Buttons: Like (also saves to Favourites) & Share */}
           <View style={styles.actionRow}>
@@ -352,6 +400,11 @@ const styles = StyleSheet.create({
   content: { padding: 18 },
   title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 6, lineHeight: 28 },
   meta: { fontSize: 13, color: '#888888', marginBottom: 16 },
+  editDeleteRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#FFF0ED', paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#FFE2DB' },
+  editBtnText: { color: '#FF7A59', fontWeight: '700', fontSize: 13 },
+  deleteBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#FEF2F2', paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#FEE2E2' },
+  deleteBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 13 },
   actionRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   actionBtn: {
     flex: 1,

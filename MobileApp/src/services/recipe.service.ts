@@ -20,6 +20,12 @@ export type RecipeComment = {
   createdAt: string;
 };
 
+export type MyRecipeItem = RecipeListItem & {
+  avgRating: number;
+  ratingCount: number;
+  commentCount: number;
+};
+
 export const recipeService = {
   getAll: async (): Promise<RecipeListItem[]> => {
     const res = await api.get(BASE);
@@ -72,5 +78,14 @@ export const recipeService = {
   },
   deleteComment: async (id: number, commentId: number): Promise<void> => {
     await api.delete(`${BASE}/${id}/comments/${commentId}`);
+  },
+  getMine: async (): Promise<MyRecipeItem[]> => {
+    const res = await api.get(`${BASE}/mine`);
+    return res.data.map((r: any) => ({
+      ...r,
+      avgRating: Number(r.avgRating) || 0,
+      ratingCount: Number(r.ratingCount) || 0,
+      commentCount: Number(r.commentCount) || 0,
+    }));
   },
 };

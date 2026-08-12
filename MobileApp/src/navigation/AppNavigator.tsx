@@ -26,6 +26,7 @@ import SearchRecipeScreen from '../screens/recipes/SearchRecipeScreen';
 import ArticleDetailScreen from '../screens/articles/ArticleDetailScreen';
 import ArticleReviewsScreen from '../screens/articles/ArticleReviewsScreen';
 import AddArticleScreen from '../screens/articles/AddArticleScreen';
+import EditArticleScreen from '../screens/articles/EditArticleScreen';
 import SavedItemsScreen from '../screens/saved/SavedItemsScreen';
 import FavoriteRecipesScreen from '../screens/recipes/FavoriteRecipesScreen';
 
@@ -37,6 +38,8 @@ import { MealPlanListScreen } from '../screens/mealPlans/MealPlanListScreen';
 import { MealPlanDetailScreen } from '../screens/mealPlans/MealPlanDetailScreen';
 import { FAQScreen } from '../screens/questions/FAQScreen';
 import MealSchedulerScreen from '../screens/recipes/MealSchedulerScreen';
+import MyContentScreen from '../screens/experts/MyContentScreen';
+import ExpertFeedbackScreen from '../screens/experts/ExpertFeedbackScreen';
 
 const Stack = createNativeStackNavigator<any>();
 
@@ -170,6 +173,11 @@ function AppNavigator() {
         options={{ title: 'Create Shared Article', headerTintColor: '#FF5F70' }}
       />
       <Stack.Screen
+        name="EditArticle"
+        component={EditArticleScreen}
+        options={{ title: 'Edit Article', headerTintColor: '#FF5F70' }}
+      />
+      <Stack.Screen
         name="FavoriteRecipes"
         component={FavoriteRecipesScreen}
         options={{ headerShown: false }}
@@ -182,6 +190,16 @@ function AppNavigator() {
       <Stack.Screen
         name="MealScheduler"
         component={MealSchedulerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyContent"
+        component={MyContentScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ExpertFeedback"
+        component={ExpertFeedbackScreen}
         options={{ headerShown: false }}
       />
 

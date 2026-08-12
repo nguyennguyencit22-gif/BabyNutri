@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import RecipeListScreen from '../recipes/RecipeListScreen';
 import ArticleListScreen from '../articles/ArticleListScreen';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
+import type { RootState } from '../../store/store';
 
 function LibraryScreen({ navigation }: any) {
   const { colors } = useAppTheme();
@@ -20,23 +22,29 @@ function LibraryScreen({ navigation }: any) {
   );
   const [activeSubTab, setActiveSubTab] = useState<'recipes' | 'articles'>('recipes');
 
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isExpertOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <TopHeaderBar />
-      
-      {/* Banner Nút mở Lịch Dinh Dưỡng & Đề Xuất Món Ăn */}
-      <TouchableOpacity 
-        style={styles.schedulerBanner}
-        onPress={() => navigation.navigate('MealScheduler')}
-        activeOpacity={0.88}
-      >
-        <Text style={styles.schedulerBannerEmoji}>📅✨</Text>
-        <View style={styles.schedulerBannerTextCol}>
-          <Text style={styles.schedulerBannerTitle}>Nutrition Schedule & Meal Suggestions</Text>
-          <Text style={styles.schedulerBannerSub}>Daily meal planner & expert-approved nutrition recommendations</Text>
-        </View>
-      </TouchableOpacity>
+
+      {/* Banner Nút mở Lịch Dinh Dưỡng & Đề Xuất Món Ăn — Parent-only, Experts don't track a baby */}
+      {!isExpertOrAdmin && (
+        <TouchableOpacity
+          style={styles.schedulerBanner}
+          onPress={() => navigation.navigate('MealScheduler')}
+          activeOpacity={0.88}
+        >
+          <Text style={styles.schedulerBannerEmoji}>📅✨</Text>
+          <View style={styles.schedulerBannerTextCol}>
+            <Text style={styles.schedulerBannerTitle}>Nutrition Schedule & Meal Suggestions</Text>
+            <Text style={styles.schedulerBannerSub}>Daily meal planner & expert-approved nutrition recommendations</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Segmented Tab Switcher (Thư viện: Công thức & Bài viết) */}
       <View style={styles.segmentedContainer}>

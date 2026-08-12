@@ -5,9 +5,13 @@ const {
     getArticleById,
     createArticle,
     updateArticle,
-    deleteArticle
+    deleteArticle,
+    getMyArticles
 } = require("../controllers/articleController");
 const auth = require("../middleware/auth");
+
+// "mine" đặt TRƯỚC "/:id" để không bị nuốt route
+router.get("/mine", auth, getMyArticles);
 
 router.get("/", getArticles);
 router.post("/", auth, createArticle);

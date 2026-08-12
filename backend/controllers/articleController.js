@@ -37,6 +37,24 @@ exports.getArticleById = async (req, res) => {
     }
 };
 
+exports.getMyArticles = async (req, res) => {
+    try {
+        const expertId = req.user?.id;
+        if (!expertId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [rows] = await db.query(
+            `SELECT * FROM articles WHERE expert_id = ? ORDER BY id DESC`,
+            [expertId]
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error("getMyArticles error:", err);
+        res.status(500).json({ message: "Failed to fetch your articles", error: err.message });
+    }
+};
+
 exports.createArticle = async (req, res) => {
     try {
         const { title, summary, content, imageUrl } = req.body;

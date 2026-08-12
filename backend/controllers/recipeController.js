@@ -461,6 +461,39 @@ exports.deleteRecipe = async (req, res) => {
 };
 
 // ==========================================
+// MY RECIPES (Expert content management + feedback stats)
+// ==========================================
+exports.getMyRecipes = async (req, res) => {
+    try {
+        const expertId = req.user?.id;
+        if (!expertId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [rows] = await db.query(`
+            SELECT
+                r.*,
+                mt.name AS mealType,
+                COALESCE(AVG(rr.rating), 0) AS avgRating,
+                COUNT(DISTINCT rr.id) AS ratingCount,
+                COUNT(DISTINCT rc.id) AS commentCount
+            FROM recipes r
+            LEFT JOIN meal_types mt ON r.meal_type_id = mt.id
+            LEFT JOIN recipe_ratings rr ON rr.recipe_id = r.id
+            LEFT JOIN recipe_comments rc ON rc.recipe_id = r.id
+            WHERE r.expert_id = ?
+            GROUP BY r.id
+            ORDER BY r.id DESC
+        `, [expertId]);
+
+        res.json(rows);
+    } catch (err) {
+        console.error("getMyRecipes error:", err);
+        res.status(500).json({ message: "Failed to fetch your recipes", error: err.message });
+    }
+};
+
+// ==========================================
 // SEARCH RECIPES
 // ==========================================
 exports.searchRecipes = async (req, res) => {
