@@ -1,9 +1,16 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Icon, Switch } from 'react-native-paper';
+import { Switch } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+
+const CheckIcon = ({ size = 14, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M20 6L9 17l-5-5" />
+    </Svg>
+);
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
 
@@ -64,7 +71,7 @@ function OptionRow<T extends string>({
             ]}>
             <View style={[styles.radio, isSelected && styles.radioSelected]}>
                 {isSelected ? (
-                    <Icon source="check" size={14} color={colors.onPrimary} />
+                    <CheckIcon size={14} color={colors.onPrimary} />
                 ) : null}
             </View>
             <Text style={styles.optionText}>{label}</Text>
