@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useSelector } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
 
 import TopHeaderBar from '../../components/common/TopHeaderBar';
@@ -8,13 +9,26 @@ import { useBookmarkStore } from '../../stores/useBookmarkStore';
 import { recipeService } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
+import type { RootState } from '../../store/store';
 
 const FavoriteRecipesScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
   const [favoriteRecipes, setFavoriteRecipes] = useState<RecipeListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { savedRecipeIds = [] } = useBookmarkStore();
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const { savedRecipeIds = [], setSavedRecipeIds } = useBookmarkStore();
+
+  // Signed-in users' favorites live in the database, not just on this
+  // device — pull the current list down before rendering so it reflects
+  // what was saved from any device/after a reinstall.
+  useEffect(() => {
+    if (authMode === 'authenticated') {
+      recipeService.getMyFavorites()
+        .then(setSavedRecipeIds)
+        .catch((e) => console.error('Load favorites from server error:', e));
+    }
+  }, [authMode, setSavedRecipeIds]);
 
   useEffect(() => {
     loadFavoriteRecipes();

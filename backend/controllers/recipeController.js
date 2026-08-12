@@ -172,6 +172,26 @@ exports.getRecipeRatingSummary = async (req, res) => {
     }
 };
 
+exports.getMyRating = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [rows] = await db.query(
+            `SELECT rating FROM recipe_ratings WHERE recipe_id = ? AND user_id = ?`,
+            [recipeId, userId]
+        );
+        res.json({ rating: rows.length > 0 ? rows[0].rating : null });
+    } catch (err) {
+        console.error("getMyRating error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
 exports.createOrUpdateRating = async (req, res) => {
     try {
         const recipeId = req.params.id;
@@ -202,6 +222,61 @@ exports.createOrUpdateRating = async (req, res) => {
         res.json({ message: "Rating saved" });
     } catch (err) {
         console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ==========================================
+// FAVORITES
+// ==========================================
+exports.toggleFavorite = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [existing] = await db.query(
+            `SELECT id FROM favorite_recipes WHERE recipe_id = ? AND user_id = ?`,
+            [recipeId, userId]
+        );
+
+        if (existing.length > 0) {
+            await db.query(`DELETE FROM favorite_recipes WHERE id = ?`, [existing[0].id]);
+            return res.json({ favorited: false });
+        }
+
+        await db.query(
+            `INSERT INTO favorite_recipes (user_id, recipe_id) VALUES (?, ?)`,
+            [userId, recipeId]
+        );
+        res.json({ favorited: true });
+    } catch (err) {
+        console.error("toggleFavorite error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.getMyFavorites = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+
+        const [rows] = await db.query(
+            `SELECT r.id FROM favorite_recipes f
+             JOIN recipes r ON r.id = f.recipe_id
+             WHERE f.user_id = ?
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+        res.json(rows.map(r => r.id));
+    } catch (err) {
+        console.error("getMyFavorites error:", err);
         res.status(500).json({ message: "Server error" });
     }
 };

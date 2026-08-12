@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Alert, Share, Modal, Pressable, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { recipeService } from '../../services/recipe.service';
@@ -85,83 +84,60 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
 
   const loadRatingData = useCallback(async () => {
     try {
-      const storedRating = await AsyncStorage.getItem(`recipe_rating_${id}`);
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        const list: number[] = Array.isArray(parsed.ratingsList)
-          ? parsed.ratingsList
-          : (parsed.userRating ? [parsed.userRating] : []);
-        const uRating = parsed.userRating || 0;
+      const summary = await recipeService.getRatingSummary(id);
+      setAvgRating(Number(summary.averageRating) || 0);
+      setRatingCount(Number(summary.totalRatings) || 0);
 
-        if (list.length > 0) {
-          const sum = list.reduce((a, b) => a + b, 0);
-          const avg = Number((sum / list.length).toFixed(1));
-          setUserRating(uRating);
-          setAvgRating(avg);
-          setRatingCount(list.length);
-          return;
-        }
+      if (authMode === 'authenticated') {
+        const mine = await recipeService.getMyRating(id);
+        setUserRating(mine.rating || 0);
+      } else {
+        setUserRating(0);
       }
-      setUserRating(0);
-      setAvgRating(0);
-      setRatingCount(0);
     } catch (e) {
       console.error('Load recipe rating error:', e);
       setUserRating(0);
       setAvgRating(0);
       setRatingCount(0);
     }
-  }, [id]);
+  }, [id, authMode]);
 
+  // Rating requires an account — it's tied to the signed-in user's row in
+  // recipe_ratings so it can be edited/averaged server-side. Guests can
+  // still see everyone else's average (loadRatingData above), they just
+  // can't add their own.
   const saveRatingData = async (newScore: number) => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please log in to rate recipes.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+
     try {
-      const storedRating = await AsyncStorage.getItem(`recipe_rating_${id}`);
-      let list: number[] = [];
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        if (Array.isArray(parsed.ratingsList)) {
-          list = parsed.ratingsList;
-        }
-      }
-
-      if (userRating > 0 && list.length > 0) {
-        const userIndex = list.indexOf(userRating);
-        if (userIndex !== -1) {
-          list[userIndex] = newScore;
-        } else {
-          list.push(newScore);
-        }
-      } else {
-        list.push(newScore);
-      }
-
-      const sum = list.reduce((a, b) => a + b, 0);
-      const avg = Number((sum / list.length).toFixed(1));
+      await recipeService.submitRating(id, newScore);
+      const summary = await recipeService.getRatingSummary(id);
 
       setUserRating(newScore);
-      setAvgRating(avg);
-      setRatingCount(list.length);
-
-      await AsyncStorage.setItem(
-        `recipe_rating_${id}`,
-        JSON.stringify({
-          userRating: newScore,
-          ratingsList: list,
-          avgRating: avg,
-          ratingCount: list.length,
-        })
-      );
+      setAvgRating(Number(summary.averageRating) || 0);
+      setRatingCount(Number(summary.totalRatings) || 0);
 
       dispatch(addActivity({
         type: 'rate',
         title: `Rated recipe ${newScore}⭐: ${recipe?.name || 'Recipe'}`,
-        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        details: `Average rating: ${summary.averageRating}⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`,
         icon: '⭐',
       }));
 
-      Alert.alert('Evaluation Saved ⭐', `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`);
+      Alert.alert('Evaluation Saved ⭐', `You rated "${recipe?.name}" ${newScore} out of 5 stars!\nAverage score: ${summary.averageRating} ⭐ (${summary.totalRatings} rating${summary.totalRatings > 1 ? 's' : ''})`);
     } catch (e) {
       console.error('Save recipe rating error:', e);
+      Alert.alert('Error', 'Unable to save your rating right now.');
     }
   };
 
@@ -226,19 +202,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
     }
   };
 
+  // Save/like works for guests too — it's just local device state
+  // (useBookmarkStore, persisted to AsyncStorage) so it doesn't survive an
+  // uninstall. Signed-in users additionally get it written to
+  // favorite_recipes in the database, so it survives a reinstall/new
+  // device; that sync is best-effort and doesn't block the local toggle.
   const handleToggleLikeAndSave = () => {
-    if (authMode === 'guest') {
-      Alert.alert(
-        'Login Required',
-        'Please log in to save recipes to your favorites.',
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Log In', onPress: () => navigation.navigate('Login') },
-        ]
-      );
-      return;
-    }
-
     const isNowSaved = toggleBookmarkRecipe(id);
     setLiked(isNowSaved);
 
@@ -251,6 +220,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       Animated.timing(bookmarkScaleAnim, { toValue: 1.4, duration: 120, useNativeDriver: true }),
       Animated.spring(bookmarkScaleAnim, { toValue: 1, bounciness: 12, speed: 20, useNativeDriver: true }),
     ]).start();
+
+    if (authMode === 'authenticated') {
+      recipeService.toggleFavorite(id).catch((e) => {
+        console.error('Sync favorite to server error:', e);
+      });
+    }
 
     if (isNowSaved) {
       dispatch(addActivity({

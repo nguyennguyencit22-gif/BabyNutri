@@ -10,13 +10,17 @@ const {
     getRecipeComments,
     getRecipeRatings,
     getRecipeRatingSummary,
+    getMyRating,
     createComment,
-    createOrUpdateRating
+    createOrUpdateRating,
+    toggleFavorite,
+    getMyFavorites
 } = require("../controllers/recipeController");
 const auth = require("../middleware/auth");
 
-// Search đặt TRƯỚC "/:id" để không bị nuốt route
+// Search / favorites đặt TRƯỚC "/:id" để không bị nuốt route
 router.get("/search", searchRecipes);
+router.get("/favorites/mine", auth, getMyFavorites);
 
 router.get("/", getRecipes);
 router.post("/", auth, createRecipe);
@@ -29,5 +33,7 @@ router.post("/:id/comments", auth, createComment);
 router.get("/:id/ratings", getRecipeRatings);
 router.post("/:id/rating", auth, createOrUpdateRating);
 router.get("/:id/rating-summary", getRecipeRatingSummary);
+router.get("/:id/my-rating", auth, getMyRating);
+router.post("/:id/favorite", auth, toggleFavorite);
 
 module.exports = router;
