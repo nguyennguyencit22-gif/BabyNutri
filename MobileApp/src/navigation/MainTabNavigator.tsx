@@ -40,7 +40,8 @@ const ChatIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
 
 const MealIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <Path d="M7 2v8M5 2v5a2 2 0 002 2 2 2 0 002-2V2M7 12v10M17 2c-1.5 0-3 2-3 5s1.5 5 3 5v9" />
+        <Path d="M6 2v6M9 2v6M12 2v6M9 8v14" />
+        <Path d="M18 2l-2.5 6 2.5 3v11" />
     </Svg>
 );
 
