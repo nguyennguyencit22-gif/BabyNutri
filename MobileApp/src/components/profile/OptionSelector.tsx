@@ -4,10 +4,16 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Icon } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
 
 import createStyles from '../../styles/profile/optionsSelectorStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+const ChevronRightIcon = ({ size = 24, color = '#4B3034' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M9 18l6-6-6-6" />
+  </Svg>
+);
 
 type OptionSelectorProps = {
     label: string;
@@ -51,9 +57,8 @@ function OptionSelector({
                 ) : null}
             </View>
 
-            <Icon
-                source="chevron-right"
-                size={30}
+            <ChevronRightIcon
+                size={24}
                 color={colors.text}
             />
         </Pressable>

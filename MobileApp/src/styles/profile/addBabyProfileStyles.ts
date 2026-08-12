@@ -191,7 +191,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         opacity: 0.75,
     },
 
-    optionText: {
+    genderOptionText: {
         marginLeft: 12,
         color: colors.textSoft,
         fontSize: 20,

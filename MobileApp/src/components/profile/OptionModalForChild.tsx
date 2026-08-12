@@ -6,11 +6,16 @@ import {
     Text,
     View,
 } from 'react-native';
-
-import { Icon } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
 
 import createStyles from '../../styles/profile/addBabyProfileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+const CloseIcon = ({ size = 24, color = '#4B3034' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M18 6L6 18M6 6l12 12" />
+  </Svg>
+);
 
 type OptionModalForChildProps = {
     title: string;
@@ -52,9 +57,8 @@ function OptionModalForChild({
                         <Pressable
                             onPress={onClose}
                             hitSlop={10}>
-                            <Icon
-                                source="close"
-                                size={26}
+                            <CloseIcon
+                                size={22}
                                 color={colors.text}
                             />
                         </Pressable>
