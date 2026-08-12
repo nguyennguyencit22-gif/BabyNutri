@@ -6,8 +6,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { Avatar } from 'react-native-paper';
-import Svg, { Path } from 'react-native-svg';
+import { Avatar, Icon } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 
 import type { RootState } from '../../store/Store';
@@ -16,13 +15,6 @@ import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
 import createStyles from '../../styles/home/babySwitcherModalStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
-
-const CheckCircleIcon = ({ size = 24, color = '#FF5F70' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-    <Path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-    <Path d="M22 4L12 14.01l-3-3" />
-  </Svg>
-);
 
 type BabySwitcherModalProps = {
     visible: boolean;
@@ -62,6 +54,7 @@ function BabySwitcherModal({
             visible={visible}
             transparent
             animationType="fade"
+            statusBarTranslucent
             onRequestClose={onClose}>
 
             <View style={styles.overlay}>
@@ -147,7 +140,8 @@ function BabySwitcherModal({
                                     </View>
 
                                     {isSelected ? (
-                                        <CheckCircleIcon
+                                        <Icon
+                                            source="check-circle"
                                             size={24}
                                             color={colors.primary}
                                         />
