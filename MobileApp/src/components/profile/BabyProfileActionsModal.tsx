@@ -201,27 +201,6 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                   },
               ]
             : []),
-        ...(onCopyCode
-            ? [
-                  {
-                      id: 'copy-code',
-                      title: "Copy baby's code",
-                      subtitle: invitationCode ?? 'Generating…',
-                      iconName: 'content-copy',
-                      onPress: onCopyCode,
-                  },
-              ]
-            : showLoginPromptForCode && onRequestLogin
-                ? [
-                      {
-                          id: 'copy-code',
-                          title: "Copy baby's code",
-                          subtitle: "Log in to get baby's code",
-                          iconName: 'content-copy',
-                          onPress: onRequestLogin,
-                      },
-                  ]
-                : []),
         ...(onInputCode
             ? [
                   {
@@ -274,6 +253,27 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                   },
               ]
             : []),
+        ...(onCopyCode
+            ? [
+                  {
+                      id: 'copy-code',
+                      title: "Copy baby's code",
+                      subtitle: invitationCode ?? 'Generating…',
+                      iconName: 'content-copy',
+                      onPress: onCopyCode,
+                  },
+              ]
+            : showLoginPromptForCode && onRequestLogin
+                ? [
+                      {
+                          id: 'copy-code',
+                          title: "Copy baby's code",
+                          subtitle: "Log in to get baby's code",
+                          iconName: 'content-copy',
+                          onPress: onRequestLogin,
+                      },
+                  ]
+                : []),
     ];
 
     return (
@@ -310,7 +310,7 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
 
                             {action.subtitle ? (
                                 <View style={styles.actionTextGroup}>
-                                    <Text style={styles.actionText}>
+                                    <Text style={styles.actionTitleInGroup}>
                                         {action.title}
                                     </Text>
                                     <Text style={styles.actionSubtitle}>

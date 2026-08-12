@@ -57,6 +57,11 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         marginLeft: 18,
     },
 
+    actionTitleInGroup: {
+        color: colors.text,
+        fontSize: 16,
+    },
+
     actionSubtitle: {
         marginTop: 2,
         color: colors.textSoft,
