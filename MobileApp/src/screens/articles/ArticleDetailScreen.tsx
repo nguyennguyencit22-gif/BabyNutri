@@ -481,6 +481,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
     borderRadius: 12,
+    borderWidth: 1,
     backgroundColor: '#F5F5F5',
   },
   activeActionBtn: {
