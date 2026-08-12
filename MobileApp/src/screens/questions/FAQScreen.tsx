@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, LayoutAnimation, Platform, UIManager, Alert, Modal, Pressable, ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
 import { questionService } from '../../services/questionService';
 import { Question } from '../../types/question';
+import type { RootState } from '../../store/store';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQScreen = () => {
+const FAQScreen = ({ navigation }: any) => {
+  const authMode = useSelector((state: RootState) => state.auth.mode);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -88,6 +91,36 @@ const FAQScreen = () => {
     }
   };
 
+  const handleAskPress = () => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please log in to ask questions to Pediatric Nutrition Experts.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+    setAskModalVisible(true);
+  };
+
+  const handleMyQuestionsTabPress = () => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please log in to view your submitted questions.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+    setMainTab('myQuestions');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header Banner */}
@@ -96,7 +129,7 @@ const FAQScreen = () => {
           <Text style={styles.headerTitle}>Nutrition FAQ & Help</Text>
           <TouchableOpacity
             style={styles.askBtn}
-            onPress={() => setAskModalVisible(true)}
+            onPress={handleAskPress}
             activeOpacity={0.85}
           >
             <Icon source="plus" size={16} color="#FFFFFF" />
@@ -119,7 +152,7 @@ const FAQScreen = () => {
 
           <TouchableOpacity
             style={[styles.mainTabBtn, mainTab === 'myQuestions' && styles.activeMainTabBtn]}
-            onPress={() => setMainTab('myQuestions')}
+            onPress={handleMyQuestionsTabPress}
             activeOpacity={0.85}
           >
             <Text style={[styles.mainTabText, mainTab === 'myQuestions' && styles.activeMainTabText]}>
