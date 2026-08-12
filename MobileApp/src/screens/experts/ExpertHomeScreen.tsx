@@ -9,6 +9,9 @@ import { articleService } from '../../services/article.service';
 import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 
+import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
+import AdminReportsModal from '../admin/AdminReportsModal';
+
 // Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
 // Expert accounts don't track a baby, so the journey/recipe-browsing home
 // doesn't apply to them — this is their entry point into "Create & Manage
@@ -16,11 +19,14 @@ import { useAppTheme } from '../../theme/useAppTheme';
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
   const user = useSelector((state: RootState) => state.auth.user);
-  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
+  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'User');
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
 
   const [recipeCount, setRecipeCount] = useState(0);
   const [articleCount, setArticleCount] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
+  const [adminModalVisible, setAdminModalVisible] = useState(false);
+  const [reportsModalVisible, setReportsModalVisible] = useState(false);
 
   const loadStats = useCallback(async () => {
     try {
@@ -52,11 +58,13 @@ const ExpertHomeScreen = ({ navigation }: any) => {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: '#FF5F70' }]}>
+          <View style={[styles.avatarCircle, { backgroundColor: isAdmin ? '#8B5CF6' : '#FF5F70' }]}>
             <Text style={styles.avatarLetter}>{displayName.charAt(0).toUpperCase()}</Text>
           </View>
           <View>
-            <Text style={[styles.greeting, { color: colors.textSoft }]}>Welcome back,</Text>
+            <Text style={[styles.greeting, { color: colors.textSoft }]}>
+              {isAdmin ? 'System Administrator' : 'Welcome back,'}
+            </Text>
             <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
           </View>
         </View>
@@ -78,7 +86,43 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Expert Tools</Text>
+        {isAdmin && (
+          <>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Admin Tools</Text>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => setAdminModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#2E2836' : '#F3E8FF' }]}>
+                <Icon source="account-supervisor" size={22} color="#8B5CF6" />
+              </View>
+              <View style={styles.actionTextGroup}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Expert Accounts</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, assign or remove Expert roles & profiles</Text>
+              </View>
+              <Icon source="chevron-right" size={20} color={colors.textSoft} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => setReportsModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF' }]}>
+                <Icon source="chart-line" size={22} color="#3B82F6" />
+              </View>
+              <View style={styles.actionTextGroup}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>System Reports & Statistics</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View system-wide user, content & Q&A metrics</Text>
+              </View>
+              <Icon source="chevron-right" size={20} color={colors.textSoft} />
+            </TouchableOpacity>
+          </>
+        )}
+
+        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: isAdmin ? 14 : 0 }]}>Content Tools</Text>
 
         <TouchableOpacity
           style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -89,8 +133,8 @@ const ExpertHomeScreen = ({ navigation }: any) => {
             <Icon source="pencil" size={22} color="#FF5F70" />
           </View>
           <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Manage My Content</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove your recipes & articles</Text>
+            <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Content</Text>
+            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove recipes & articles</Text>
           </View>
           <Icon source="chevron-right" size={20} color={colors.textSoft} />
         </TouchableOpacity>
@@ -105,11 +149,36 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </View>
           <View style={styles.actionTextGroup}>
             <Text style={[styles.actionTitle, { color: colors.text }]}>Feedback & Ratings</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>See how parents are rating your recipes</Text>
+            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>See how parents are rating recipes</Text>
+          </View>
+          <Icon source="chevron-right" size={20} color={colors.textSoft} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          onPress={() => navigation.navigate('ExpertQuestion')}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#2B3830' : '#ECFDF5' }]}>
+            <Icon source="comment-question-outline" size={22} color="#10B981" />
+          </View>
+          <View style={styles.actionTextGroup}>
+            <Text style={[styles.actionTitle, { color: colors.text }]}>Q&A & FAQ Management</Text>
+            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Answer parent questions & publish standard FAQs</Text>
           </View>
           <Icon source="chevron-right" size={20} color={colors.textSoft} />
         </TouchableOpacity>
       </ScrollView>
+
+      <AdminManageExpertsModal
+        visible={adminModalVisible}
+        onClose={() => setAdminModalVisible(false)}
+      />
+
+      <AdminReportsModal
+        visible={reportsModalVisible}
+        onClose={() => setReportsModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

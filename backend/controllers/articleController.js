@@ -67,7 +67,36 @@ exports.createArticle = async (req, res) => {
             `INSERT INTO articles (title, summary, content, image_url, expert_id) VALUES (?, ?, ?, ?, ?)`,
             [title, summary || '', content, imageUrl || '', expertId]
         );
-        res.status(201).json({ message: "Article created", id: result.insertId });
+        const articleId = result.insertId;
+
+        if (expertId) {
+            try {
+                const [followers] = await db.query(
+                    `SELECT user_id FROM expert_followers WHERE expert_id = ?`,
+                    [expertId]
+                );
+                if (followers.length > 0) {
+                    const followerIds = followers.map((f) => f.user_id);
+                    const [expUser] = await db.query(
+                        `SELECT full_name FROM users WHERE id = ?`,
+                        [expertId]
+                    );
+                    const expName = expUser.length > 0 ? expUser[0].full_name : "Expert";
+                    const { sendNotificationToUsers } = require("./notificationController");
+                    await sendNotificationToUsers(
+                        followerIds,
+                        `New Article from ${expName}`,
+                        `${expName} published a new article: "${title}"`,
+                        "article",
+                        articleId
+                    );
+                }
+            } catch (notifErr) {
+                console.error("Failed to send article notifications:", notifErr);
+            }
+        }
+
+        res.status(201).json({ message: "Article created", id: articleId });
     } catch (err) {
         console.error("createArticle error:", err);
         res.status(500).json({ message: "Failed to create article", error: err.message });

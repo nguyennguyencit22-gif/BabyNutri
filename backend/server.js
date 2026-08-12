@@ -22,6 +22,9 @@ const growthRoutes = require('./routes/growthRoutes');
 const mealPlanRoutes = require('./routes/mealPlanRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const expertRoutes = require('./routes/expertRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -56,6 +59,9 @@ app.use('/api/children', growthRoutes);
 app.use('/api/mealplans', mealPlanRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/experts', expertRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use((req, res) => {
     res.status(404).json({

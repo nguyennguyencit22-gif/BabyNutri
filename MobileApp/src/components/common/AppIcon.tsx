@@ -236,6 +236,25 @@ const glyphs: Record<string, (color: string) => React.ReactNode> = {
         <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M2 5a2 2 0 012-2h5a3 3 0 013 3v14a2.5 2.5 0 00-2.5-2.5H2z" />
         <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M22 5a2 2 0 00-2-2h-5a3 3 0 00-3 3v14a2.5 2.5 0 012.5-2.5H22z" />
     </>,
+    'account-supervisor': (c) => <>
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" fill="none" d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <Circle cx={8.5} cy={7} r={4} stroke={c} strokeWidth={2} fill="none" />
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" fill="none" d="M20 8v6M23 11h-6" />
+    </>,
+    'comment-question-outline': (c) => <>
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        <Path stroke={c} strokeWidth={1.8} strokeLinecap="round" d="M10.5 8a1.5 1.5 0 012.5 1.2c-.4.5-.8.8-.8 1.8" />
+        <Circle cx={12.2} cy={13.2} r={0.6} fill={c} />
+    </>,
+    'message-reply-text': (c) => <>
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        <Path stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" d="M9 10l-3 3 3 3" />
+        <Path stroke={c} strokeWidth={1.8} strokeLinecap="round" d="M6 13h7a3 3 0 003-3" />
+    </>,
+    'check-all': (c) => <>
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M7 12l3 3 7-7" />
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M2 12l3 3M12 7l3 3" />
+    </>,
 };
 
 const AppIcon: React.FC<Props> = ({ source, size, color = '#4B3034', style }) => {

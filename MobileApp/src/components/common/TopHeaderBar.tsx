@@ -78,8 +78,7 @@ const TopHeaderBar: React.FC = () => {
   const babyColor = selectedBaby?.profileColor || colors.primary;
 
   const handleOpenNotification = () => {
-    setUnreadCount(0);
-    setNotifVisible(true);
+    navigation.navigate('Notifications');
   };
 
   const handleOpenBabyActions = () => {

@@ -386,6 +386,34 @@ exports.createRecipe = async (req, res) => {
         }
 
         await connection.commit();
+
+        if (expertId) {
+            try {
+                const [followers] = await db.query(
+                    `SELECT user_id FROM expert_followers WHERE expert_id = ?`,
+                    [expertId]
+                );
+                if (followers.length > 0) {
+                    const followerIds = followers.map((f) => f.user_id);
+                    const [expUser] = await db.query(
+                        `SELECT full_name FROM users WHERE id = ?`,
+                        [expertId]
+                    );
+                    const expName = expUser.length > 0 ? expUser[0].full_name : "Expert";
+                    const { sendNotificationToUsers } = require("./notificationController");
+                    await sendNotificationToUsers(
+                        followerIds,
+                        `New Recipe from ${expName}`,
+                        `${expName} published a new recipe: "${name}"`,
+                        "recipe",
+                        recipeId
+                    );
+                }
+            } catch (notifErr) {
+                console.error("Failed to send recipe notifications:", notifErr);
+            }
+        }
+
         res.status(201).json({ message: "Recipe created", id: recipeId });
     } catch (err) {
         try { await connection.rollback(); } catch {}

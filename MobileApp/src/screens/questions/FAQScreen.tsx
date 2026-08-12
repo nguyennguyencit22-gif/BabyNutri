@@ -19,8 +19,15 @@ const FAQScreen = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
 
+  const [publicExperts, setPublicExperts] = useState<{ id: number; fullName: string; specialization?: string }[]>([]);
+  const [selectedExpertId, setSelectedExpertId] = useState<number | null>(null);
+
+  const [mainTab, setMainTab] = useState<'faqs' | 'myQuestions'>('faqs');
+  const [myQuestions, setMyQuestions] = useState<Question[]>([]);
+
   useEffect(() => {
     loadQuestions();
+    loadPublicExperts();
   }, []);
 
   const loadQuestions = async () => {
@@ -28,6 +35,8 @@ const FAQScreen = () => {
     try {
       const data = await questionService.getQuestions();
       setQuestions(data);
+      const myData = await questionService.getMyQuestions();
+      setMyQuestions(myData);
     } catch {
       console.warn('Failed to load questions');
     } finally {
@@ -49,35 +58,34 @@ const FAQScreen = () => {
   }, [questions]);
 
   const filteredQuestions = useMemo(() => {
-    return questions.filter((q) => {
+    const list = mainTab === 'faqs' ? questions : myQuestions;
+    return list.filter((q) => {
       const matchesCategory = selectedCategory === 'All' || q.category === selectedCategory;
       const matchesSearch =
         q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         q.content.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [questions, selectedCategory, searchQuery]);
+  }, [questions, myQuestions, mainTab, selectedCategory, searchQuery]);
 
-  const handleSubmitQuestion = () => {
+  const handleSubmitQuestion = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
       Alert.alert('Notice', 'Please fill in both question title and details.');
       return;
     }
 
-    const created: Question = {
-      id: `custom-faq-${Date.now()}`,
-      title: newTitle.trim(),
-      content: newContent.trim(),
-      category: 'User Question',
-      createdAt: new Date().toISOString(),
-    };
-
-    setQuestions((prev) => [created, ...prev]);
-    setNewTitle('');
-    setNewContent('');
-    setAskModalVisible(false);
-
-    Alert.alert('Success 🎉', 'Your question has been sent to our Nutrition Experts!');
+    try {
+      await questionService.createQuestion(newTitle.trim(), newContent.trim(), selectedExpertId);
+      setNewTitle('');
+      setNewContent('');
+      setSelectedExpertId(null);
+      setAskModalVisible(false);
+      loadQuestions();
+      setMainTab('myQuestions');
+      Alert.alert('Success 🎉', 'Your question has been sent to our Nutrition Experts!');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to submit question.');
+    }
   };
 
   return (
@@ -97,6 +105,29 @@ const FAQScreen = () => {
         </View>
         <Text style={styles.headerSub}>Common weaning questions answered by Pediatric Nutrition Experts</Text>
 
+        {/* Main Tab Switcher */}
+        <View style={styles.mainTabRow}>
+          <TouchableOpacity
+            style={[styles.mainTabBtn, mainTab === 'faqs' && styles.activeMainTabBtn]}
+            onPress={() => setMainTab('faqs')}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.mainTabText, mainTab === 'faqs' && styles.activeMainTabText]}>
+              All FAQs
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mainTabBtn, mainTab === 'myQuestions' && styles.activeMainTabBtn]}
+            onPress={() => setMainTab('myQuestions')}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.mainTabText, mainTab === 'myQuestions' && styles.activeMainTabText]}>
+              My Questions ({myQuestions.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchBar}>
           <Icon source="magnify" size={20} color="#8E7377" />
@@ -110,23 +141,25 @@ const FAQScreen = () => {
         </View>
 
         {/* Category Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryRow}>
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[styles.categoryChip, isSelected && styles.activeCategoryChip]}
-                onPress={() => setSelectedCategory(cat)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.categoryChipText, isSelected && styles.activeCategoryChipText]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        {mainTab === 'faqs' && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryRow}>
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.categoryChip, isSelected && styles.activeCategoryChip]}
+                  onPress={() => setSelectedCategory(cat)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.categoryChipText, isSelected && styles.activeCategoryChipText]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       {/* Accordion Questions List */}
@@ -142,6 +175,7 @@ const FAQScreen = () => {
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => {
             const isExpanded = expandedId === item.id;
+            const isAnswered = item.status === 'Answered' || !!item.answer;
             return (
               <View style={[styles.faqCard, isExpanded && styles.expandedFaqCard]}>
                 <TouchableOpacity
@@ -150,11 +184,30 @@ const FAQScreen = () => {
                   activeOpacity={0.8}
                 >
                   <View style={styles.faqTitleBox}>
-                    {!!item.category && (
-                      <View style={styles.faqBadge}>
-                        <Text style={styles.faqBadgeText}>{item.category}</Text>
-                      </View>
-                    )}
+                    <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                      {mainTab === 'myQuestions' && (
+                        <View style={[styles.faqBadge, { backgroundColor: isAnswered ? '#ECFDF5' : '#FEF3C7' }]}>
+                          <Text style={[styles.faqBadgeText, { color: isAnswered ? '#10B981' : '#D97706' }]}>
+                            {isAnswered ? '✓ Answered' : '⏳ Pending'}
+                          </Text>
+                        </View>
+                      )}
+
+                      {!!item.targetExpertName && (
+                        <View style={[styles.faqBadge, { backgroundColor: '#E0E7FF' }]}>
+                          <Text style={[styles.faqBadgeText, { color: '#4338CA' }]}>
+                            Targeted: {item.targetExpertName}
+                          </Text>
+                        </View>
+                      )}
+
+                      {!!item.category && (
+                        <View style={styles.faqBadge}>
+                          <Text style={styles.faqBadgeText}>{item.category}</Text>
+                        </View>
+                      )}
+                    </View>
+
                     <Text style={styles.faqTitle}>{item.title}</Text>
                   </View>
                   <View style={styles.chevronBox}>
@@ -165,9 +218,13 @@ const FAQScreen = () => {
                 {isExpanded && (
                   <View style={styles.faqBody}>
                     <View style={styles.expertBadgeRow}>
-                      <Text style={styles.expertTagText}>💡 Expert Advice:</Text>
+                      <Text style={styles.expertTagText}>
+                        💡 {item.answer ? `Expert Advice (${item.answer.expertName}):` : isAnswered ? 'Expert Advice:' : 'Question Details:'}
+                      </Text>
                     </View>
-                    <Text style={styles.faqContent}>{item.content}</Text>
+                    <Text style={styles.faqContent}>
+                      {item.answer ? item.answer.content : item.content}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -176,8 +233,12 @@ const FAQScreen = () => {
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Icon source="help-circle-outline" size={44} color="#D1D5DB" />
-              <Text style={styles.emptyText}>No matching questions found.</Text>
-              <Text style={styles.emptySubText}>Try searching another keyword or tap "Ask Question" to send to Experts.</Text>
+              <Text style={styles.emptyText}>
+                {mainTab === 'myQuestions' ? 'You have not asked any questions yet.' : 'No matching questions found.'}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {mainTab === 'myQuestions' ? 'Tap "Ask Question" to get expert advice for your baby.' : 'Try searching another keyword or tap "Ask Question" to send to Experts.'}
+              </Text>
             </View>
           }
         />
@@ -189,6 +250,42 @@ const FAQScreen = () => {
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalHeaderTitle}>Ask a Nutrition Expert 💬</Text>
             <Text style={styles.modalHeaderSub}>Your question will be answered by verified pediatric nutritionists.</Text>
+
+            {/* Optional Expert Picker */}
+            {publicExperts.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4B3034', marginBottom: 6 }}>
+                  Select Expert (Optional):
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryChip,
+                      selectedExpertId === null && styles.activeCategoryChip
+                    ]}
+                    onPress={() => setSelectedExpertId(null)}
+                  >
+                    <Text style={[styles.categoryChipText, selectedExpertId === null && styles.activeCategoryChipText]}>
+                      Any Expert
+                    </Text>
+                  </TouchableOpacity>
+                  {publicExperts.map((exp) => {
+                    const isSel = selectedExpertId === exp.id;
+                    return (
+                      <TouchableOpacity
+                        key={exp.id}
+                        style={[styles.categoryChip, isSel && styles.activeCategoryChip]}
+                        onPress={() => setSelectedExpertId(exp.id)}
+                      >
+                        <Text style={[styles.categoryChipText, isSel && styles.activeCategoryChipText]}>
+                          {exp.fullName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
 
             <TextInput
               style={styles.modalInput}
@@ -263,6 +360,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E7377',
     marginBottom: 12,
+  },
+  mainTabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF0F2',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 10,
+  },
+  mainTabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  activeMainTabBtn: {
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  mainTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E7377',
+  },
+  activeMainTabText: {
+    color: '#FF5F70',
+    fontWeight: '800',
   },
   searchBar: {
     flexDirection: 'row',

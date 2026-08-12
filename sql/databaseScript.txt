@@ -513,13 +513,15 @@ INSERT INTO users(id, full_name, email, password, role_id, avatar)
 VALUES
 (4, 'Troyan Smith', 'troyan.smith@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=12'),
 (5, 'James Wolden', 'james.wolden@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=11'),
-(6, 'Niki Samantha', 'niki.samantha@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=47');
+(6, 'Niki Samantha', 'niki.samantha@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=47'),
+(7, 'Khoa Nguyen', 'khoa.nguyenhoang.cit22@eiu.edu.vn', '123456', 1, 'https://i.pravatar.cc/200?img=60');
 
 INSERT INTO expert_profiles(expert_id, information, certificate, specialization, experience_year, is_verified)
 VALUES
 (4, 'Registered dietitian focused on infant nutrition', 'Registered Dietitian', 'Nutritionist', 6, TRUE),
 (5, 'Pediatrician specializing in early childhood health', 'Board Certified Pediatrician', 'Pediatrician', 10, TRUE),
-(6, 'Helps families build healthy weaning routines', 'Certified Nutrition Coach', 'Dietitian', 5, TRUE);
+(6, 'Helps families build healthy weaning routines', 'Certified Nutrition Coach', 'Dietitian', 5, TRUE),
+(7, 'Pediatric Nutrition Expert', 'Certified Nutritionist', 'Child Nutrition', 5, TRUE);
 
 UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=68' WHERE id = 2;
 
