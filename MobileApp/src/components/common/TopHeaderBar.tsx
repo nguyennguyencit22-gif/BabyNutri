@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Icon } from 'react-native-paper';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,40 @@ import type { RootState } from '../../store/store';
 import { calculateBabyAgeInMonths } from '../../utils/calculateBabyAge';
 
 const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
+
+type IconProps = { size?: number; color?: string };
+
+const HeartOutlineIcon = ({ size = 20, color = '#FF5F70' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" />
+  </Svg>
+);
+
+const BellOutlineIcon = ({ size = 20, color = '#4B3034' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+  </Svg>
+);
+
+const CheckCircleOutlineIcon = ({ size = 16, color = '#16A34A' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Circle cx="12" cy="12" r="9" />
+    <Path d="M8.5 12.5l2.3 2.3L15.5 9.5" />
+  </Svg>
+);
+
+const SparklesIcon = ({ size = 16, color = '#FF6B4A' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2" />
+  </Svg>
+);
+
+const BookOpenOutlineIcon = ({ size = 16, color = '#0284C7' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M2 5a2 2 0 012-2h5a3 3 0 013 3v14a2.5 2.5 0 00-2.5-2.5H2z" />
+    <Path d="M22 5a2 2 0 00-2-2h-5a3 3 0 00-3 3v14a2.5 2.5 0 012.5-2.5H22z" />
+  </Svg>
+);
 
 const TopHeaderBar: React.FC = () => {
   const { colors, isDark } = useAppTheme();
@@ -59,7 +93,7 @@ const TopHeaderBar: React.FC = () => {
           onPress={() => navigation.navigate('SavedItems')} 
           activeOpacity={0.8}
         >
-          <Icon source="heart-outline" size={20} color="#FF5F70" />
+          <HeartOutlineIcon size={20} color="#FF5F70" />
         </TouchableOpacity>
 
         {/* Notifications Button */}
@@ -68,7 +102,7 @@ const TopHeaderBar: React.FC = () => {
           onPress={handleOpenNotification} 
           activeOpacity={0.8}
         >
-          <Icon source="bell-outline" size={20} color={colors.text} />
+          <BellOutlineIcon size={20} color={colors.text} />
           {unreadCount > 0 && <View style={styles.badgeDot} />}
         </TouchableOpacity>
       </View>
@@ -90,7 +124,7 @@ const TopHeaderBar: React.FC = () => {
                 onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
               >
                 <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#143823' : '#F0FDF4' }]}>
-                  <Icon source="check-circle-outline" size={16} color="#16A34A" />
+                  <CheckCircleOutlineIcon size={16} color="#16A34A" />
                 </View>
                 <View style={styles.notifContent}>
                   <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
@@ -104,7 +138,7 @@ const TopHeaderBar: React.FC = () => {
                 onPress={() => { setNotifVisible(false); navigation.navigate('ProfileTab'); }}
               >
                 <View style={styles.notifIconBadge}>
-                  <Icon source="sparkles" size={16} color="#FF6B4A" />
+                  <SparklesIcon size={16} color="#FF6B4A" />
                 </View>
                 <View style={styles.notifContent}>
                   <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
@@ -118,7 +152,7 @@ const TopHeaderBar: React.FC = () => {
                 onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
               >
                 <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
-                  <Icon source="book-open-outline" size={16} color="#0284C7" />
+                  <BookOpenOutlineIcon size={16} color="#0284C7" />
                 </View>
                 <View style={styles.notifContent}>
                   <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
