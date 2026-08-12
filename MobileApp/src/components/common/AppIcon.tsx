@@ -260,7 +260,7 @@ const AppIcon: React.FC<Props> = ({ source, size, color = '#4B3034', style }) =>
     const draw = glyphs[source as string];
 
     return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" style={style}>
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
             {draw ? draw(color) : <Circle cx={12} cy={12} r={3} fill={color} />}
         </Svg>
     );
