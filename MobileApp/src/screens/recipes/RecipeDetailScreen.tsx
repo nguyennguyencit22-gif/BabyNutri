@@ -108,14 +108,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
   // can't add their own.
   const saveRatingData = async (newScore: number) => {
     if (authMode === 'guest') {
-      Alert.alert(
-        'Login Required',
-        'Please log in to rate recipes.',
-        [
-          { text: 'Later', style: 'cancel' },
-          { text: 'Log In', onPress: () => navigation.navigate('Login') },
-        ]
-      );
+      navigation.navigate('Login');
       return;
     }
 
