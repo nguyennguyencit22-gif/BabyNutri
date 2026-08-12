@@ -38,11 +38,9 @@ const ChatIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
     </Svg>
 );
 
-const LayersIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+const MealIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <Path d="M12 2l9 5-9 5-9-5z" />
-        <Path d="M3 12l9 5 9-5" />
-        <Path d="M3 17l9 5 9-5" />
+        <Path d="M7 2v8M5 2v5a2 2 0 002 2 2 2 0 002-2V2M7 12v10M17 2c-1.5 0-3 2-3 5s1.5 5 3 5v9" />
     </Svg>
 );
 
@@ -151,7 +149,7 @@ const LibraryTabIcon = ({
         focused={focused}
         color={color}
         size={size}
-        IconComponent={LayersIcon}
+        IconComponent={MealIcon}
     />
 );
 
