@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { addActivity } from '../../store/historySlice';
 import StarRating from '../common/StarRating';
+import { getArticleImage, isLocalArticleImage } from '../../constants/articleImages';
 
 interface Props {
   article: ArticleListItem;
@@ -303,7 +304,11 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       {/* Post Image Banner */}
       {!!article.image_url && (
         <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
-          <Image source={{ uri: article.image_url }} style={styles.postImage} resizeMode="cover" />
+          <Image
+            source={getArticleImage(article.id, article.image_url)}
+            style={styles.postImage}
+            resizeMode={isLocalArticleImage(article.id) ? 'contain' : 'cover'}
+          />
         </TouchableOpacity>
       )}
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { ArticleListItem } from '../../types/article';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
+import { getArticleImage, isLocalArticleImage } from '../../constants/articleImages';
 
 interface Props {
   article: ArticleListItem;
@@ -10,7 +11,11 @@ interface Props {
 
 const ArticleItem: React.FC<Props> = ({ article, onPress }) => (
   <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.8}>
-    <Image source={{ uri: article.image_url }} style={styles.thumb} />
+    <Image
+      source={getArticleImage(article.id, article.image_url)}
+      style={styles.thumb}
+      resizeMode={isLocalArticleImage(article.id) ? 'contain' : 'cover'}
+    />
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
       <Text style={styles.date}>

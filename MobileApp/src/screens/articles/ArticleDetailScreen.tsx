@@ -12,6 +12,7 @@ import { addActivity } from '../../store/historySlice';
 import StarRating from '../../components/common/StarRating';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { appAlert } from '../../utils/appAlert';
+import { getArticleImage, isLocalArticleImage } from '../../constants/articleImages';
 
 interface CommentItem {
   id: number;
@@ -288,7 +289,11 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={{ position: 'relative' }}>
-          <Image source={{ uri: article.image_url }} style={styles.image} />
+          <Image
+            source={getArticleImage(article.id, article.image_url)}
+            style={styles.image}
+            resizeMode={isLocalArticleImage(article.id) ? 'contain' : 'cover'}
+          />
           <TouchableOpacity 
             style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]}
             onPress={() => navigation.goBack()}
