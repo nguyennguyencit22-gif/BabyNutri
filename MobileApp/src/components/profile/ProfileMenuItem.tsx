@@ -5,6 +5,7 @@ import {
     View,
 } from 'react-native';
 import { Icon } from 'react-native-paper';
+
 import createStyles from '../../styles/profile/profileComponentStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
 
@@ -38,11 +39,20 @@ function ProfileMenuItem({
             ]}>
 
             <View style={styles.leftContent}>
-                {leftIcon === 'plus' && (
-                    <View style={{ marginRight: 10 }}>
-                        <Icon source="plus" size={20} color={danger ? colors.danger : colors.primary} />
+                {leftIcon ? (
+                    <View style={styles.iconCircle}>
+                        <Icon
+                            source={leftIcon}
+                            size={22}
+                            color={
+                                danger
+                                    ? colors.danger
+                                    : colors.text
+                            }
+                        />
                     </View>
-                )}
+                ) : null}
+
                 <Text
                     style={[
                         styles.titleMenu,
@@ -55,7 +65,7 @@ function ProfileMenuItem({
             {showArrow ? (
                 <Icon
                     source="chevron-right"
-                    size={22}
+                    size={28}
                     color={
                         danger
                             ? colors.danger

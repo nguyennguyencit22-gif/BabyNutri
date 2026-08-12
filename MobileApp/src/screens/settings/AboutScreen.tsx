@@ -1,4 +1,4 @@
-import React from 'react';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 import {
     Image,
     Pressable,
@@ -7,12 +7,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import { useAppTheme } from '../../theme/useAppTheme';
 
 function AboutScreen({ navigation }: any) {
-    const { colors } = useAppTheme();
-
     const openPrivacyPolicy = () => {
         // TODO: Navigate to Privacy Policy screen
     };
@@ -22,39 +18,52 @@ function AboutScreen({ navigation }: any) {
     };
 
     return (
-        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <SafeAreaView style={styles.safeArea}>
             <ProfileHeader
                 title="About"
-                onBack={() => navigation.goBack()}
-            />
+                onBack={() =>
+                    navigation.goBack()
+                } />
             <View style={styles.content}>
+
                 <Image
-                    source={require('../../assets/images/babynutri-logo.png')}
+                    source={require(
+                        '../../assets/images/babynutri-logo.png'
+                    )}
                     style={styles.logo}
                     resizeMode="contain"
                 />
 
-                <Text style={[styles.appName, { color: colors.text }]}>
+                <Text style={styles.appName}>
                     BabyNutri
                 </Text>
 
                 <View style={styles.infoSection}>
-                    <Text style={[styles.teamName, { color: colors.textSoft }]}>
+
+                    <Text style={styles.teamName}>
                         Whisper Arts
                     </Text>
 
-                    <Pressable onPress={openPrivacyPolicy}>
-                        <Text style={[styles.link, { color: colors.primary }]}>
+                    <Pressable
+                        onPress={
+                            openPrivacyPolicy
+                        }>
+                        <Text style={styles.link}>
                             Privacy Policy
                         </Text>
                     </Pressable>
 
-                    <Pressable onPress={openTermsOfService}>
-                        <Text style={[styles.link, { color: colors.primary }]}>
+                    <Pressable
+                        onPress={
+                            openTermsOfService
+                        }>
+                        <Text style={styles.link}>
                             Terms of Service
                         </Text>
                     </Pressable>
+
                 </View>
+
             </View>
         </SafeAreaView>
     );
@@ -65,35 +74,43 @@ export default AboutScreen;
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
+        backgroundColor: '#FFFDF9',
     },
+
     content: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingTop: 28,
     },
+
     logo: {
         width: 92,
         height: 92,
         marginTop: 10,
     },
+
     appName: {
         marginTop: 12,
+        color: '#5B0010',
         fontSize: 31,
-        fontWeight: '700',
+        fontWeight: '500',
     },
+
     infoSection: {
         marginTop: 78,
         alignItems: 'center',
         gap: 18,
     },
+
     teamName: {
+        color: '#5B0010',
         fontSize: 16,
-        fontWeight: '500',
     },
+
     link: {
+        color: '#5B0010',
         fontSize: 16,
         textDecorationLine: 'underline',
-        fontWeight: '600',
     },
 });

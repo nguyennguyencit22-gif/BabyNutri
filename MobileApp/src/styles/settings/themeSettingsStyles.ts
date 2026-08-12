@@ -12,17 +12,10 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     },
 
     optionRow: {
-        minHeight: 80,
+        minHeight: 92,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashed,
-        borderRadius: 16,
-        marginHorizontal: 16,
-        marginVertical: 6,
-        backgroundColor: colors.surface,
+        paddingHorizontal: 32,
     },
 
     optionPressed: {
@@ -32,9 +25,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     radio: {
         width: 30,
         height: 30,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashedPrimary,
+        borderWidth: 3,
+        borderColor: colors.border,
         borderRadius: 15,
         alignItems: 'center',
         justifyContent: 'center',
@@ -46,9 +38,9 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
     },
 
     optionText: {
-        marginLeft: 20,
+        marginLeft: 24,
         color: colors.text,
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: '700',
     },
 });

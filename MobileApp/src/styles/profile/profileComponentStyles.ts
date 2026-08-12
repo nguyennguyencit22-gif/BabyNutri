@@ -31,8 +31,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         marginTop: 18,
         borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashedPrimary,
+        borderColor: colors.border,
         borderRadius: 18,
         paddingHorizontal: 20,
         paddingVertical: 16,
@@ -57,9 +56,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.primary,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashedPrimary,
     },
 
     avatarText: {
@@ -74,9 +70,8 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         bottom: -2,
         width: 38,
         height: 38,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashedPrimary,
+        borderWidth: 3,
+        borderColor: colors.surfaceAlt,
         borderRadius: 19,
         alignItems: 'center',
         justifyContent: 'center',
@@ -112,20 +107,16 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
     // Menu Item
     containerMenu: {
-        minHeight: 64,
+        minHeight: 72,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
 
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashed,
-        borderRadius: 14,
-        marginVertical: 4,
-        marginHorizontal: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
 
-        paddingHorizontal: 14,
-        backgroundColor: colors.surface,
+        paddingHorizontal: 10,
+        backgroundColor: colors.background,
     },
 
     pressed: {
@@ -142,15 +133,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         width: 42,
         height: 42,
         borderWidth: 1,
-        borderStyle: 'solid',
-        borderColor: colors.borderDashedPrimary,
+        borderColor: colors.border,
         borderRadius: 21,
 
         alignItems: 'center',
         justifyContent: 'center',
 
         marginRight: 14,
-        backgroundColor: colors.surfaceAlt,
+        backgroundColor: colors.surface,
 
         elevation: 2,
         shadowColor: '#000000',
@@ -166,7 +156,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         flexShrink: 1,
         color: colors.text,
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '400',
     },
 
     dangerTitle: {

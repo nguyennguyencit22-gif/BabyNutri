@@ -9,99 +9,58 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
     backdrop: {
         ...StyleSheet.absoluteFill,
-        backgroundColor: 'rgba(15, 23, 42, 0.4)',
+        backgroundColor: colors.overlay,
     },
 
     sheet: {
-        marginHorizontal: 14,
-        marginBottom: 20,
-        paddingHorizontal: 14,
-        paddingTop: 10,
-        paddingBottom: 14,
+        marginHorizontal: 16,
+        marginBottom: 18,
 
         borderRadius: 24,
         overflow: 'hidden',
 
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
 
-        elevation: 8,
-        shadowColor: '#FF5F70',
+        elevation: 10,
+        shadowColor: '#000000',
         shadowOffset: {
             width: 0,
-            height: 6,
+            height: 4,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        borderWidth: 1,
-        borderColor: '#FFEFEA',
-    },
-
-    dragHandle: {
-        width: 36,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: '#CBD5E1',
-        alignSelf: 'center',
-        marginBottom: 12,
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
     },
 
     actionRow: {
-        minHeight: 52,
+        minHeight: 58,
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 16,
-        marginVertical: 4,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
 
-        borderWidth: 1,
-        borderColor: '#F8FAFC',
-        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
 
-        elevation: 1,
-        shadowColor: '#FF5F70',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
+        paddingHorizontal: 18,
+        backgroundColor: colors.surface,
     },
 
     actionRowPressed: {
-        backgroundColor: '#FFF0F2',
-        borderColor: '#FFE4E6',
-        elevation: 4,
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        transform: [{ scale: 0.988 }],
-    },
-
-    iconContainer: {
-        width: 38,
-        height: 38,
-        borderRadius: 19,
-        backgroundColor: '#FFF0F2',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 14,
+        backgroundColor: colors.surfaceAlt,
     },
 
     actionText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1E293B',
+        marginLeft: 18,
+        color: colors.text,
+        fontSize: 16,
     },
 
     actionTextGroup: {
-        flex: 1,
+        marginLeft: 18,
     },
 
     actionSubtitle: {
         marginTop: 2,
-        fontSize: 12,
-        fontWeight: '500',
-        color: '#64748B',
+        color: colors.textSoft,
+        fontSize: 13,
     },
 });
 
