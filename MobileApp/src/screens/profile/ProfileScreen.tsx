@@ -14,6 +14,7 @@ import ProfileMenuItem from '../../components/profile/ProfileMenuItem';
 import BabyProfileItem from '../../components/profile/BabyProfileItem';
 import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
 import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
+import ExpertProfileCard from '../../components/profile/ExpertProfileCard';
 
 import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -51,6 +52,7 @@ function ProfileScreen({
     const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
+    const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,
@@ -144,48 +146,59 @@ function ProfileScreen({
                     />
                 )}
 
-                {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
-                <Text style={styles.sectionLabel}>
-                    PROFILES
-                </Text>
+                {isExpertOrAdmin ? (
+                    <>
+                        <Text style={styles.sectionLabel}>
+                            PROFESSIONAL INFO
+                        </Text>
+                        <ExpertProfileCard />
+                    </>
+                ) : (
+                    <>
+                        {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
+                        <Text style={styles.sectionLabel}>
+                            PROFILES
+                        </Text>
 
-                {babies.map(baby => (
-                    <BabyProfileItem
-                        key={String(baby.id)}
-                        name={baby.name || 'Baby'}
-                        profileColor={baby.profileColor || '#FF7A59'}
-                        ageInMonths={calculateBabyAgeInMonths(baby.dateOfBirth || '')}
-                        onPress={() =>
-                            navigation.navigate('EditBabyProfile', {
-                                babyId: String(baby.id),
-                            })
-                        }
-                        onEdit={() => handleOpenBabyActions(String(baby.id))}
-                        onDelete={() => {
-                            dispatch(
-                                removeBaby(
-                                    baby.id,
-                                ),
-                            );
-                        }}
-                    />
-                ))}
+                        {babies.map(baby => (
+                            <BabyProfileItem
+                                key={String(baby.id)}
+                                name={baby.name || 'Baby'}
+                                profileColor={baby.profileColor || '#FF7A59'}
+                                ageInMonths={calculateBabyAgeInMonths(baby.dateOfBirth || '')}
+                                onPress={() =>
+                                    navigation.navigate('EditBabyProfile', {
+                                        babyId: String(baby.id),
+                                    })
+                                }
+                                onEdit={() => handleOpenBabyActions(String(baby.id))}
+                                onDelete={() => {
+                                    dispatch(
+                                        removeBaby(
+                                            baby.id,
+                                        ),
+                                    );
+                                }}
+                            />
+                        ))}
 
-                <ProfileMenuItem
-                    title="Add baby profile"
-                    leftIcon="plus"
-                    onPress={() => {
-                        navigation.navigate('AddBabyProfile');
-                    }}
-                />
+                        <ProfileMenuItem
+                            title="Add baby profile"
+                            leftIcon="plus"
+                            onPress={() => {
+                                navigation.navigate('AddBabyProfile');
+                            }}
+                        />
 
-                <ProfileMenuItem
-                    title="Enter invitation code"
-                    leftIcon="message-text-outline"
-                    onPress={() => {
-                        navigation.navigate('InvitationCode');
-                    }}
-                />
+                        <ProfileMenuItem
+                            title="Enter invitation code"
+                            leftIcon="message-text-outline"
+                            onPress={() => {
+                                navigation.navigate('InvitationCode');
+                            }}
+                        />
+                    </>
+                )}
 
                 {/* HISTORY SECTION */}
                 <Text style={styles.sectionLabel}>

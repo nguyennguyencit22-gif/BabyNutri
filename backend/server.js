@@ -27,6 +27,7 @@ const mealPlanRoutes = require('./routes/mealPlanRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const expertRoutes = require('./routes/expertRoutes');
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/api/mealplans', mealPlanRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/experts', expertRoutes);
 
 app.use((req, res) => {
     res.status(404).json({
