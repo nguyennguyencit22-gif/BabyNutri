@@ -71,7 +71,18 @@ const TopHeaderBar: React.FC = () => {
   const hasMultipleBaby = babies.length > 1;
 
   const sessionMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = sessionMode === 'authenticated';
+  const userRole = (user?.role || '').toLowerCase();
+  const isStaffOrAdmin = isAuthenticated && (userRole === 'expert' || userRole === 'admin');
+
+  const headerName = isStaffOrAdmin
+    ? (user?.displayName || (user?.email ? user.email.split('@')[0] : 'Staff'))
+    : (selectedBaby ? selectedBaby.name : 'Baby Profile');
+
+  const headerSubText = isStaffOrAdmin
+    ? (userRole === 'admin' ? '⭐ System Administrator' : '🩺 Nutrition Expert')
+    : (selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile');
 
   const babyName = selectedBaby ? selectedBaby.name : 'Baby Profile';
   const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile';
@@ -118,11 +129,13 @@ const TopHeaderBar: React.FC = () => {
     <View style={styles.headerContainer}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
-      {/* Baby Profile Section */}
+      {/* Profile Section (Staff/Admin vs Parent/Baby) */}
       <TouchableOpacity
         style={styles.profileSection}
         onPress={() => {
-          if (!selectedBaby) {
+          if (isStaffOrAdmin) {
+            navigation.navigate('ProfileTab');
+          } else if (!selectedBaby) {
             navigation.navigate('AddBabyProfile');
           } else {
             handleOpenBabyActions();
@@ -130,22 +143,22 @@ const TopHeaderBar: React.FC = () => {
         }}
         activeOpacity={0.8}
       >
-        <View style={[styles.avatar, { backgroundColor: babyColor }]}>
+        <View style={[styles.avatar, { backgroundColor: isStaffOrAdmin ? '#FF5F70' : babyColor }]}>
           <Text style={styles.avatarLabel}>
-            {babyName.charAt(0).toUpperCase()}
+            {headerName.charAt(0).toUpperCase()}
           </Text>
         </View>
         <View style={styles.userInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.userName}>{babyName}</Text>
+            <Text style={styles.userName}>{headerName}</Text>
 
-            {hasMultipleBaby && (
+            {!isStaffOrAdmin && hasMultipleBaby && (
               <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
                 <Text style={styles.arrow}>▼</Text>
               </Pressable>
             )}
           </View>
-          <Text style={styles.greetingText}>{babyAgeText}</Text>
+          <Text style={styles.greetingText}>{headerSubText}</Text>
         </View>
       </TouchableOpacity>
 
