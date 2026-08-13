@@ -7,7 +7,8 @@ import {
     StatusBar,
 } from 'react-native';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
-import { FAQScreen } from '../questions/FAQScreen';
+import FAQScreen from '../questions/FAQScreen';
+import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
 
@@ -17,33 +18,15 @@ function CommunityScreen({ navigation }: any) {
         () => createStyles(colors),
         [colors],
     );
-    const [activeSubTab, setActiveSubTab] = useState<'discussion' | 'faq'>('discussion');
+    const [activeSubTab, setActiveSubTab] = useState<'faq' | 'discussion'>('faq');
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <TopHeaderBar />
 
-            {/* Segmented Tab Switcher (Cộng đồng: Diễn đàn & FAQ Hỏi đáp) */}
+            {/* Segmented Tab Switcher (Nutrition FAQ & Community Forum) */}
             <View style={styles.segmentedContainer}>
-                <TouchableOpacity
-                    style={[
-                        styles.segmentBtn,
-                        activeSubTab === 'discussion' && styles.segmentBtnActive,
-                    ]}
-                    onPress={() => setActiveSubTab('discussion')}
-                    activeOpacity={0.8}
-                >
-                    <Text
-                        style={[
-                            styles.segmentText,
-                            activeSubTab === 'discussion' && styles.segmentTextActive,
-                        ]}
-                    >
-                        💬 Community Forum
-                    </Text>
-                </TouchableOpacity>
-
                 <TouchableOpacity
                     style={[
                         styles.segmentBtn,
@@ -52,36 +35,63 @@ function CommunityScreen({ navigation }: any) {
                     onPress={() => setActiveSubTab('faq')}
                     activeOpacity={0.8}
                 >
-                    <Text
-                        style={[
-                            styles.segmentText,
-                            activeSubTab === 'faq' && styles.segmentTextActive,
-                        ]}
-                    >
-                        ❓ Nutrition FAQ
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Icon source="comment-question-outline" size={16} color={activeSubTab === 'faq' ? '#FFFFFF' : colors.textSoft} />
+                        <Text
+                            style={[
+                                styles.segmentText,
+                                activeSubTab === 'faq' && styles.segmentTextActive,
+                            ]}
+                        >
+                            Nutrition FAQ
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[
+                        styles.segmentBtn,
+                        activeSubTab === 'discussion' && styles.segmentBtnActive,
+                    ]}
+                    onPress={() => setActiveSubTab('discussion')}
+                    activeOpacity={0.8}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Icon source="account-group-outline" size={16} color={activeSubTab === 'discussion' ? '#FFFFFF' : colors.textSoft} />
+                        <Text
+                            style={[
+                                styles.segmentText,
+                                activeSubTab === 'discussion' && styles.segmentTextActive,
+                            ]}
+                        >
+                            Community Forum
+                        </Text>
+                    </View>
                 </TouchableOpacity>
             </View>
 
             {/* Sub-tab content */}
             <View style={styles.content}>
-                {activeSubTab === 'discussion' ? (
+                {activeSubTab === 'faq' ? (
+                    <FAQScreen navigation={navigation} />
+                ) : (
                     <View style={styles.discussionPlaceholder}>
-                        <Text style={styles.emojiText}>💬</Text>
+                        <Icon source="account-group-outline" size={48} color="#FF5F70" />
                         <Text style={styles.discussionTitle}>Weaning Experience Forum</Text>
                         <Text style={styles.discussionSubTitle}>
-                            A community for parents to share recipes, exchange feeding tips, and consult with nutrition experts.
+                            A community for parents to share recipes, exchange feeding tips, and consult with pediatric nutrition experts.
                         </Text>
                         <TouchableOpacity 
                             style={styles.askQuestionBtn}
                             onPress={() => setActiveSubTab('faq')}
                             activeOpacity={0.88}
                         >
-                            <Text style={styles.askQuestionBtnText}>❓ View Frequently Asked Questions (FAQ)</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Icon source="comment-question-outline" size={18} color="#FFFFFF" />
+                                <Text style={styles.askQuestionBtnText}>View Frequently Asked Questions (FAQ)</Text>
+                            </View>
                         </TouchableOpacity>
                     </View>
-                ) : (
-                    <FAQScreen />
                 )}
             </View>
         </View>
