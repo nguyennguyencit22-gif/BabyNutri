@@ -106,7 +106,7 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
       } else {
         await followExpert(expertId);
         setIsFollowing(true);
-        appAlert.show('Following 🎉', `You are now following ${expertName}. You will receive notifications when new articles/recipes are published!`);
+        appAlert.show('Following', `You are now following ${expertName}. You will receive notifications when new articles/recipes are published!`);
       }
     } catch (e) {
       appAlert.show('Error', 'Unable to update follow status');
@@ -159,8 +159,8 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
           {/* Stats Bar */}
           <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <TouchableOpacity style={styles.statBox} onPress={() => setRatingBreakdownVisible(true)} activeOpacity={0.7}>
-              <Text style={styles.statVal}>{avgRating > 0 ? avgRating.toFixed(1) : '4.8'} ⭐</Text>
-              <Text style={[styles.statSub, { color: colors.textSoft }]}>Avg Rating 🔍</Text>
+              <Text style={styles.statVal}>{avgRating > 0 ? avgRating.toFixed(1) : '4.8'}</Text>
+              <Text style={[styles.statSub, { color: colors.textSoft }]}>Avg Rating</Text>
             </TouchableOpacity>
             <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <View style={styles.statBox}>

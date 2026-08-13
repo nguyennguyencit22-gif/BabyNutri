@@ -105,8 +105,8 @@ const ExpertHomeScreen = ({ navigation }: any) => {
             </View>
             <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <TouchableOpacity style={styles.statBox} onPress={() => setRatingModalVisible(true)} activeOpacity={0.7}>
-              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'} ⭐</Text>
-              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating 🔍</Text>
+              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
             </TouchableOpacity>
           </View>
         )}

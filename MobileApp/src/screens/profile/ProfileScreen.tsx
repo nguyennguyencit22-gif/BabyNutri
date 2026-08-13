@@ -261,7 +261,7 @@ function ProfileScreen({
                     const showCodeAlert = (code: string) => {
                         Clipboard.setString(code);
                         Alert.alert(
-                            'Caregiver Invitation Code 👨‍👩‍👧',
+                            'Caregiver Invitation Code',
                             `Code: ${code}\n\nCopied to clipboard! Share this code with another parent or caregiver so they can join caring for ${selectedBaby?.name || 'baby'}.`,
                             [{ text: 'OK' }]
                         );
