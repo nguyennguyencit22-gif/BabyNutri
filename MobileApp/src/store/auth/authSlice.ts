@@ -14,6 +14,7 @@ export type SessionMode =
 
 export type AuthUser = {
     uid: string;
+    id: number;
     email: string;
     displayName: string;
     photoURL?: string;

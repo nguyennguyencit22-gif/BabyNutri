@@ -46,8 +46,8 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
         articleService.getAll().catch(() => []),
       ]);
 
-      const expertRecipes = allRecipes.filter((r) => r.expert_id === expertId || r.author === expertName);
-      const expertArticles = allArticles.filter((a) => a.expert_id === expertId || a.author === expertName);
+      const expertRecipes = allRecipes.filter((r: any) => r.expert_id === expertId || r.author === expertName);
+      const expertArticles = allArticles.filter((a: any) => a.expert_id === expertId || a.author === expertName);
 
       setRecipes(expertRecipes);
       setArticles(expertArticles);
@@ -56,16 +56,16 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
       let totalWeighted = 0;
       let totalCount = 0;
 
-      expertRecipes.forEach((r) => {
+      expertRecipes.forEach((r: any) => {
         if (r.ratingCount > 0) {
-          totalWeighted += r.avgRating * r.ratingCount;
+          totalWeighted += (r.avgRating || 0) * r.ratingCount;
           totalCount += r.ratingCount;
         }
       });
 
       if (expertArticles.length > 0) {
         const articleSummaries = await Promise.all(
-          expertArticles.map((art) => articleService.getRatingSummary(art.id).catch(() => ({ totalRatings: 0, averageRating: 0 })))
+          expertArticles.map((art: any) => articleService.getRatingSummary(art.id).catch(() => ({ totalRatings: 0, averageRating: 0 })))
         );
         articleSummaries.forEach((s) => {
           if (s.totalRatings > 0) {
@@ -78,8 +78,8 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
       setAvgRating(totalCount > 0 ? totalWeighted / totalCount : 4.8);
 
       if (authMode !== 'guest') {
-        const following = await checkFollowStatus(expertId).catch(() => false);
-        setIsFollowing(following);
+        const statusRes = await checkFollowStatus(expertId).catch(() => ({ isFollowing: false }));
+        setIsFollowing(typeof statusRes === 'boolean' ? statusRes : !!statusRes?.isFollowing);
       }
     } catch (e) {
       console.error('Load expert details error:', e);

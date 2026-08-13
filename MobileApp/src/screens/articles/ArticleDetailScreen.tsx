@@ -269,6 +269,29 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             Author: {displayAuthor} · {formatRealTimeAgo(article.published_date)}
           </Text>
 
+          {(!!article.category || !!article.target_age || !!article.reading_time) && (
+            <View style={styles.badgeRow}>
+              {!!article.category && (
+                <View style={[styles.badge, { backgroundColor: colors.surfaceAlt }]}>
+                  <Icon source="notebook-outline" size={13} color={colors.textSoft} />
+                  <Text style={[styles.badgeText, { color: colors.textSoft }]}>{article.category}</Text>
+                </View>
+              )}
+              {!!article.target_age && (
+                <View style={[styles.badge, { backgroundColor: colors.surfaceAlt }]}>
+                  <Icon source="baby-face-outline" size={13} color={colors.textSoft} />
+                  <Text style={[styles.badgeText, { color: colors.textSoft }]}>{article.target_age}</Text>
+                </View>
+              )}
+              {!!article.reading_time && (
+                <View style={[styles.badge, { backgroundColor: colors.surfaceAlt }]}>
+                  <Icon source="clock-outline" size={13} color={colors.textSoft} />
+                  <Text style={[styles.badgeText, { color: colors.textSoft }]}>{article.reading_time}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
           {/* Edit & Delete Article Buttons (Only Expert or Admin) */}
           {isStaffOrAdmin && (
             <View style={styles.editDeleteRow}>
@@ -345,6 +368,9 @@ const styles = StyleSheet.create({
   content: { padding: 18 },
   title: { fontSize: 22, fontWeight: '800', color: '#2E2E2E', marginBottom: 6, lineHeight: 28 },
   meta: { fontSize: 13, color: '#888888', marginBottom: 16 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -8, marginBottom: 16 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 12 },
+  badgeText: { fontSize: 12, fontWeight: '600' },
   editDeleteRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   editBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#FFF0ED', paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#FFE2DB' },
   editBtnText: { color: '#FF7A59', fontWeight: '700', fontSize: 13 },

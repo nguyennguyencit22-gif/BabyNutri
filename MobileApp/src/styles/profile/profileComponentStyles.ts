@@ -14,7 +14,7 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
 
     backButton: {
         position: 'absolute',
-        left: 0,
+        left: 18,
     },
 
     title: {

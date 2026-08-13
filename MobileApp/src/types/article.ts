@@ -7,8 +7,12 @@ export interface Article {
     summary: string | null;
     published_date: string | null;
     author: string;
+    category?: string | null;
+    target_age?: string | null;
+    reading_time?: string | null;
+    tags?: string | null;
   }
-  
+
   export interface ArticleListItem {
     id: number;
     title: string;
@@ -16,4 +20,8 @@ export interface Article {
     image_url: string;
     published_date: string | null;
     author: string;
+    category?: string | null;
+    target_age?: string | null;
+    reading_time?: string | null;
+    tags?: string | null;
   }

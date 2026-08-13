@@ -23,13 +23,16 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
-  const isExpert = authMode === 'authenticated' && ((user?.role || '').toLowerCase() === 'expert' || (user?.role || '').toLowerCase() === 'admin');
+  const isExpert = authMode === 'authenticated' && user?.role === 'expert';
+  const isExpertOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
 
   const babies = useSelector((state: RootState) => state.baby.babies);
   const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
   const selectedBaby = useMemo(() => babies.find(b => String(b.id) === String(selectedBabyId)) || babies[0], [babies, selectedBabyId]);
 
-  const babyAllergies = useMemo(() => selectedBaby?.allergies || [], [selectedBaby]);
+  // Baby-allergy personalization is a Parent concept — Experts/Admins
+  // aren't managing a specific baby, so it shouldn't apply to their view.
+  const babyAllergies = useMemo(() => (isExpertOrAdmin ? [] : selectedBaby?.allergies || []), [isExpertOrAdmin, selectedBaby]);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,8 +88,8 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
         </TouchableOpacity>
       </View>
 
-      {/* Personalized Smart Recommendation Banner */}
-      {selectedBaby && (
+      {/* Personalized Smart Recommendation Banner — Parent-only */}
+      {selectedBaby && !isExpertOrAdmin && (
         <View style={[styles.allergyBanner, { backgroundColor: isDark ? '#4A2A30' : '#FFF0F2', borderColor: isDark ? '#8A4550' : '#FFE4E6' }]}>
           <Text style={styles.allergyBannerText}>
             Personalized for {selectedBaby.name}: Safe recipes recommended first.

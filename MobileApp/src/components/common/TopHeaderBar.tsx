@@ -59,11 +59,6 @@ const TopHeaderBar: React.FC = () => {
   const { colors, isDark } = useAppTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<any>();
-  const [notifVisible, setNotifVisible] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2);
-  const [showBabySwitcher, setShowBabySwitcher] = useState(false);
-  const [showBabyActions, setShowBabyActions] = useState(false);
-  const [invitationCode, setInvitationCode] = useState<string | null>(null);
 
   const babies = useSelector((state: RootState) => state.baby.babies);
   const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
@@ -71,25 +66,27 @@ const TopHeaderBar: React.FC = () => {
   const hasMultipleBaby = babies.length > 1;
 
   const sessionMode = useSelector((state: RootState) => state.auth.mode);
-  const user = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = sessionMode === 'authenticated';
-  const userRole = (user?.role || '').toLowerCase();
-  const isStaffOrAdmin = isAuthenticated && (userRole === 'expert' || userRole === 'admin');
 
-  const headerName = isStaffOrAdmin
-    ? (user?.displayName || (user?.email ? user.email.split('@')[0] : 'Staff'))
-    : (selectedBaby ? selectedBaby.name : 'Baby Profile');
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
+  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
 
-  const headerSubText = isStaffOrAdmin
-    ? (userRole === 'admin' ? '⭐ System Administrator' : '🩺 Nutrition Expert')
-    : (selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile');
+  const [notifVisible, setNotifVisible] = useState(false);
+  // Experts have no real chat/task backend yet (see the modal below), so
+  // there's nothing to have a genuine unread badge over.
+  const [hasUnread, setHasUnread] = useState(!isExpertOrAdmin);
+  const [showBabySwitcher, setShowBabySwitcher] = useState(false);
+  const [showBabyActions, setShowBabyActions] = useState(false);
+  const [invitationCode, setInvitationCode] = useState<string | null>(null);
 
   const babyName = selectedBaby ? selectedBaby.name : 'Baby Profile';
   const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile';
   const babyColor = selectedBaby?.profileColor || colors.primary;
 
   const handleOpenNotification = () => {
-    navigation.navigate('Notifications');
+    setHasUnread(false);
+    setNotifVisible(true);
   };
 
   const handleOpenBabyActions = () => {
@@ -129,58 +126,76 @@ const TopHeaderBar: React.FC = () => {
     <View style={styles.headerContainer}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
-      {/* Profile Section (Staff/Admin vs Parent/Baby) */}
-      <TouchableOpacity
-        style={styles.profileSection}
-        onPress={() => {
-          if (isStaffOrAdmin) {
-            navigation.navigate('ProfileTab');
-          } else if (!selectedBaby) {
-            navigation.navigate('AddBabyProfile');
-          } else {
-            handleOpenBabyActions();
-          }
-        }}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.avatar, { backgroundColor: isStaffOrAdmin ? '#FF5F70' : babyColor }]}>
-          <Text style={styles.avatarLabel}>
-            {headerName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.userName}>{headerName}</Text>
-
-            {!isStaffOrAdmin && hasMultipleBaby && (
-              <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
-                <Text style={styles.arrow}>▼</Text>
-              </Pressable>
-            )}
+      {/* Profile Section: Expert/Admin accounts don't track a baby, so they
+          get a simple identity block instead of the baby-switcher one. */}
+      {isExpertOrAdmin ? (
+        <View style={styles.profileSection}>
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.avatarLabel}>
+              {expertDisplayName.charAt(0).toUpperCase()}
+            </Text>
           </View>
-          <Text style={styles.greetingText}>{headerSubText}</Text>
+          <View style={styles.userInfo}>
+            <Text style={styles.greetingText}>Welcome back,</Text>
+            <Text style={styles.userName}>{expertDisplayName}</Text>
+          </View>
         </View>
-      </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.profileSection}
+          onPress={() => {
+            if (!selectedBaby) {
+              navigation.navigate('AddBabyProfile');
+            } else {
+              handleOpenBabyActions();
+            }
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.avatar, { backgroundColor: babyColor }]}>
+            <Text style={styles.avatarLabel}>
+              {babyName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.userInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.userName}>{babyName}</Text>
+
+              {hasMultipleBaby && (
+                <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
+                  <Text style={styles.arrow}>▼</Text>
+                </Pressable>
+              )}
+            </View>
+            <Text style={styles.greetingText}>{babyAgeText}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Header Action Buttons */}
       <View style={styles.actionSection}>
-        {/* Heart Favorites Button */}
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={() => navigation.navigate('SavedItems')}
-          activeOpacity={0.8}
-        >
-          <HeartOutlineIcon size={20} color={colors.primary} />
-        </TouchableOpacity>
+        {/* Heart Favorites Button — saved recipes/articles is a Parent
+            concept, Experts don't have a "favorites" list of their own */}
+        {!isExpertOrAdmin && (
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => navigation.navigate('SavedItems')}
+            activeOpacity={0.8}
+          >
+            <HeartOutlineIcon size={20} color={colors.primary} />
+          </TouchableOpacity>
+        )}
 
-        {/* Notifications Button */}
+        {/* Notifications Button — Parent notifications are baby-schedule
+            related; Experts get chat replies & Admin-assigned tasks
+            instead (see the branched modal content below). */}
         <TouchableOpacity
           style={styles.iconBtn}
           onPress={handleOpenNotification}
           activeOpacity={0.8}
         >
           <BellOutlineIcon size={20} color={colors.primary} />
-          {unreadCount > 0 && <View style={styles.badgeDot} />}
+          {hasUnread && <View style={styles.badgeDot} />}
         </TouchableOpacity>
       </View>
 
@@ -196,47 +211,61 @@ const TopHeaderBar: React.FC = () => {
             </View>
 
             <View style={styles.notifList}>
-              <TouchableOpacity
-                style={styles.notifItem}
-                onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
-              >
-                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#143823' : '#F0FDF4' }]}>
-                  <CheckCircleOutlineIcon size={16} color="#16A34A" />
+              {isExpertOrAdmin ? (
+                // Experts don't get the Parent baby-schedule notifications —
+                // their bell is meant for chat replies and Admin-assigned
+                // tasks, neither of which has a backend yet, so this is an
+                // honest empty state rather than fabricated notifications.
+                <View style={styles.notifEmptyBox}>
+                  <BellOutlineIcon size={28} color={colors.textSoft} />
+                  <Text style={styles.notifEmptyTitle}>No notifications yet</Text>
+                  <Text style={styles.notifEmptySub}>Chat replies and tasks assigned by Admin will show up here.</Text>
                 </View>
-                <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
-                  <Text style={styles.notifTextSub}>Breakfast (08:00), Lunch (11:30), Snack (15:00) & Dinner (18:00) planned.</Text>
-                  <Text style={styles.notifTime}>Just now</Text>
-                </View>
-              </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.notifItem}
+                    onPress={() => { setNotifVisible(false); navigation.navigate('MealScheduler'); }}
+                  >
+                    <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#143823' : '#F0FDF4' }]}>
+                      <CheckCircleOutlineIcon size={16} color="#16A34A" />
+                    </View>
+                    <View style={styles.notifContent}>
+                      <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
+                      <Text style={styles.notifTextSub}>Breakfast (08:00), Lunch (11:30), Snack (15:00) & Dinner (18:00) planned.</Text>
+                      <Text style={styles.notifTime}>Just now</Text>
+                    </View>
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.notifItem}
-                onPress={() => { setNotifVisible(false); navigation.navigate('ProfileTab'); }}
-              >
-                <View style={styles.notifIconBadge}>
-                  <SparklesIcon size={16} color="#FF6B4A" />
-                </View>
-                <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
-                  <Text style={styles.notifTextSub}>Smart allergy ranking is active. Safe recipes prioritized!</Text>
-                  <Text style={styles.notifTime}>5 min ago</Text>
-                </View>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.notifItem}
+                    onPress={() => { setNotifVisible(false); navigation.navigate('ProfileTab'); }}
+                  >
+                    <View style={styles.notifIconBadge}>
+                      <SparklesIcon size={16} color="#FF6B4A" />
+                    </View>
+                    <View style={styles.notifContent}>
+                      <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
+                      <Text style={styles.notifTextSub}>Smart allergy ranking is active. Safe recipes prioritized!</Text>
+                      <Text style={styles.notifTime}>5 min ago</Text>
+                    </View>
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.notifItem}
-                onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
-              >
-                <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
-                  <BookOpenOutlineIcon size={16} color="#0284C7" />
-                </View>
-                <View style={styles.notifContent}>
-                  <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
-                  <Text style={styles.notifTextSub}>Tips to boost appetite & nutrient absorption tailored for {babyAgeText}.</Text>
-                  <Text style={styles.notifTime}>1 hour ago</Text>
-                </View>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.notifItem}
+                    onPress={() => { setNotifVisible(false); navigation.navigate('LibraryTab'); }}
+                  >
+                    <View style={[styles.notifIconBadge, { backgroundColor: isDark ? '#1E3A5F' : '#E0F2FE' }]}>
+                      <BookOpenOutlineIcon size={16} color="#0284C7" />
+                    </View>
+                    <View style={styles.notifContent}>
+                      <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
+                      <Text style={styles.notifTextSub}>Tips to boost appetite & nutrient absorption tailored for {babyAgeText}.</Text>
+                      <Text style={styles.notifTime}>1 hour ago</Text>
+                    </View>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           </View>
         </Pressable>
@@ -264,24 +293,6 @@ const TopHeaderBar: React.FC = () => {
             return;
           }
           console.log('Add caregiver:', selectedBaby.id);
-        }}
-        onEditEvents={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Edit events:', selectedBaby.id);
-        }}
-        onConfigureMainScreen={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Configure main screen:', selectedBaby.id);
-        }}
-        onReminders={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Reminders:', selectedBaby.id);
         }}
         invitationCode={invitationCode}
         onCopyCode={
@@ -418,6 +429,23 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
   },
   notifList: {
     gap: 12,
+  },
+  notifEmptyBox: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 6,
+  },
+  notifEmptyTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 4,
+  },
+  notifEmptySub: {
+    fontSize: 12,
+    color: colors.textSoft,
+    textAlign: 'center',
+    lineHeight: 17,
   },
   notifItem: {
     flexDirection: 'row',

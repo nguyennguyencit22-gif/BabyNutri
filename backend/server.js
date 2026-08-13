@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
 
 const {
     testDatabaseConnection,
@@ -25,6 +26,10 @@ const invitationRoutes = require('./routes/invitationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const expertRoutes = require('./routes/expertRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+
+const { initSocket } = require('./socket');
 
 const app = express();
 
@@ -39,6 +44,7 @@ app.use(express.urlencoded({
 }));
 
 app.use("/images", express.static(path.join(__dirname, "../public/public/images")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get('/', (req, res) => {
     res.json({
@@ -62,6 +68,8 @@ app.use('/api/invitations', invitationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/experts', expertRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.use((req, res) => {
     res.status(404).json({
@@ -78,9 +86,6 @@ app.use((error, req, res, next) => {
         message: 'Internal server error.',
     });
 });
-
-const http = require('http');
-const { initSocket } = require('./socket');
 
 const port = Number(process.env.PORT || 5000);
 const server = http.createServer(app);
@@ -106,3 +111,4 @@ async function startServer() {
 }
 
 startServer();
+

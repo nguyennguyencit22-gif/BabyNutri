@@ -1,5 +1,7 @@
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 const db = require('./db');
+const chatController = require('./controllers/chatController');
 
 let io = null;
 
@@ -11,9 +13,83 @@ function initSocket(server) {
     },
   });
 
+  // Socket handshake auth — verify JWT if provided
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (token) {
+      try {
+        socket.user = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (err) {
+        console.warn('[Socket.io] Token verification failed:', err.message);
+      }
+    }
+    next();
+  });
+
   io.on('connection', (socket) => {
     console.log(`[Socket.io] Client connected: ${socket.id}`);
 
+    // ==========================================
+    // 1-ON-1 PARENT & EXPERT DIRECT CHAT
+    // ==========================================
+    socket.on('join_conversation', async (conversationId, callback) => {
+      try {
+        if (!socket.user) {
+          callback?.({ error: 'Unauthorized' });
+          return;
+        }
+        const convo = await chatController.assertParticipant(conversationId, socket.user.id);
+        if (!convo) {
+          callback?.({ error: 'Not a participant in this conversation' });
+          return;
+        }
+        socket.join(`conversation:${conversationId}`);
+        console.log(`[Socket.io] User ${socket.user.id} joined conversation:${conversationId}`);
+        callback?.({ ok: true });
+      } catch (err) {
+        console.error('join_conversation error:', err);
+        callback?.({ error: 'Failed to join conversation' });
+      }
+    });
+
+    socket.on('send_message', async ({ conversationId, content }, callback) => {
+      try {
+        if (!socket.user) {
+          callback?.({ error: 'Unauthorized' });
+          return;
+        }
+        const convo = await chatController.assertParticipant(conversationId, socket.user.id);
+        if (!convo) {
+          callback?.({ error: 'Not a participant in this conversation' });
+          return;
+        }
+
+        const trimmed = (content || '').trim();
+        if (!trimmed) {
+          callback?.({ error: 'Empty message' });
+          return;
+        }
+
+        const messageId = await chatController.persistMessage(conversationId, socket.user.id, trimmed);
+        const message = {
+          id: messageId,
+          conversationId: Number(conversationId),
+          senderId: socket.user.id,
+          content: trimmed,
+          createdAt: new Date().toISOString(),
+        };
+
+        io.to(`conversation:${conversationId}`).emit('new_message', message);
+        callback?.({ ok: true, message });
+      } catch (err) {
+        console.error('send_message error:', err);
+        callback?.({ error: 'Failed to send message' });
+      }
+    });
+
+    // ==========================================
+    // COMMUNITY Q&A CONSULTATION & FAQ
+    // ==========================================
     // Join Q&A chat room for a specific question
     socket.on('join_qna_room', ({ questionId }) => {
       if (!questionId) return;
@@ -165,3 +241,4 @@ function getIo() {
 }
 
 module.exports = { initSocket, getIo };
+

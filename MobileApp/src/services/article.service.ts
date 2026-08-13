@@ -94,7 +94,7 @@ export const articleService = {
     };
   },
 
-  create: async (data: { title: string; summary?: string; content: string; imageUrl?: string; published_date?: string; author?: string }): Promise<{ id: number; published_date?: string; author?: string }> => {
+  create: async (data: { title: string; summary?: string; content: string; imageUrl?: string; published_date?: string; author?: string; category?: string; targetAge?: string; readingTime?: string; tags?: string }): Promise<{ id: number; published_date?: string; author?: string }> => {
     const newId = Date.now();
     const newArticle: ArticleListItem & { content?: string } = {
       id: newId,
@@ -119,7 +119,7 @@ export const articleService = {
     return { id: newId, published_date: newArticle.published_date || undefined, author: newArticle.author || undefined };
   },
 
-  update: async (id: number, data: { title?: string; summary?: string; content?: string; imageUrl?: string; author?: string }): Promise<void> => {
+  update: async (id: number, data: { title?: string; summary?: string; content?: string; imageUrl?: string; author?: string; category?: string; targetAge?: string; readingTime?: string; tags?: string }): Promise<void> => {
     inMemoryArticles = inMemoryArticles.map(a => a.id === id ? { ...a, ...data } : a);
     await persistToStorage(inMemoryArticles);
 

@@ -44,6 +44,8 @@ import ExpertQuestionScreen from '../screens/experts/ExpertQuestionScreen';
 import ExpertDetailScreen from '../screens/experts/ExpertDetailScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import QnaChatScreen from '../screens/questions/QnaChatScreen';
+import ChatExpertPickerScreen from '../screens/chat/ChatExpertPickerScreen';
+import ChatConversationScreen from '../screens/chat/ChatConversationScreen';
 
 const Stack = createNativeStackNavigator<any>();
 
@@ -224,6 +226,16 @@ function AppNavigator() {
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ChatExpertPicker"
+        component={ChatExpertPickerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ChatConversation"
+        component={ChatConversationScreen}
         options={{ headerShown: false }}
       />
 

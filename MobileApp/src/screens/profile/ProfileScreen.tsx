@@ -14,6 +14,7 @@ import ProfileMenuItem from '../../components/profile/ProfileMenuItem';
 import BabyProfileItem from '../../components/profile/BabyProfileItem';
 import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
 import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
+import ExpertProfileCard from '../../components/profile/ExpertProfileCard';
 
 import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -51,8 +52,7 @@ function ProfileScreen({
     const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
-    const userRole = (user?.role || '').toLowerCase();
-    const isStaffOrAdmin = isAuthenticated && (userRole === 'expert' || userRole === 'admin');
+    const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,
@@ -146,9 +146,16 @@ function ProfileScreen({
                     />
                 )}
 
-                {/* PROFILES SECTION (CHỈ HIỂN THỊ CHO PHỤ HUYNH) */}
-                {!isStaffOrAdmin && (
+                {isExpertOrAdmin ? (
                     <>
+                        <Text style={styles.sectionLabel}>
+                            PROFESSIONAL INFO
+                        </Text>
+                        <ExpertProfileCard />
+                    </>
+                ) : (
+                    <>
+                        {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
                         <Text style={styles.sectionLabel}>
                             PROFILES
                         </Text>
@@ -194,22 +201,18 @@ function ProfileScreen({
                 )}
 
                 {/* HISTORY SECTION */}
-                {!isStaffOrAdmin && (
-                    <>
-                        <Text style={styles.sectionLabel}>
-                            HISTORY
-                        </Text>
+                <Text style={styles.sectionLabel}>
+                    HISTORY
+                </Text>
 
-                        <ProfileMenuItem
-                            title="History"
-                            leftIcon="history"
-                            showArrow
-                            onPress={() => {
-                                navigation.navigate('SavedItems', { initialTab: 'history' });
-                            }}
-                        />
-                    </>
-                )}
+                <ProfileMenuItem
+                    title="History"
+                    leftIcon="history"
+                    showArrow
+                    onPress={() => {
+                        navigation.navigate('SavedItems', { initialTab: 'history' });
+                    }}
+                />
 
                 {/* OTHER SETTING SECTION (CHUẨN MEMBER A) */}
                 <Text style={styles.otherSettingLabel}>
@@ -252,37 +255,7 @@ function ProfileScreen({
                 onEditBaby={handleEditBaby}
                 onAddCaregiver={() => {
                     if (!selectedBabyId) return;
-                    handleCloseBabyActions();
-
-                    // Resolve active code from baby profile code, or generate fallback code
-                    const existingCode = selectedBaby?.profileCode;
-                    const numId = Number(selectedBabyId);
-
-                    const showCodeAlert = (code: string) => {
-                        Clipboard.setString(code);
-                        Alert.alert(
-                            'Caregiver Invitation Code',
-                            `Code: ${code}\n\nCopied to clipboard! Share this code with another parent or caregiver so they can join caring for ${selectedBaby?.name || 'baby'}.`,
-                            [{ text: 'OK' }]
-                        );
-                    };
-
-                    if (existingCode) {
-                        showCodeAlert(existingCode);
-                        return;
-                    }
-
-                    if (!isNaN(numId) && isAuthenticated) {
-                        getOrCreateInvitationCode(numId)
-                            .then(({ code }) => showCodeAlert(code))
-                            .catch(() => {
-                                const fallbackCode = `BN-${String(selectedBabyId).replace(/\D/g, '').padStart(6, '7')}`;
-                                showCodeAlert(fallbackCode);
-                            });
-                    } else {
-                        const fallbackCode = `BN-${String(selectedBabyId).replace(/\D/g, '').padStart(6, '9')}`;
-                        showCodeAlert(fallbackCode);
-                    }
+                    console.log('Add caregiver:', selectedBabyId);
                 }}
                 invitationCode={invitationCode}
                 onCopyCode={

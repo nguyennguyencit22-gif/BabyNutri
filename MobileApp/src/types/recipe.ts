@@ -16,8 +16,11 @@ export interface Recipe {
     fat: number;
     carbohydrate: number;
     ingredients: string[];
-    steps: string[];
+    steps: RecipeStepItem[];
     allergies?: string[];
+    weaning_method?: string | null;
+    dietary_needs?: string | null;
+    occasion?: string | null;
     assets?: {
       stickers: string[];
       heroImages: string[];
@@ -39,6 +42,11 @@ export interface Recipe {
     name: string;
     quantity: string;
   }
+
+  export interface RecipeStepItem {
+    description: string;
+    imageUrl?: string | null;
+  }
   
   export interface CreateRecipeDTO {
     name: string;
@@ -53,8 +61,11 @@ export interface Recipe {
     protein?: number;
     fat?: number;
     carbohydrate?: number;
+    weaningMethod?: string;
+    dietaryNeeds?: string;
+    occasion?: string;
     ingredients: IngredientInput[];
-    steps: string[];
+    steps: RecipeStepItem[];
   }
   
   export type UpdateRecipeDTO = Partial<Omit<CreateRecipeDTO, 'ingredients' | 'steps'>>;

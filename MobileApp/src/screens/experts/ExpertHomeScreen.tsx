@@ -1,17 +1,84 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
+import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
-import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
-import AdminReportsModal from '../admin/AdminReportsModal';
-import ExpertRatingBreakdownModal from '../../components/experts/ExpertRatingBreakdownModal';
+const isThisMonth = (dateStr?: string | null) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+};
+
+// Apple Health "Highlights"-style card — icon + title, a one-line summary,
+// then an All Time vs This Month pair of numbers. Each card is tappable and
+// jumps to the relevant detail list.
+const HighlightCard = ({
+  iconSource,
+  iconColor,
+  title,
+  description,
+  allTimeValue,
+  monthValue,
+  unit,
+  onPress,
+}: {
+  iconSource: string;
+  iconColor: string;
+  title: string;
+  description: string;
+  allTimeValue: number | string;
+  monthValue: number | string;
+  unit: string;
+  onPress: () => void;
+}) => {
+  const { colors } = useAppTheme();
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <View style={styles.cardHeader}>
+        <Icon source={iconSource} size={16} color={iconColor} />
+        <Text style={[styles.cardTitle, { color: iconColor }]}>{title}</Text>
+        <View style={{ flex: 1 }} />
+        <Icon source="chevron-right" size={18} color={colors.textSoft} />
+      </View>
+
+      <Text style={[styles.cardDescription, { color: colors.text }]}>{description}</Text>
+
+      <View style={[styles.cardDivider, { backgroundColor: colors.border }]} />
+
+      <View style={styles.cardStatsRow}>
+        <View style={styles.cardStatCol}>
+          <View style={styles.cardStatLabelRow}>
+            <View style={[styles.dot, { backgroundColor: iconColor }]} />
+            <Text style={[styles.cardStatLabel, { color: colors.textSoft }]}>All Time</Text>
+          </View>
+          <Text style={[styles.cardStatValue, { color: colors.text }]}>
+            {allTimeValue} <Text style={[styles.cardStatUnit, { color: colors.textSoft }]}>{unit}</Text>
+          </Text>
+        </View>
+        <View style={styles.cardStatCol}>
+          <View style={styles.cardStatLabelRow}>
+            <View style={[styles.dot, { backgroundColor: colors.border }]} />
+            <Text style={[styles.cardStatLabel, { color: colors.textSoft }]}>This Month</Text>
+          </View>
+          <Text style={[styles.cardStatValue, { color: colors.text }]}>
+            {monthValue} <Text style={[styles.cardStatUnit, { color: colors.textSoft }]}>{unit}</Text>
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 // Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
 // Expert accounts don't track a baby, so the journey/recipe-browsing home
@@ -19,17 +86,14 @@ import ExpertRatingBreakdownModal from '../../components/experts/ExpertRatingBre
 // Content" and "View Feedback / Ratings" instead.
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert User');
-  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
-  const expertId = Number(user?.id || 2);
 
-  const [recipeCount, setRecipeCount] = useState(0);
-  const [articleCount, setArticleCount] = useState(0);
+  const [recipeTotal, setRecipeTotal] = useState(0);
+  const [recipeThisMonth, setRecipeThisMonth] = useState(0);
+  const [articleTotal, setArticleTotal] = useState(0);
+  const [articleThisMonth, setArticleThisMonth] = useState(0);
+  const [ratingTotal, setRatingTotal] = useState(0);
+  const [ratingThisMonth, setRatingThisMonth] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
-  const [adminModalVisible, setAdminModalVisible] = useState(false);
-  const [reportsModalVisible, setReportsModalVisible] = useState(false);
-  const [ratingModalVisible, setRatingModalVisible] = useState(false);
 
   const loadStats = useCallback(async () => {
     try {
@@ -37,31 +101,21 @@ const ExpertHomeScreen = ({ navigation }: any) => {
         recipeService.getMine().catch(() => []),
         articleService.getMine().catch(() => []),
       ]);
-      setRecipeCount(recipes.length);
-      setArticleCount(articles.length);
 
-      const articleSummaries = await Promise.all(
-        articles.map((art) => articleService.getRatingSummary(art.id).catch(() => ({ totalRatings: 0, averageRating: 0 })))
-      );
+      setRecipeTotal(recipes.length);
+      setRecipeThisMonth(recipes.filter((r) => isThisMonth(r.created_at)).length);
 
-      let totalWeightedScore = 0;
-      let totalRatingCount = 0;
+      setArticleTotal(articles.length);
+      setArticleThisMonth(articles.filter((a) => isThisMonth(a.published_date)).length);
 
-      recipes.forEach((r) => {
-        if (r.ratingCount > 0) {
-          totalWeightedScore += r.avgRating * r.ratingCount;
-          totalRatingCount += r.ratingCount;
-        }
-      });
+      setRatingTotal(recipes.reduce((sum, r) => sum + r.ratingCount, 0));
+      setRatingThisMonth(recipes.reduce((sum, r) => sum + r.ratingCountThisMonth, 0));
 
-      articleSummaries.forEach((s) => {
-        if (s.totalRatings > 0) {
-          totalWeightedScore += s.averageRating * s.totalRatings;
-          totalRatingCount += s.totalRatings;
-        }
-      });
-
-      setAvgRating(totalRatingCount > 0 ? totalWeightedScore / totalRatingCount : 0);
+      const rated = recipes.filter((r) => r.ratingCount > 0);
+      const totalRatings = rated.reduce((sum, r) => sum + r.ratingCount, 0);
+      setAvgRating(totalRatings > 0
+        ? rated.reduce((sum, r) => sum + r.avgRating * r.ratingCount, 0) / totalRatings
+        : 0);
     } catch (e) {
       console.error('Load expert stats error:', e);
     }
@@ -74,184 +128,103 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
+      <TopHeaderBar />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: isAdmin ? '#8B5CF6' : '#FF5F70' }]}>
-            <Text style={styles.avatarLetter}>{displayName.charAt(0).toUpperCase()}</Text>
-          </View>
-          <View>
-            <Text style={[styles.greeting, { color: colors.textSoft }]}>
-              {isAdmin ? 'System Administrator' : 'Welcome back,'}
-            </Text>
-            <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
-          </View>
+        <View style={[styles.missionCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: isDark ? '#4A3236' : '#FFE2E6' }]}>
+          <Icon source="sparkles" size={18} color="#FF5F70" />
+          <Text style={[styles.missionText, { color: isDark ? '#F3D9DC' : '#B8465A' }]}>
+            Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
+          </Text>
         </View>
 
-        {!isAdmin && (
-          <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>{recipeCount}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Recipes</Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>{articleCount}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Articles</Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <TouchableOpacity style={styles.statBox} onPress={() => setRatingModalVisible(true)} activeOpacity={0.7}>
-              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Highlights</Text>
 
-        {isAdmin ? (
-          <>
-            {/* ADMIN SYSTEM DASHBOARD - ACCOUNT & USER MANAGEMENT ONLY */}
-            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 14 }]}>Account & User Management</Text>
+        <HighlightCard
+          iconSource="bowl-mix-outline"
+          iconColor="#FF5F70"
+          title="Recipes"
+          description={recipeTotal > 0
+            ? `You've shared ${recipeTotal} recipe${recipeTotal === 1 ? '' : 's'} with parents so far.`
+            : "You haven't published any recipes yet — create your first one!"}
+          allTimeValue={recipeTotal}
+          monthValue={recipeThisMonth}
+          unit="recipes"
+          onPress={() => navigation.navigate('MyContent', { initialTab: 'recipes' })}
+        />
 
-            <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => setAdminModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#2E2836' : '#F3E8FF' }]}>
-                <Icon source="account-supervisor" size={22} color="#8B5CF6" />
-              </View>
-              <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage User & Expert Accounts</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View, elevate, edit roles & manage user profiles</Text>
-              </View>
-              <Icon source="chevron-right" size={20} color={colors.textSoft} />
-            </TouchableOpacity>
+        <HighlightCard
+          iconSource="text-box-outline"
+          iconColor="#EC4899"
+          title="Articles"
+          description={articleTotal > 0
+            ? `Your nutrition articles help parents make better choices.`
+            : "You haven't published any articles yet — share your expertise!"}
+          allTimeValue={articleTotal}
+          monthValue={articleThisMonth}
+          unit="articles"
+          onPress={() => navigation.navigate('MyContent', { initialTab: 'articles' })}
+        />
 
-            <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => setReportsModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF' }]}>
-                <Icon source="chart-line" size={22} color="#3B82F6" />
-              </View>
-              <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>System Reports & Statistics</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View system-wide user counts, role distribution & metrics</Text>
-              </View>
-              <Icon source="chevron-right" size={20} color={colors.textSoft} />
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            {/* EXPERT DASHBOARD - CONTENT & CONSULTATION TOOLS ONLY */}
-            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 10 }]}>Content Tools</Text>
-
-            <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => navigation.navigate('MyContent')}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-                <Icon source="pencil" size={22} color="#FF5F70" />
-              </View>
-              <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Content</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove recipes & articles</Text>
-              </View>
-              <Icon source="chevron-right" size={20} color={colors.textSoft} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => navigation.navigate('ExpertFeedback')}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-                <Icon source="star" size={22} color="#F59E0B" />
-              </View>
-              <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Feedback & Ratings</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View parent reviews & reply to comments</Text>
-              </View>
-              <Icon source="chevron-right" size={20} color={colors.textSoft} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => navigation.navigate('ExpertQuestion')}
-              activeOpacity={0.85}
-            >
-              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-                <Icon source="help-circle" size={22} color="#10B981" />
-              </View>
-              <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Q&A & FAQ Management</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Answer parent questions & publish FAQs</Text>
-              </View>
-              <Icon source="chevron-right" size={20} color={colors.textSoft} />
-            </TouchableOpacity>
-          </>
-        )}
+        <HighlightCard
+          iconSource="star"
+          iconColor="#F59E0B"
+          title="Ratings"
+          description={ratingTotal > 0
+            ? `Parents rate your recipes ${avgRating.toFixed(1)}★ on average.`
+            : 'No ratings yet — they\'ll show up here once parents rate your recipes.'}
+          allTimeValue={ratingTotal}
+          monthValue={ratingThisMonth}
+          unit="ratings"
+          onPress={() => navigation.navigate('ExpertFeedback')}
+        />
       </ScrollView>
-
-      <AdminManageExpertsModal
-        visible={adminModalVisible}
-        onClose={() => setAdminModalVisible(false)}
-      />
-
-      <AdminReportsModal
-        visible={reportsModalVisible}
-        onClose={() => setReportsModalVisible(false)}
-      />
-
-      <ExpertRatingBreakdownModal
-        visible={ratingModalVisible}
-        expertId={expertId}
-        expertName={displayName}
-        onClose={() => setRatingModalVisible(false)}
-      />
     </SafeAreaView>
   );
 };
 
-const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 18, paddingTop: statusBarHeight ? 8 : 18, paddingBottom: 100 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
-  avatarCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  avatarLetter: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
-  greeting: { fontSize: 13, fontWeight: '600' },
-  name: { fontSize: 20, fontWeight: '800' },
-  statsCard: {
+  content: { padding: 18, paddingBottom: 100 },
+  missionCard: {
     flexDirection: 'row',
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingVertical: 16,
-    marginBottom: 24,
-  },
-  statBox: { flex: 1, alignItems: 'center' },
-  statDivider: { width: 1 },
-  statValue: { fontSize: 20, fontWeight: '800', color: '#FF5F70' },
-  statLabel: { fontSize: 11, marginTop: 4 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
+    alignItems: 'flex-start',
+    gap: 10,
+    borderRadius: 16,
     borderWidth: 1,
     padding: 14,
-    marginBottom: 12,
-    gap: 14,
+    marginBottom: 20,
   },
-  actionIconCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
-  actionTextGroup: { flex: 1 },
-  actionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  actionSubtitle: { fontSize: 12 },
+  missionText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '500',
+  },
+  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 14,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  cardTitle: { fontSize: 14, fontWeight: '800' },
+  cardDescription: { fontSize: 13, lineHeight: 19, fontWeight: '500' },
+  cardDivider: { height: 1, marginVertical: 14 },
+  cardStatsRow: { flexDirection: 'row' },
+  cardStatCol: { flex: 1 },
+  cardStatLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  cardStatLabel: { fontSize: 12, fontWeight: '600' },
+  cardStatValue: { fontSize: 20, fontWeight: '800' },
+  cardStatUnit: { fontSize: 12, fontWeight: '600' },
 });
 
 export default ExpertHomeScreen;

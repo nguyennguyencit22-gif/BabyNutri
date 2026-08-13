@@ -224,7 +224,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       await articleService.create({
         title: `Recipe: ${recipe.name}`,
         summary: `Sharing baby recipe (${recipe.month_age}+ months) · ${recipe.calories} kcal`,
-        content: `Description: ${recipe.description || 'Nutritious weaning recipe.'}\n\nIngredients:\n- ${recipe.ingredients.join('\n- ')}\n\nStep-by-step instructions:\n${recipe.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`,
+        content: `Description: ${recipe.description || 'Nutritious weaning recipe.'}\n\nIngredients:\n- ${recipe.ingredients.join('\n- ')}\n\nStep-by-step instructions:\n${recipe.steps.map((s, i) => `${i + 1}. ${s.description}`).join('\n')}`,
         imageUrl: recipe.image_url,
       });
       Alert.alert(
@@ -454,7 +454,12 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
           {recipe.steps.map((step, i) => (
             <View key={i} style={styles.stepRow}>
               <Text style={styles.stepNumber}>{i + 1}</Text>
-              <Text style={[styles.stepText, { color: colors.text }]}>{step}</Text>
+              <View style={styles.flex1}>
+                <Text style={[styles.stepText, { color: colors.text }]}>{step.description}</Text>
+                {!!step.imageUrl && (
+                  <Image source={{ uri: step.imageUrl }} style={styles.stepImage} resizeMode="cover" />
+                )}
+              </View>
             </View>
           ))}
 
@@ -593,6 +598,8 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
   stepNumber: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FF7A59', color: '#FFFFFF', textAlign: 'center', lineHeight: 24, fontWeight: '700', fontSize: 12, marginRight: 10 },
   stepText: { flex: 1, fontSize: 14, color: '#3A3A3A', lineHeight: 20 },
+  flex1: { flex: 1 },
+  stepImage: { width: '100%', height: 140, borderRadius: 10, marginTop: 8 },
   floatingBackBtn: { position: 'absolute', top: 14, left: 14, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255, 255, 255, 0.95)', justifyContent: 'center', alignItems: 'center', elevation: 4 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   scheduleModalBox: { width: '100%', backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, elevation: 5 },

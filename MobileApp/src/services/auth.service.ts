@@ -1,4 +1,4 @@
-import { API_BASE_URL, setAuthToken } from './api';
+import { API_BASE_URL, apiDelete, setAuthToken } from './api';
 
 export type BackendRole = 'Admin' | 'Expert' | 'Parent';
 
@@ -70,4 +70,10 @@ export async function loginWithEmail(
             role: data.user.role || 'Parent',
         },
     };
+}
+
+// Permanently deletes the current user's account and all associated data
+// (children, favorites, ratings, comments, chats, meal plans...). Irreversible.
+export async function deleteMyAccount(): Promise<void> {
+    await apiDelete<{ message: string }>('/auth/me');
 }

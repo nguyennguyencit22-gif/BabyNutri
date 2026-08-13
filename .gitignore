@@ -55,3 +55,7 @@ build/
 **/android/local.properties
 **/ios/build/
 **/ios/Pods/
+
+# User-uploaded files (served from disk, not source-controlled)
+backend/uploads/*
+!backend/uploads/.gitkeep

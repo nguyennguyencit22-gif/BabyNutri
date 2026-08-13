@@ -59,12 +59,12 @@ exports.getRecipeById = async (req, res) => {
         const ingredients = ingredientRows.map((i) => `${i.quantity} ${i.name}`);
 
         const [stepRows] = await db.query(`
-            SELECT step_number, description
+            SELECT step_number, description, image_url
             FROM recipe_steps
             WHERE recipe_id = ?
             ORDER BY step_number ASC
         `, [id]);
-        const steps = stepRows.map(s => s.description);
+        const steps = stepRows.map(s => ({ description: s.description, imageUrl: s.image_url || null }));
 
         const [allergyRows] = await db.query(`
             SELECT a.name
@@ -332,6 +332,7 @@ exports.createRecipe = async (req, res) => {
             name, description, imageUrl, calories, monthAge,
             mealTypeId, cookingTime, prepTime, serves,
             protein, fat, carbohydrate,
+            weaningMethod, dietaryNeeds, occasion,
             ingredients, steps,
         } = req.body;
 
@@ -345,11 +346,12 @@ exports.createRecipe = async (req, res) => {
 
         const [result] = await connection.query(
             `INSERT INTO recipes
-             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate, weaning_method, dietary_needs, occasion)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, description || '', imageUrl || '', expertId, mealTypeId || null,
              cookingTime || 0, prepTime || 0, serves || 1, monthAge, calories,
-             protein || 0, fat || 0, carbohydrate || 0]
+             protein || 0, fat || 0, carbohydrate || 0,
+             weaningMethod || null, dietaryNeeds || null, occasion || null]
         );
         const recipeId = result.insertId;
 
@@ -377,10 +379,13 @@ exports.createRecipe = async (req, res) => {
 
         if (Array.isArray(steps)) {
             for (let i = 0; i < steps.length; i++) {
-                if (!steps[i]) continue;
+                const step = steps[i];
+                const description = typeof step === 'string' ? step : step?.description;
+                const stepImageUrl = typeof step === 'string' ? null : (step?.imageUrl || null);
+                if (!description) continue;
                 await connection.query(
-                    `INSERT INTO recipe_steps (recipe_id, step_number, description) VALUES (?, ?, ?)`,
-                    [recipeId, i + 1, steps[i]]
+                    `INSERT INTO recipe_steps (recipe_id, step_number, description, image_url) VALUES (?, ?, ?, ?)`,
+                    [recipeId, i + 1, description, stepImageUrl]
                 );
             }
         }
@@ -430,7 +435,7 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
     try {
         const id = req.params.id;
-        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate } = req.body;
+        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion } = req.body;
 
         const [existing] = await db.query(`SELECT id FROM recipes WHERE id = ?`, [id]);
         if (!existing.length) return res.status(404).json({ message: "Recipe not found" });
@@ -448,9 +453,12 @@ exports.updateRecipe = async (req, res) => {
                 serves = COALESCE(?, serves),
                 protein = COALESCE(?, protein),
                 fat = COALESCE(?, fat),
-                carbohydrate = COALESCE(?, carbohydrate)
+                carbohydrate = COALESCE(?, carbohydrate),
+                weaning_method = COALESCE(?, weaning_method),
+                dietary_needs = COALESCE(?, dietary_needs),
+                occasion = COALESCE(?, occasion)
              WHERE id = ?`,
-            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, id]
+            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion, id]
         );
 
         res.json({ message: "Recipe updated" });
@@ -504,6 +512,7 @@ exports.getMyRecipes = async (req, res) => {
                 mt.name AS mealType,
                 COALESCE(AVG(rr.rating), 0) AS avgRating,
                 COUNT(DISTINCT rr.id) AS ratingCount,
+                COUNT(DISTINCT CASE WHEN rr.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN rr.id END) AS ratingCountThisMonth,
                 COUNT(DISTINCT rc.id) AS commentCount
             FROM recipes r
             LEFT JOIN meal_types mt ON r.meal_type_id = mt.id
