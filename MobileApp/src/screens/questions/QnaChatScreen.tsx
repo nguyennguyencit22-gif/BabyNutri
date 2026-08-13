@@ -37,7 +37,7 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
   const targetExpertName = route?.params?.expertName || 'Nutrition Expert';
 
   const user = useSelector((state: RootState) => state.auth.user);
-  const currentUserId = Number(user?.id || 1);
+  const currentUserId = Number((user as any)?.id || (user as any)?.uid || 1);
   const currentRole = (user?.role || 'parent').toLowerCase();
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'User');
 
@@ -45,6 +45,7 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -73,28 +74,36 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
 
     const socket = io(socketHost, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
     });
 
     socketRef.current = socket;
 
     socket.on('connect', () => {
       console.log('Realtime socket connected for Q&A room:', questionId);
+      setIsConnected(true);
       socket.emit('join_qna_room', { questionId });
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Realtime socket disconnected for Q&A room:', questionId);
+      setIsConnected(false);
     });
 
     socket.on('receive_qna_message', (msg: ChatMessage) => {
       setMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
+        if (prev.some((m) => String(m.id) === String(msg.id))) return prev;
         return [...prev, msg];
       });
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     });
 
-    // Fallback polling every 3 seconds if offline
+    // Fallback polling every 5 seconds if socket offline
     const interval = setInterval(() => {
-      loadMessages();
-    }, 3000);
+      if (!socket.connected) {
+        loadMessages();
+      }
+    }, 5000);
 
     return () => {
       clearInterval(interval);
@@ -122,14 +131,19 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
 
     // Emit via Socket.io first for instant realtime delivery (< 50ms)
     if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('send_qna_message', messageData);
+      socketRef.current.emit('send_qna_message', messageData, (ack: any) => {
+        setSending(false);
+      });
       setSending(false);
     } else {
       // Fallback via HTTP REST API
       try {
         const res = await api.post(`/questions/${questionId}/messages`, { content: text });
         if (res.data) {
-          setMessages((prev) => [...prev, res.data]);
+          setMessages((prev) => {
+            if (prev.some((m) => String(m.id) === String(res.data.id))) return prev;
+            return [...prev, res.data];
+          });
         }
       } catch (e) {
         console.error('Send message HTTP fallback error:', e);
@@ -140,7 +154,7 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
   };
 
   const renderMessageItem = ({ item }: { item: ChatMessage }) => {
-    const isMe = item.senderId === currentUserId;
+    const isMe = Number(item.senderId) === currentUserId;
     const isExpert = item.senderRole === 'expert';
 
     return (
@@ -191,9 +205,11 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
           <Text style={[styles.headerSub, { color: colors.textSoft }]}>Consulting with: {targetExpertName}</Text>
         </View>
 
-        <View style={styles.realtimeBadge}>
-          <View style={styles.greenDot} />
-          <Text style={styles.realtimeText}>Live Chat</Text>
+        <View style={[styles.realtimeBadge, { backgroundColor: isConnected ? '#ECFDF5' : '#FEF3C7', borderColor: isConnected ? '#A7F3D0' : '#FDE68A' }]}>
+          <View style={[styles.greenDot, { backgroundColor: isConnected ? '#10B981' : '#F59E0B' }]} />
+          <Text style={[styles.realtimeText, { color: isConnected ? '#047857' : '#B45309' }]}>
+            {isConnected ? 'Live Chat' : 'Syncing'}
+          </Text>
         </View>
       </View>
 

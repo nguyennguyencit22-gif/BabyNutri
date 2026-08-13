@@ -121,16 +121,28 @@ exports.createQuestion = async (req, res) => {
             [parentId, targetExpertId, title.trim(), content.trim()]
         );
 
+        const newQuestion = {
+            id: result.insertId.toString(),
+            title: title.trim(),
+            content: content.trim(),
+            category: "General",
+            status: "Pending",
+            createdAt: new Date().toISOString(),
+            parentId: parentId ? parentId.toString() : null,
+            targetExpertId: targetExpertId ? targetExpertId.toString() : null,
+            answer: null,
+        };
+
+        try {
+            const { getIo } = require("../socket");
+            getIo().emit("question_created", newQuestion);
+        } catch (sockErr) {
+            // Socket server might not be initialized in test mode
+        }
+
         return res.status(201).json({
             message: "Question submitted successfully.",
-            question: {
-                id: result.insertId.toString(),
-                title: title.trim(),
-                content: content.trim(),
-                targetExpertId: targetExpertId ? targetExpertId.toString() : null,
-                status: "Pending",
-                createdAt: new Date().toISOString(),
-            },
+            question: newQuestion,
         });
     } catch (error) {
         console.error("CREATE QUESTION ERROR:", error);
@@ -207,15 +219,43 @@ exports.answerQuestion = async (req, res) => {
             }
         }
 
+        const answerData = {
+            id: ansResult.insertId.toString(),
+            questionId: questionId.toString(),
+            content: content.trim(),
+            expertId,
+            answeredAt: new Date().toISOString(),
+        };
+
+        try {
+            const { getIo } = require("../socket");
+            const io = getIo();
+            io.emit("question_answered", {
+                questionId: questionId.toString(),
+                answer: {
+                    id: answerData.id,
+                    content: content.trim(),
+                    expertName: "Nutrition Expert",
+                    answeredAt: answerData.answeredAt,
+                },
+                status: "Answered",
+            });
+            io.to(`qna_${questionId}`).emit("receive_qna_message", {
+                id: Date.now(),
+                questionId,
+                senderId: expertId,
+                senderName: "Nutrition Expert",
+                senderRole: "expert",
+                content: content.trim(),
+                createdAt: new Date().toISOString(),
+            });
+        } catch (sockErr) {
+            // Ignore socket errors in non-socket environments
+        }
+
         return res.json({
             message: "Answer submitted successfully.",
-            answer: {
-                id: ansResult.insertId.toString(),
-                questionId: questionId.toString(),
-                content: content.trim(),
-                expertId,
-                answeredAt: new Date().toISOString(),
-            },
+            answer: answerData,
         });
     } catch (error) {
         await connection.rollback();
@@ -267,14 +307,31 @@ exports.createFAQ = async (req, res) => {
 
         await connection.commit();
 
+        const createdFaq = {
+            id: questionId.toString(),
+            title: title.trim(),
+            content: answerText,
+            category: "FAQ",
+            status: "Answered",
+            createdAt: new Date().toISOString(),
+            answer: {
+                id: "ans_" + questionId,
+                content: answerText,
+                expertName: "Nutrition Expert",
+                answeredAt: new Date().toISOString(),
+            },
+        };
+
+        try {
+            const { getIo } = require("../socket");
+            getIo().emit("question_created", createdFaq);
+        } catch (sockErr) {
+            // Ignore socket errors
+        }
+
         return res.status(201).json({
             message: "FAQ created successfully.",
-            faq: {
-                id: questionId.toString(),
-                title: title.trim(),
-                content: answerText,
-                status: "Answered",
-            },
+            faq: createdFaq,
         });
     } catch (error) {
         await connection.rollback();
@@ -303,6 +360,13 @@ exports.deleteQuestion = async (req, res) => {
         const questionId = Number(req.params.id);
 
         await db.query("DELETE FROM questions WHERE id = ?", [questionId]);
+
+        try {
+            const { getIo } = require("../socket");
+            getIo().emit("question_deleted", { questionId: questionId.toString() });
+        } catch (sockErr) {
+            // Ignore socket error
+        }
 
         return res.json({ message: "Question deleted successfully." });
     } catch (error) {
@@ -374,7 +438,7 @@ exports.addQuestionMessage = async (req, res) => {
         const [userRows] = await db.query(`SELECT full_name, avatar FROM users WHERE id = ?`, [senderId]);
         const senderName = userRows.length > 0 ? userRows[0].full_name : "User";
 
-        return res.status(201).json({
+        const newMessageObj = {
             id: result.insertId,
             questionId,
             senderId,
@@ -382,7 +446,22 @@ exports.addQuestionMessage = async (req, res) => {
             senderRole,
             content: content.trim(),
             createdAt: new Date().toISOString(),
-        });
+        };
+
+        try {
+            const { getIo } = require("../socket");
+            const io = getIo();
+            io.to(`qna_${questionId}`).emit("receive_qna_message", newMessageObj);
+            io.emit("question_updated", {
+                questionId: questionId.toString(),
+                status: senderRole === "expert" ? "Answered" : undefined,
+                lastMessage: newMessageObj,
+            });
+        } catch (sockErr) {
+            // Ignore socket error
+        }
+
+        return res.status(201).json(newMessageObj);
     } catch (error) {
         console.error("ADD QUESTION MESSAGE ERROR:", error);
         return res.status(500).json({ message: "Server error", error: error.message });

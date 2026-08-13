@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, LayoutAnimation, Platform, UIManager, Alert, Modal, Pressable, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
+import io, { Socket } from 'socket.io-client';
 import Icon from '../../components/common/AppIcon';
 import { questionService } from '../../services/questionService';
+import api from '../../services/api';
 import { Question } from '../../types/question';
 import type { RootState } from '../../store/store';
 
@@ -12,11 +14,15 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const FAQScreen = ({ navigation }: any) => {
   const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const currentUserId = Number((user as any)?.id || (user as any)?.uid || 0);
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const [askModalVisible, setAskModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -28,10 +34,92 @@ const FAQScreen = ({ navigation }: any) => {
   const [mainTab, setMainTab] = useState<'faqs' | 'myQuestions'>('faqs');
   const [myQuestions, setMyQuestions] = useState<Question[]>([]);
 
+  const socketRef = useRef<Socket | null>(null);
+
   useEffect(() => {
     loadQuestions();
     loadPublicExperts();
-  }, []);
+
+    // Setup Socket.io Realtime connection for FAQ updates
+    const baseURL = api.defaults.baseURL || 'http://localhost:5000';
+    const socketHost = baseURL.replace(/\/api\/?$/, '');
+
+    const socket = io(socketHost, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 10,
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('Realtime socket connected on FAQScreen');
+      setIsSocketConnected(true);
+      socket.emit('join_faq_channel');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Realtime socket disconnected on FAQScreen');
+      setIsSocketConnected(false);
+    });
+
+    // Event: Realtime question/FAQ created
+    socket.on('question_created', (newQ: Question) => {
+      setQuestions((prev) => {
+        if (prev.some((q) => String(q.id) === String(newQ.id))) return prev;
+        return [newQ, ...prev];
+      });
+      if (newQ.parentId && Number(newQ.parentId) === currentUserId) {
+        setMyQuestions((prev) => {
+          if (prev.some((q) => String(q.id) === String(newQ.id))) return prev;
+          return [newQ, ...prev];
+        });
+      }
+    });
+
+    // Event: Realtime question answered by Expert
+    socket.on('question_answered', (data: { questionId: string; answer: any; status: string }) => {
+      const updateFaq = (q: Question) => {
+        if (String(q.id) === String(data.questionId)) {
+          return {
+            ...q,
+            status: 'Answered' as const,
+            answer: data.answer || q.answer,
+          };
+        }
+        return q;
+      };
+      setQuestions((prev) => prev.map(updateFaq));
+      setMyQuestions((prev) => prev.map(updateFaq));
+    });
+
+    // Event: Question activity / status update
+    socket.on('question_updated', (data: { questionId: string; status?: string; lastMessage?: any }) => {
+      const updateFaq = (q: Question) => {
+        if (String(q.id) === String(data.questionId)) {
+          return {
+            ...q,
+            status: (data.status as any) || (data.lastMessage?.senderRole === 'expert' ? 'Answered' : q.status),
+          };
+        }
+        return q;
+      };
+      setQuestions((prev) => prev.map(updateFaq));
+      setMyQuestions((prev) => prev.map(updateFaq));
+    });
+
+    // Event: Realtime question deleted
+    socket.on('question_deleted', (data: { questionId: string }) => {
+      setQuestions((prev) => prev.filter((q) => String(q.id) !== String(data.questionId)));
+      setMyQuestions((prev) => prev.filter((q) => String(q.id) !== String(data.questionId)));
+    });
+
+    return () => {
+      if (socket) {
+        socket.emit('leave_faq_channel');
+        socket.disconnect();
+      }
+    };
+  }, [currentUserId]);
 
   const loadQuestions = async () => {
     setLoading(true);
@@ -87,14 +175,34 @@ const FAQScreen = ({ navigation }: any) => {
     }
 
     try {
+      if (socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit(
+          'create_question_socket',
+          {
+            parentId: currentUserId > 0 ? currentUserId : null,
+            expertId: selectedExpertId,
+            title: newTitle.trim(),
+            content: newContent.trim(),
+          },
+          (res: any) => {
+            if (res && res.question) {
+              const q = res.question;
+              setQuestions((prev) => [q, ...prev]);
+              setMyQuestions((prev) => [q, ...prev]);
+            }
+          }
+        );
+      }
+
       await questionService.createQuestion(newTitle.trim(), newContent.trim(), selectedExpertId);
+
       setNewTitle('');
       setNewContent('');
       setSelectedExpertId(null);
       setAskModalVisible(false);
-      loadQuestions();
       setMainTab('myQuestions');
-      Alert.alert('Success 🎉', 'Your question has been sent to our Nutrition Experts!');
+      loadQuestions();
+      Alert.alert('Success 🎉', 'Your question has been sent in real-time to Pediatric Nutrition Experts!');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to submit question.');
     }
@@ -135,7 +243,15 @@ const FAQScreen = ({ navigation }: any) => {
       {/* Header Banner */}
       <View style={styles.headerBanner}>
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>Nutrition FAQ & Help</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.headerTitle}>Nutrition FAQ & Help</Text>
+            <View style={[styles.realtimeBadge, { backgroundColor: isSocketConnected ? '#ECFDF5' : '#FEF3C7', borderColor: isSocketConnected ? '#A7F3D0' : '#FDE68A' }]}>
+              <View style={[styles.greenDot, { backgroundColor: isSocketConnected ? '#10B981' : '#F59E0B' }]} />
+              <Text style={[styles.realtimeText, { color: isSocketConnected ? '#047857' : '#B45309' }]}>
+                {isSocketConnected ? 'Live' : 'Syncing'}
+              </Text>
+            </View>
+          </View>
           <TouchableOpacity
             style={styles.askBtn}
             onPress={handleAskPress}
@@ -392,6 +508,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#4B3034',
+  },
+  realtimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  greenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  realtimeText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   askBtn: {
     flexDirection: 'row',
