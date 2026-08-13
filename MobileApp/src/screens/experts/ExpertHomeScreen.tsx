@@ -86,9 +86,10 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        {isAdmin && (
+        {isAdmin ? (
           <>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Admin Tools</Text>
+            {/* ADMIN SYSTEM DASHBOARD - ACCOUNT & USER MANAGEMENT ONLY */}
+            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 10 }]}>Account & User Management</Text>
 
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -99,8 +100,8 @@ const ExpertHomeScreen = ({ navigation }: any) => {
                 <Icon source="account-supervisor" size={22} color="#8B5CF6" />
               </View>
               <View style={styles.actionTextGroup}>
-                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Expert Accounts</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, assign or remove Expert roles & profiles</Text>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage User & Expert Accounts</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View, elevate, edit roles & manage user profiles</Text>
               </View>
               <Icon source="chevron-right" size={20} color={colors.textSoft} />
             </TouchableOpacity>
@@ -115,59 +116,62 @@ const ExpertHomeScreen = ({ navigation }: any) => {
               </View>
               <View style={styles.actionTextGroup}>
                 <Text style={[styles.actionTitle, { color: colors.text }]}>System Reports & Statistics</Text>
-                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View system-wide user, content & Q&A metrics</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View system-wide user counts, role distribution & metrics</Text>
+              </View>
+              <Icon source="chevron-right" size={20} color={colors.textSoft} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            {/* EXPERT DASHBOARD - CONTENT & CONSULTATION TOOLS ONLY */}
+            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 10 }]}>Content Tools</Text>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('MyContent')}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
+                <Icon source="pencil" size={22} color="#FF5F70" />
+              </View>
+              <View style={styles.actionTextGroup}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Content</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove recipes & articles</Text>
+              </View>
+              <Icon source="chevron-right" size={20} color={colors.textSoft} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('ExpertFeedback')}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
+                <Icon source="star" size={22} color="#F59E0B" />
+              </View>
+              <View style={styles.actionTextGroup}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Feedback & Ratings</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>View parent reviews & reply to comments</Text>
+              </View>
+              <Icon source="chevron-right" size={20} color={colors.textSoft} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('ExpertQuestions')}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
+                <Icon source="help-circle" size={22} color="#10B981" />
+              </View>
+              <View style={styles.actionTextGroup}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>Q&A & FAQ Management</Text>
+                <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Answer parent questions & publish FAQs</Text>
               </View>
               <Icon source="chevron-right" size={20} color={colors.textSoft} />
             </TouchableOpacity>
           </>
         )}
-
-        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: isAdmin ? 14 : 0 }]}>Content Tools</Text>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('MyContent')}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-            <Icon source="pencil" size={22} color="#FF5F70" />
-          </View>
-          <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Manage Content</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove recipes & articles</Text>
-          </View>
-          <Icon source="chevron-right" size={20} color={colors.textSoft} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('ExpertFeedback')}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-            <Icon source="star" size={22} color="#F59E0B" />
-          </View>
-          <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Feedback & Ratings</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>See how parents are rating recipes</Text>
-          </View>
-          <Icon source="chevron-right" size={20} color={colors.textSoft} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('ExpertQuestion')}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#2B3830' : '#ECFDF5' }]}>
-            <Icon source="comment-question-outline" size={22} color="#10B981" />
-          </View>
-          <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Q&A & FAQ Management</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Answer parent questions & publish standard FAQs</Text>
-          </View>
-          <Icon source="chevron-right" size={20} color={colors.textSoft} />
-        </TouchableOpacity>
       </ScrollView>
 
       <AdminManageExpertsModal
