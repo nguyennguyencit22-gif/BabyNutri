@@ -184,31 +184,58 @@ const MyContentScreen = ({ route, navigation }: any) => {
           data={articles}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <TouchableOpacity
-                style={styles.cardMain}
-                onPress={() => navigation.navigate('ArticleDetail', { id: item.id })}
-                activeOpacity={0.85}
-              >
-                <Image source={getArticleImage(item.id, item.image_url)} style={styles.thumb} />
-                <View style={styles.cardInfo}>
-                  <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={2}>{item.title}</Text>
-                  {!!item.summary && (
-                    <Text style={[styles.cardSummary, { color: colors.textSoft }]} numberOfLines={2}>{item.summary}</Text>
-                  )}
+          renderItem={({ item }) => {
+            const badges = [item.category, item.target_age, item.reading_time].filter(Boolean) as string[];
+            const createdLabel = item.published_date
+              ? new Date(item.published_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : null;
+            return (
+              <View style={[styles.card, styles.articleCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.articleTopRow}>
+                  <TouchableOpacity
+                    style={styles.cardMain}
+                    onPress={() => navigation.navigate('ArticleDetail', { id: item.id })}
+                    activeOpacity={0.85}
+                  >
+                    <Image source={getArticleImage(item.id, item.image_url)} style={styles.thumb} />
+                    <View style={styles.cardInfo}>
+                      <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={2}>{item.title}</Text>
+                      {!!item.summary && (
+                        <Text style={[styles.cardSummary, { color: colors.textSoft }]} numberOfLines={2}>{item.summary}</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.cardActions}>
+                    <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('EditArticle', { id: item.id })}>
+                      <Icon source="pencil" size={18} color="#FF7A59" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.iconBtn} onPress={() => handleDeleteArticle(item.id, item.title)}>
+                      <Icon source="delete-outline" size={18} color="#DC2626" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </TouchableOpacity>
-              <View style={styles.cardActions}>
-                <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('EditArticle', { id: item.id })}>
-                  <Icon source="pencil" size={18} color="#FF7A59" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn} onPress={() => handleDeleteArticle(item.id, item.title)}>
-                  <Icon source="delete-outline" size={18} color="#DC2626" />
-                </TouchableOpacity>
+
+                {badges.length > 0 && (
+                  <View style={styles.articleBadgeRow}>
+                    {badges.map((b) => (
+                      <View key={b} style={[styles.articleBadge, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
+                        <Text style={[styles.articleBadgeText, { color: colors.textSoft }]} numberOfLines={1}>{b}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                <View style={styles.articleFooterRow}>
+                  {!!createdLabel && (
+                    <Text style={[styles.articleCreatedText, { color: colors.textSoft }]}>Created: {createdLabel}</Text>
+                  )}
+                  <View style={styles.statusPill}>
+                    <Text style={styles.statusPillText}>Published</Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          )}
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Icon source="text-box-outline" size={40} color={colors.textSoft} />
@@ -277,6 +304,24 @@ const styles = StyleSheet.create({
   statsText: { fontSize: 12, marginRight: 8 },
   cardActions: { flexDirection: 'row', gap: 4 },
   iconBtn: { padding: 8 },
+  articleCard: { flexDirection: 'column', alignItems: 'stretch' },
+  articleTopRow: { flexDirection: 'row', alignItems: 'center' },
+  articleBadgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingLeft: 68 },
+  articleBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  articleBadgeText: { fontSize: 11, fontWeight: '600' },
+  articleFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingLeft: 68,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)',
+  },
+  articleCreatedText: { fontSize: 11, fontWeight: '600' },
+  statusPill: { backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
+  statusPillText: { fontSize: 11, fontWeight: '700', color: '#16A34A' },
   emptyBox: { alignItems: 'center', marginTop: 60, gap: 8, paddingHorizontal: 20 },
   emptyText: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
 });
