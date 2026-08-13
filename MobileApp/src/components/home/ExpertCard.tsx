@@ -4,22 +4,24 @@ import {
     ImageSourcePropType,
     StyleSheet,
     Text,
-    View,
+    TouchableOpacity,
 } from 'react-native';
 
 type ExpertCardProps = {
     name: string;
     role: string;
     image: ImageSourcePropType;
+    onPress?: () => void;
 };
 
 function ExpertCard({
     name,
     role,
     image,
+    onPress,
 }: ExpertCardProps) {
     return (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.8}>
             <Image
                 source={image}
                 style={styles.avatar}
@@ -36,7 +38,7 @@ function ExpertCard({
                 style={styles.role}>
                 {role}
             </Text>
-        </View>
+        </TouchableOpacity>
     );
 }
 

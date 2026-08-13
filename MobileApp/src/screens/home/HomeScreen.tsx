@@ -220,6 +220,7 @@ function HomeScreen({ navigation }: any) {
                                 name={item.name}
                                 role={item.role}
                                 image={{ uri: item.image }}
+                                onPress={() => navigation.navigate('ExpertDetail', { expertId: item.id, expertName: item.name, image: item.image })}
                             />
                         )}
                     />

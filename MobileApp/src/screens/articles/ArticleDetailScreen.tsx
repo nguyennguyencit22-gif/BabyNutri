@@ -57,9 +57,15 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const loadSavedComments = useCallback(async () => {
     try {
-      const stored = await AsyncStorage.getItem(`article_comments_${id}`);
-      if (stored) {
-        setComments(JSON.parse(stored));
+      const data = await articleService.getComments(id);
+      if (Array.isArray(data)) {
+        setComments(data.map(c => ({
+          id: c.id,
+          userName: c.userName || 'User',
+          avatar: c.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.userName || 'User')}&background=FF5F70&color=fff&bold=true`,
+          content: c.content,
+          time: formatRealTimeAgo(c.createdAt),
+        })));
       }
     } catch (e) {
       console.error('Load comments error:', e);
@@ -68,33 +74,18 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const loadRatingData = useCallback(async () => {
     try {
-      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        const list: number[] = Array.isArray(parsed.ratingsList)
-          ? parsed.ratingsList
-          : (parsed.userRating ? [parsed.userRating] : []);
-        const uRating = parsed.userRating || 0;
+      const summary = await articleService.getRatingSummary(id);
+      setAvgRating(summary.averageRating);
+      setRatingCount(summary.totalRatings);
 
-        if (list.length > 0) {
-          const sum = list.reduce((a, b) => a + b, 0);
-          const avg = Number((sum / list.length).toFixed(1));
-          setUserRating(uRating);
-          setAvgRating(avg);
-          setRatingCount(list.length);
-          return;
-        }
+      if (authMode !== 'guest') {
+        const myR = await articleService.getMyRating(id);
+        setUserRating(myR || 0);
       }
-      setUserRating(0);
-      setAvgRating(0);
-      setRatingCount(0);
     } catch (e) {
       console.error('Load rating data error:', e);
-      setUserRating(0);
-      setAvgRating(0);
-      setRatingCount(0);
     }
-  }, [id]);
+  }, [id, authMode]);
 
   const saveRatingData = async (newScore: number) => {
     if (authMode === 'guest') {
@@ -103,53 +94,20 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     }
 
     try {
-      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
-      let list: number[] = [];
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        if (Array.isArray(parsed.ratingsList)) {
-          list = parsed.ratingsList;
-        }
-      }
-
-      if (userRating > 0 && list.length > 0) {
-        const userIndex = list.indexOf(userRating);
-        if (userIndex !== -1) {
-          list[userIndex] = newScore;
-        } else {
-          list.push(newScore);
-        }
-      } else {
-        list.push(newScore);
-      }
-
-      const sum = list.reduce((a, b) => a + b, 0);
-      const avg = Number((sum / list.length).toFixed(1));
-
+      await articleService.rate(id, newScore);
       setUserRating(newScore);
-      setAvgRating(avg);
-      setRatingCount(list.length);
-
-      await AsyncStorage.setItem(
-        `article_rating_${id}`,
-        JSON.stringify({
-          userRating: newScore,
-          ratingsList: list,
-          avgRating: avg,
-          ratingCount: list.length,
-        })
-      );
+      await loadRatingData();
 
       dispatch(addActivity({
         type: 'rate',
         title: `Rated article ${newScore}⭐: ${article?.title || 'Article'}`,
-        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        details: `Rating saved on server.`,
         icon: '⭐',
       }));
 
       appAlert.show(
         'Evaluation Saved',
-        `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        `You rated "${article?.title}" ${newScore} out of 5 stars!`,
         undefined,
         'star',
       );
@@ -176,16 +134,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     setLiked(isSaved);
   }, [isSaved]);
 
-  const saveCommentsToStorage = async (newList: CommentItem[]) => {
-    setComments(newList);
-    try {
-      await AsyncStorage.setItem(`article_comments_${id}`, JSON.stringify(newList));
-    } catch (e) {
-      console.error('Save comments error:', e);
-    }
-  };
-
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (authMode === 'guest') {
       navigation.navigate('Login');
       return;
@@ -197,26 +146,22 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       return;
     }
 
-    const newComment: CommentItem = {
-      id: Date.now(),
-      userName: currentUserName,
-      avatar: currentUserAvatar,
-      content: text,
-      time: 'Just now',
-    };
+    try {
+      await articleService.addComment(id, text);
+      setCommentInput('');
+      await loadSavedComments();
 
-    const updated = [newComment, ...comments];
-    saveCommentsToStorage(updated);
-    setCommentInput('');
+      dispatch(addActivity({
+        type: 'comment',
+        title: `Commented on: ${article?.title}`,
+        details: `"${text.slice(0, 30)}..."`,
+        icon: '💬',
+      }));
 
-    dispatch(addActivity({
-      type: 'comment',
-      title: `Commented on: ${article?.title}`,
-      details: `"${text.slice(0, 30)}..."`,
-      icon: '💬',
-    }));
-
-    appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
+      appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
+    } catch (e) {
+      appAlert.show('Error', 'Failed to post comment. Please try again.');
+    }
   };
 
   const handleToggleLikeAndSave = () => {

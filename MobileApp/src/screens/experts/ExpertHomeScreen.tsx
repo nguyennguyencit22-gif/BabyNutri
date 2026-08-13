@@ -36,11 +36,29 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       ]);
       setRecipeCount(recipes.length);
       setArticleCount(articles.length);
-      const rated = recipes.filter((r) => r.ratingCount > 0);
-      const totalRatings = rated.reduce((sum, r) => sum + r.ratingCount, 0);
-      setAvgRating(totalRatings > 0
-        ? rated.reduce((sum, r) => sum + r.avgRating * r.ratingCount, 0) / totalRatings
-        : 0);
+
+      const articleSummaries = await Promise.all(
+        articles.map((art) => articleService.getRatingSummary(art.id).catch(() => ({ totalRatings: 0, averageRating: 0 })))
+      );
+
+      let totalWeightedScore = 0;
+      let totalRatingCount = 0;
+
+      recipes.forEach((r) => {
+        if (r.ratingCount > 0) {
+          totalWeightedScore += r.avgRating * r.ratingCount;
+          totalRatingCount += r.ratingCount;
+        }
+      });
+
+      articleSummaries.forEach((s) => {
+        if (s.totalRatings > 0) {
+          totalWeightedScore += s.averageRating * s.totalRatings;
+          totalRatingCount += s.totalRatings;
+        }
+      });
+
+      setAvgRating(totalRatingCount > 0 ? totalWeightedScore / totalRatingCount : 0);
     } catch (e) {
       console.error('Load expert stats error:', e);
     }
