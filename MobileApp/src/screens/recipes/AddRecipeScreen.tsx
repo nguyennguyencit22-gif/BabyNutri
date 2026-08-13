@@ -86,7 +86,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name *</Text>
       <TextInput
         style={inputStyle}
