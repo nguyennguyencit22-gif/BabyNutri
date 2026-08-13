@@ -3,11 +3,44 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platfo
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
 import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
 import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
+
+const RING_SIZE = 88;
+const RING_STROKE = 8;
+
+// Fixed-size ring badge — Svg dimensions here are plain numbers (not "100%"
+// inside an auto-height View), which is the safe pattern for this app; see
+// GradientButton/BabyNutriBackground for the same rule.
+const StatRing = ({ value, label, color, onPress }: { value: string; label: string; color: string; onPress: () => void }) => {
+  const { colors } = useAppTheme();
+  const radius = (RING_SIZE - RING_STROKE) / 2;
+
+  return (
+    <TouchableOpacity style={styles.ringCol} onPress={onPress} activeOpacity={0.8}>
+      <View style={{ width: RING_SIZE, height: RING_SIZE }}>
+        <Svg width={RING_SIZE} height={RING_SIZE}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={RING_STROKE}
+            fill="none"
+          />
+        </Svg>
+        <View style={styles.ringCenter}>
+          <Text style={[styles.ringValue, { color }]}>{value}</Text>
+        </View>
+      </View>
+      <Text style={[styles.ringLabel, { color: colors.textSoft }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 // Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
 // Expert accounts don't track a baby, so the journey/recipe-browsing home
@@ -68,21 +101,25 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </Text>
         </View>
 
-        <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{recipeCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Recipes</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{articleCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Articles</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
-          </View>
+        <View style={styles.ringRow}>
+          <StatRing
+            value={String(recipeCount)}
+            label="Recipes"
+            color="#FF5F70"
+            onPress={() => navigation.navigate('MyContent', { initialTab: 'recipes' })}
+          />
+          <StatRing
+            value={String(articleCount)}
+            label="Articles"
+            color="#EC4899"
+            onPress={() => navigation.navigate('MyContent', { initialTab: 'articles' })}
+          />
+          <StatRing
+            value={avgRating > 0 ? avgRating.toFixed(1) : '—'}
+            label="Avg Rating"
+            color="#F59E0B"
+            onPress={() => navigation.navigate('ExpertFeedback')}
+          />
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Expert Tools</Text>
@@ -146,17 +183,23 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     fontWeight: '500',
   },
-  statsCard: {
+  ringRow: {
     flexDirection: 'row',
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingVertical: 16,
+    justifyContent: 'space-around',
     marginBottom: 24,
   },
-  statBox: { flex: 1, alignItems: 'center' },
-  statDivider: { width: 1 },
-  statValue: { fontSize: 20, fontWeight: '800', color: '#FF5F70' },
-  statLabel: { fontSize: 11, marginTop: 4 },
+  ringCol: { alignItems: 'center' },
+  ringCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ringValue: { fontSize: 20, fontWeight: '800' },
+  ringLabel: { fontSize: 12, fontWeight: '600', marginTop: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
   actionCard: {
     flexDirection: 'row',

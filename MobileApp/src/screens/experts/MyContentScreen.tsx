@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/common/AppIcon';
@@ -13,9 +13,15 @@ import { useAppTheme } from '../../theme/useAppTheme';
 // Expert's own content ("Create & Manage Content"): recipes and articles
 // they authored, with quick Edit / Delete actions. Reached from the Expert
 // home dashboard.
-const MyContentScreen = ({ navigation }: any) => {
+const MyContentScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
-  const [activeTab, setActiveTab] = useState<'recipes' | 'articles'>('recipes');
+  const [activeTab, setActiveTab] = useState<'recipes' | 'articles'>(route?.params?.initialTab || 'recipes');
+
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route?.params?.initialTab]);
   const [recipes, setRecipes] = useState<MyRecipeItem[]>([]);
   const [articles, setArticles] = useState<ArticleListItem[]>([]);
   const [loading, setLoading] = useState(true);
