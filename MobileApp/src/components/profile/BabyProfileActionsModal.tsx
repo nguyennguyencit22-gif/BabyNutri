@@ -116,14 +116,6 @@ interface BabyProfileActionsModalProps {
     onWeaningMealPlan?: () => void;
     onEditBaby: () => void;
     onAddCaregiver?: () => void;
-    onEditEvents?: () => void;
-    onConfigureMainScreen?: () => void;
-    onReminders?: () => void;
-    // Only the owner caregiver can invite others (backend enforces this
-    // too) — pass onCopyCode only when the selected baby's permission is
-    // 'owner', which hides the row entirely for editors. Guests get a
-    // different row instead (see showLoginPromptForCode below), since for
-    // them the fix is "log in", not "you lack permission".
     invitationCode?: string | null;
     onCopyCode?: () => void;
     onInputCode?: () => void;
@@ -140,9 +132,6 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
     onWeaningMealPlan,
     onEditBaby,
     onAddCaregiver,
-    onEditEvents,
-    onConfigureMainScreen,
-    onReminders,
     invitationCode,
     onCopyCode,
     onInputCode,
@@ -168,36 +157,6 @@ export const BabyProfileActionsModal: React.FC<BabyProfileActionsModalProps> = (
                       title: 'Add parent / caregiver',
                       iconName: 'account-plus-outline',
                       onPress: onAddCaregiver,
-                  },
-              ]
-            : []),
-        ...(onEditEvents
-            ? [
-                  {
-                      id: 'events',
-                      title: 'Create / Edit events',
-                      iconName: 'calendar-edit',
-                      onPress: onEditEvents,
-                  },
-              ]
-            : []),
-        ...(onConfigureMainScreen
-            ? [
-                  {
-                      id: 'configure',
-                      title: 'Main screen configuration',
-                      iconName: 'view-dashboard-edit-outline',
-                      onPress: onConfigureMainScreen,
-                  },
-              ]
-            : []),
-        ...(onReminders
-            ? [
-                  {
-                      id: 'reminders',
-                      title: 'Reminders',
-                      iconName: 'bell-outline',
-                      onPress: onReminders,
                   },
               ]
             : []),

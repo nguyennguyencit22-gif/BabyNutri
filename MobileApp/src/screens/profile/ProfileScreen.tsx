@@ -244,18 +244,6 @@ function ProfileScreen({
                     if (!selectedBabyId) return;
                     console.log('Add caregiver:', selectedBabyId);
                 }}
-                onEditEvents={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Edit events:', selectedBabyId);
-                }}
-                onConfigureMainScreen={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Configure main screen:', selectedBabyId);
-                }}
-                onReminders={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Reminders:', selectedBabyId);
-                }}
                 invitationCode={invitationCode}
                 onCopyCode={
                     isAuthenticated &&
