@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { recipeService } from '../../services/recipe.service';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS } from '../../components/recipes/RecipeFieldChips';
 
 const EditRecipeScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -18,6 +19,10 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
   const [protein, setProtein] = useState('');
   const [fat, setFat] = useState('');
   const [carbohydrate, setCarbohydrate] = useState('');
+  const [mealTypeName, setMealTypeName] = useState('');
+  const [weaningMethod, setWeaningMethod] = useState('');
+  const [dietaryNeeds, setDietaryNeeds] = useState('');
+  const [occasion, setOccasion] = useState('');
 
   const fetchRecipeDetail = useCallback(() => {
     setLoading(true);
@@ -33,6 +38,10 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
         setProtein(String(r.protein || ''));
         setFat(String(r.fat || ''));
         setCarbohydrate(String(r.carbohydrate || ''));
+        setMealTypeName(r.mealType || '');
+        setWeaningMethod(r.weaning_method || '');
+        setDietaryNeeds(r.dietary_needs || '');
+        setOccasion(r.occasion || '');
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false));
@@ -45,17 +54,22 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
   const handleSave = async () => {
     setSubmitting(true);
     try {
+      const mealTypeId = RECIPE_MEAL_TYPES.find((m) => m.name === mealTypeName)?.id;
       await recipeService.update(id, {
         name,
         description,
         imageUrl,
         calories: Number(calories),
         monthAge: Number(monthAge),
+        mealTypeId,
         cookingTime: Number(cookingTime),
         prepTime: Number(prepTime),
         protein: Number(protein),
         fat: Number(fat),
         carbohydrate: Number(carbohydrate),
+        weaningMethod: weaningMethod || undefined,
+        dietaryNeeds: dietaryNeeds || undefined,
+        occasion: occasion || undefined,
       });
       Alert.alert('Success', 'Recipe updated', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
@@ -91,6 +105,18 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
           <TextInput style={inputStyle} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
         </View>
       </View>
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Type</Text>
+      <ChipSelectRow options={RECIPE_MEAL_TYPES.map((m) => m.name)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Weaning Method</Text>
+      <ChipSelectRow options={RECIPE_WEANING_METHODS} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Dietary Needs</Text>
+      <ChipSelectRow options={RECIPE_DIETARY_NEEDS} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Occasion</Text>
+      <ChipSelectRow options={RECIPE_OCCASIONS} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
 
       <View style={styles.rowInputs}>
         <View style={styles.third}>

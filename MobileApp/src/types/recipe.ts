@@ -18,6 +18,9 @@ export interface Recipe {
     ingredients: string[];
     steps: string[];
     allergies?: string[];
+    weaning_method?: string | null;
+    dietary_needs?: string | null;
+    occasion?: string | null;
     assets?: {
       stickers: string[];
       heroImages: string[];
@@ -53,6 +56,9 @@ export interface Recipe {
     protein?: number;
     fat?: number;
     carbohydrate?: number;
+    weaningMethod?: string;
+    dietaryNeeds?: string;
+    occasion?: string;
     ingredients: IngredientInput[];
     steps: string[];
   }

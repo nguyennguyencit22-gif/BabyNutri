@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert 
 import { recipeService } from '../../services/recipe.service';
 import { IngredientInput } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
+import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS } from '../../components/recipes/RecipeFieldChips';
 
 const DEFAULT_FOOD_IMAGE = 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600';
 
@@ -26,6 +27,11 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const [steps, setSteps] = useState<string[]>(['']);
   const [submitting, setSubmitting] = useState(false);
 
+  const [mealTypeName, setMealTypeName] = useState('');
+  const [weaningMethod, setWeaningMethod] = useState('');
+  const [dietaryNeeds, setDietaryNeeds] = useState('');
+  const [occasion, setOccasion] = useState('');
+
   const updateIngredient = (index: number, field: 'name' | 'quantity', value: string) => {
     ingredients[index][field] = value;
   };
@@ -46,18 +52,23 @@ const AddRecipeScreen = ({ navigation }: any) => {
     }
     setSubmitting(true);
     try {
+      const mealTypeId = RECIPE_MEAL_TYPES.find((m) => m.name === mealTypeName)?.id;
       await recipeService.create({
         name: data.name.trim(),
         description: data.description.trim(),
         imageUrl: data.imageUrl.trim() || DEFAULT_FOOD_IMAGE,
         calories: Number(data.calories),
         monthAge: Number(data.monthAge),
+        mealTypeId,
         cookingTime: Number(data.cookingTime) || 0,
         prepTime: Number(data.prepTime) || 0,
         serves: Number(data.serves) || 1,
         protein: Number(data.protein) || 0,
         fat: Number(data.fat) || 0,
         carbohydrate: Number(data.carbohydrate) || 0,
+        weaningMethod: weaningMethod || undefined,
+        dietaryNeeds: dietaryNeeds || undefined,
+        occasion: occasion || undefined,
         ingredients: ingredients.filter((i) => i.name.trim()),
         steps: steps.filter((s) => s.trim()),
       });
@@ -147,6 +158,18 @@ const AddRecipeScreen = ({ navigation }: any) => {
           />
         </View>
       </View>
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Type</Text>
+      <ChipSelectRow options={RECIPE_MEAL_TYPES.map((m) => m.name)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Weaning Method</Text>
+      <ChipSelectRow options={RECIPE_WEANING_METHODS} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Dietary Needs</Text>
+      <ChipSelectRow options={RECIPE_DIETARY_NEEDS} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
+
+      <Text style={[styles.label, { color: colors.textSoft }]}>Occasion</Text>
+      <ChipSelectRow options={RECIPE_OCCASIONS} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
 
       <View style={styles.rowInputs}>
         <View style={styles.third}>

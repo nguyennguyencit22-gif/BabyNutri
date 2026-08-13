@@ -332,6 +332,7 @@ exports.createRecipe = async (req, res) => {
             name, description, imageUrl, calories, monthAge,
             mealTypeId, cookingTime, prepTime, serves,
             protein, fat, carbohydrate,
+            weaningMethod, dietaryNeeds, occasion,
             ingredients, steps,
         } = req.body;
 
@@ -345,11 +346,12 @@ exports.createRecipe = async (req, res) => {
 
         const [result] = await connection.query(
             `INSERT INTO recipes
-             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate, weaning_method, dietary_needs, occasion)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, description || '', imageUrl || '', expertId, mealTypeId || null,
              cookingTime || 0, prepTime || 0, serves || 1, monthAge, calories,
-             protein || 0, fat || 0, carbohydrate || 0]
+             protein || 0, fat || 0, carbohydrate || 0,
+             weaningMethod || null, dietaryNeeds || null, occasion || null]
         );
         const recipeId = result.insertId;
 
@@ -402,7 +404,7 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
     try {
         const id = req.params.id;
-        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate } = req.body;
+        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion } = req.body;
 
         const [existing] = await db.query(`SELECT id FROM recipes WHERE id = ?`, [id]);
         if (!existing.length) return res.status(404).json({ message: "Recipe not found" });
@@ -420,9 +422,12 @@ exports.updateRecipe = async (req, res) => {
                 serves = COALESCE(?, serves),
                 protein = COALESCE(?, protein),
                 fat = COALESCE(?, fat),
-                carbohydrate = COALESCE(?, carbohydrate)
+                carbohydrate = COALESCE(?, carbohydrate),
+                weaning_method = COALESCE(?, weaning_method),
+                dietary_needs = COALESCE(?, dietary_needs),
+                occasion = COALESCE(?, occasion)
              WHERE id = ?`,
-            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, id]
+            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion, id]
         );
 
         res.json({ message: "Recipe updated" });

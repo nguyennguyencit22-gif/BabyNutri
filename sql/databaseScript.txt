@@ -191,6 +191,9 @@ CREATE TABLE recipes (
     fat INT DEFAULT 0,
     carbohydrate INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    weaning_method VARCHAR(100),
+    dietary_needs VARCHAR(100),
+    occasion VARCHAR(100),
 
     FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL
