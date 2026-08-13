@@ -15,6 +15,7 @@ GoogleSignin.configure({
     webClientId:
         '838570278190-06ff9gejlh388s6b2k8bs6ttujo64pt6.apps.googleusercontent.com',
     offlineAccess: false,
+    scopes: ['profile', 'email'],
 });
 
 export async function loginWithGoogle() {
@@ -22,11 +23,17 @@ export async function loginWithGoogle() {
         showPlayServicesUpdateDialog: true,
     });
 
+    try {
+        await GoogleSignin.signOut();
+    } catch {
+        // Ignore if no user was signed in previously
+    }
+
     const response = await GoogleSignin.signIn();
 
     if (!isSuccessResponse(response)) {
         throw new Error(
-            'Google sign-in was cancelled.',
+            'Google sign-in was cancelled. Please tap on your Google account in the popup.',
         );
     }
 
