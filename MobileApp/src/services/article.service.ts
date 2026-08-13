@@ -39,7 +39,31 @@ loadFromStorage().then(saved => {
   }
 });
 
+export type ArticleMetadata = {
+  categories: { id: number; name: string }[];
+  ageRanges: string[];
+  readingTimes: string[];
+};
+
 export const articleService = {
+  getMeta: async (): Promise<ArticleMetadata> => {
+    try {
+      const res = await api.get(`${BASE}/meta`);
+      return res.data;
+    } catch {
+      return {
+        categories: [
+          { id: 1, name: 'Nutrition Tips' },
+          { id: 2, name: 'Weaning Guide' },
+          { id: 3, name: 'Recipes & Meals' },
+          { id: 4, name: 'Health & Safety' },
+          { id: 5, name: 'Development' },
+        ],
+        ageRanges: ['0-6 months', '6-12 months', '12-24 months', '24+ months'],
+        readingTimes: ['2 min read', '5 min read', '10 min read'],
+      };
+    }
+  },
   getAll: async (): Promise<ArticleListItem[]> => {
     try {
       const res = await api.get(BASE);

@@ -104,13 +104,29 @@ const ChatConversationScreen = ({ route, navigation }: any) => {
     if (!text || status === 'ended') return;
 
     setInput('');
-    const socket = await getSocket();
-    socket.emit('send_message', { conversationId, content: text }, (res: { error?: string }) => {
-      if (res?.error) {
-        console.error('send_message error:', res.error);
+    try {
+      const socket = await getSocket().catch(() => null);
+      if (socket && socket.connected) {
+        socket.emit('send_message', { conversationId, content: text }, async (res: { error?: string }) => {
+          if (res?.error) {
+            console.warn('send_message socket warning, falling back to REST:', res.error);
+            const sent = await chatService.sendMessage(conversationId, text);
+            setMessages((prev) => [...prev, sent]);
+          }
+        });
+      } else {
+        const sent = await chatService.sendMessage(conversationId, text);
+        setMessages((prev) => [...prev, sent]);
+      }
+    } catch (err) {
+      try {
+        const sent = await chatService.sendMessage(conversationId, text);
+        setMessages((prev) => [...prev, sent]);
+      } catch (e) {
+        console.error('send message error:', e);
         appAlert.show('Error', 'Unable to send your message right now.', undefined, 'error');
       }
-    });
+    }
   };
 
   const handleEndChat = () => {

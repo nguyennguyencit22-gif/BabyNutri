@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
 import Icon from '../../components/common/AppIcon';
 import ImageSourcePicker from '../../components/common/ImageSourcePicker';
-import { recipeService } from '../../services/recipe.service';
+import { recipeService, RecipeMetadata } from '../../services/recipe.service';
 import { IngredientInput, RecipeStepItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
-import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS } from '../../components/recipes/RecipeFieldChips';
+import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS, toOptionNames } from '../../components/recipes/RecipeFieldChips';
 
 const DEFAULT_FOOD_IMAGE = 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600';
 
@@ -29,10 +29,24 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const [steps, setSteps] = useState<RecipeStepItem[]>([{ description: '', imageUrl: '' }]);
   const [submitting, setSubmitting] = useState(false);
 
+  const [mealTypes, setMealTypes] = useState(RECIPE_MEAL_TYPES);
+  const [weaningMethods, setWeaningMethods] = useState(RECIPE_WEANING_METHODS);
+  const [dietaryNeedsList, setDietaryNeedsList] = useState(RECIPE_DIETARY_NEEDS);
+  const [occasionsList, setOccasionsList] = useState(RECIPE_OCCASIONS);
+
   const [mealTypeName, setMealTypeName] = useState('');
   const [weaningMethod, setWeaningMethod] = useState('');
   const [dietaryNeeds, setDietaryNeeds] = useState('');
   const [occasion, setOccasion] = useState('');
+
+  useEffect(() => {
+    recipeService.getMeta().then((meta: RecipeMetadata) => {
+      if (meta.mealTypes?.length) setMealTypes(meta.mealTypes);
+      if (meta.weaningMethods?.length) setWeaningMethods(meta.weaningMethods);
+      if (meta.dietaryNeeds?.length) setDietaryNeedsList(meta.dietaryNeeds);
+      if (meta.occasions?.length) setOccasionsList(meta.occasions);
+    }).catch((e) => console.warn('Could not load recipe meta:', e));
+  }, []);
 
   const updateIngredient = (index: number, field: 'name' | 'quantity', value: string) => {
     ingredients[index][field] = value;
@@ -59,14 +73,21 @@ const AddRecipeScreen = ({ navigation }: any) => {
     }
     setSubmitting(true);
     try {
-      const mealTypeId = RECIPE_MEAL_TYPES.find((m) => m.name === mealTypeName)?.id;
+      const selectedMealType = mealTypes.find((m) => m.name === mealTypeName);
+      const selectedWeaning = weaningMethods.find((w) => w.name === weaningMethod);
+      const selectedDiet = dietaryNeedsList.find((d) => d.name === dietaryNeeds);
+      const selectedOccasion = occasionsList.find((o) => o.name === occasion);
+
       await recipeService.create({
         name: data.name.trim(),
         description: data.description.trim(),
         imageUrl: imageUrl.trim() || DEFAULT_FOOD_IMAGE,
         calories: Number(data.calories),
         monthAge: Number(data.monthAge),
-        mealTypeId,
+        mealTypeId: selectedMealType?.id,
+        weaningMethodId: selectedWeaning?.id,
+        dietaryNeedsId: selectedDiet?.id,
+        occasionId: selectedOccasion?.id,
         cookingTime: Number(data.cookingTime) || 0,
         prepTime: Number(data.prepTime) || 0,
         serves: Number(data.serves) || 1,
@@ -173,16 +194,16 @@ const AddRecipeScreen = ({ navigation }: any) => {
       </View>
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Type</Text>
-      <ChipSelectRow options={RECIPE_MEAL_TYPES.map((m) => m.name)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={toOptionNames(mealTypes)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Weaning Method</Text>
-      <ChipSelectRow options={RECIPE_WEANING_METHODS} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={toOptionNames(weaningMethods)} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Dietary Needs</Text>
-      <ChipSelectRow options={RECIPE_DIETARY_NEEDS} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={toOptionNames(dietaryNeedsList)} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Occasion</Text>
-      <ChipSelectRow options={RECIPE_OCCASIONS} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={toOptionNames(occasionsList)} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
 
       <View style={styles.rowInputs}>
         <View style={styles.third}>

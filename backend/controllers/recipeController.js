@@ -2,6 +2,41 @@
 const db = require("../db");
 
 // ==========================================
+// RECIPE METADATA & LOOKUP TABLES
+// ==========================================
+exports.getRecipeMeta = async (req, res) => {
+    try {
+        const [mealTypes] = await db.query(`SELECT id, name FROM meal_types ORDER BY id ASC`);
+        const [weaningMethods] = await db.query(`SELECT id, name FROM weaning_methods ORDER BY id ASC`);
+        const [dietaryNeeds] = await db.query(`SELECT id, name FROM dietary_needs ORDER BY id ASC`);
+        const [occasions] = await db.query(`SELECT id, name FROM occasions ORDER BY id ASC`);
+
+        res.json({
+            mealTypes: mealTypes.length ? mealTypes : [
+                { id: 1, name: 'Breakfast' }, { id: 2, name: 'Lunch' },
+                { id: 3, name: 'Dinner' }, { id: 4, name: 'Snack' }
+            ],
+            weaningMethods: weaningMethods.length ? weaningMethods : [
+                { id: 1, name: 'Puree' }, { id: 2, name: 'Mashed' },
+                { id: 3, name: 'Baby-Led Weaning' }, { id: 4, name: 'Finger Food' }
+            ],
+            dietaryNeeds: dietaryNeeds.length ? dietaryNeeds : [
+                { id: 1, name: 'Dairy-Free' }, { id: 2, name: 'Gluten-Free' },
+                { id: 3, name: 'Egg-Free' }, { id: 4, name: 'Nut-Free' }, { id: 5, name: 'Vegetarian' }
+            ],
+            occasions: occasions.length ? occasions : [
+                { id: 1, name: 'Everyday' }, { id: 2, name: 'First Foods' },
+                { id: 3, name: 'Meal Prep' }, { id: 4, name: 'On-the-Go' }, { id: 5, name: 'Special Occasion' }
+            ],
+            ageRanges: ['0-6 months', '6-12 months', '12-24 months', '24+ months']
+        });
+    } catch (err) {
+        console.error("getRecipeMeta error:", err);
+        res.status(500).json({ message: "Failed to fetch recipe metadata", error: err.message });
+    }
+};
+
+// ==========================================
 // GET ALL RECIPES (LIST PAGE)
 // ==========================================
 exports.getRecipes = async (req, res) => {
@@ -9,11 +44,15 @@ exports.getRecipes = async (req, res) => {
         const [rows] = await db.query(`
             SELECT 
                 r.*,
-                mt.name AS mealType,
-                u.full_name AS expertName
+                COALESCE(mt.name, 'Meal') AS mealType,
+                COALESCE(u.full_name, 'BabyNutri Expert') AS expertName,
+                COALESCE(AVG(rr.rating), 4.8) AS avgRating,
+                COUNT(DISTINCT rr.id) AS ratingCount
             FROM recipes r
             LEFT JOIN meal_types mt ON r.meal_type_id = mt.id
             LEFT JOIN users u ON r.expert_id = u.id
+            LEFT JOIN recipe_ratings rr ON rr.recipe_id = r.id
+            GROUP BY r.id
             ORDER BY r.id DESC
         `);
         res.json(rows);
@@ -333,6 +372,7 @@ exports.createRecipe = async (req, res) => {
             mealTypeId, cookingTime, prepTime, serves,
             protein, fat, carbohydrate,
             weaningMethod, dietaryNeeds, occasion,
+            weaningMethodId, dietaryNeedsId, occasionId,
             ingredients, steps,
         } = req.body;
 
@@ -346,33 +386,36 @@ exports.createRecipe = async (req, res) => {
 
         const [result] = await connection.query(
             `INSERT INTO recipes
-             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate, weaning_method, dietary_needs, occasion)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             (name, description, image_url, expert_id, meal_type_id, cooking_time, prep_time, serves, month_age, calories, protein, fat, carbohydrate, weaning_method, dietary_needs, occasion, weaning_method_id, dietary_needs_id, occasion_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, description || '', imageUrl || '', expertId, mealTypeId || null,
              cookingTime || 0, prepTime || 0, serves || 1, monthAge, calories,
              protein || 0, fat || 0, carbohydrate || 0,
-             weaningMethod || null, dietaryNeeds || null, occasion || null]
+             weaningMethod || null, dietaryNeeds || null, occasion || null,
+             weaningMethodId || null, dietaryNeedsId || null, occasionId || null]
         );
         const recipeId = result.insertId;
 
         if (Array.isArray(ingredients)) {
             for (const ing of ingredients) {
-                if (!ing.name) continue;
+                const ingName = typeof ing === 'string' ? ing : ing.name;
+                const ingQty = typeof ing === 'string' ? '' : (ing.quantity || '');
+                if (!ingName || !ingName.trim()) continue;
                 let [existing] = await connection.query(
-                    `SELECT id FROM ingredients WHERE name = ?`, [ing.name]
+                    `SELECT id FROM ingredients WHERE name = ?`, [ingName.trim()]
                 );
                 let ingredientId;
                 if (existing.length > 0) {
                     ingredientId = existing[0].id;
                 } else {
                     const [inserted] = await connection.query(
-                        `INSERT INTO ingredients (name) VALUES (?)`, [ing.name]
+                        `INSERT INTO ingredients (name) VALUES (?)`, [ingName.trim()]
                     );
                     ingredientId = inserted.insertId;
                 }
                 await connection.query(
                     `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES (?, ?, ?)`,
-                    [recipeId, ingredientId, ing.quantity || '']
+                    [recipeId, ingredientId, ingQty]
                 );
             }
         }
@@ -380,12 +423,12 @@ exports.createRecipe = async (req, res) => {
         if (Array.isArray(steps)) {
             for (let i = 0; i < steps.length; i++) {
                 const step = steps[i];
-                const description = typeof step === 'string' ? step : step?.description;
+                const stepDesc = typeof step === 'string' ? step : step?.description;
                 const stepImageUrl = typeof step === 'string' ? null : (step?.imageUrl || null);
-                if (!description) continue;
+                if (!stepDesc || !stepDesc.trim()) continue;
                 await connection.query(
                     `INSERT INTO recipe_steps (recipe_id, step_number, description, image_url) VALUES (?, ?, ?, ?)`,
-                    [recipeId, i + 1, description, stepImageUrl]
+                    [recipeId, i + 1, stepDesc.trim(), stepImageUrl]
                 );
             }
         }
@@ -433,14 +476,24 @@ exports.createRecipe = async (req, res) => {
 // UPDATE RECIPE
 // ==========================================
 exports.updateRecipe = async (req, res) => {
+    const connection = await db.getConnection();
     try {
         const id = req.params.id;
-        const { name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion } = req.body;
+        const {
+            name, description, imageUrl, calories, monthAge,
+            mealTypeId, cookingTime, prepTime, serves,
+            protein, fat, carbohydrate,
+            weaningMethod, dietaryNeeds, occasion,
+            weaningMethodId, dietaryNeedsId, occasionId,
+            ingredients, steps,
+        } = req.body;
 
-        const [existing] = await db.query(`SELECT id FROM recipes WHERE id = ?`, [id]);
+        const [existing] = await connection.query(`SELECT id FROM recipes WHERE id = ?`, [id]);
         if (!existing.length) return res.status(404).json({ message: "Recipe not found" });
 
-        await db.query(
+        await connection.beginTransaction();
+
+        await connection.query(
             `UPDATE recipes SET
                 name = COALESCE(?, name),
                 description = COALESCE(?, description),
@@ -456,15 +509,61 @@ exports.updateRecipe = async (req, res) => {
                 carbohydrate = COALESCE(?, carbohydrate),
                 weaning_method = COALESCE(?, weaning_method),
                 dietary_needs = COALESCE(?, dietary_needs),
-                occasion = COALESCE(?, occasion)
+                occasion = COALESCE(?, occasion),
+                weaning_method_id = COALESCE(?, weaning_method_id),
+                dietary_needs_id = COALESCE(?, dietary_needs_id),
+                occasion_id = COALESCE(?, occasion_id)
              WHERE id = ?`,
-            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion, id]
+            [name, description, imageUrl, calories, monthAge, mealTypeId, cookingTime, prepTime, serves, protein, fat, carbohydrate, weaningMethod, dietaryNeeds, occasion, weaningMethodId, dietaryNeedsId, occasionId, id]
         );
 
+        if (Array.isArray(ingredients)) {
+            await connection.query(`DELETE FROM recipe_ingredients WHERE recipe_id = ?`, [id]);
+            for (const ing of ingredients) {
+                const ingName = typeof ing === 'string' ? ing : ing.name;
+                const ingQty = typeof ing === 'string' ? '' : (ing.quantity || '');
+                if (!ingName || !ingName.trim()) continue;
+                let [existingIng] = await connection.query(
+                    `SELECT id FROM ingredients WHERE name = ?`, [ingName.trim()]
+                );
+                let ingredientId;
+                if (existingIng.length > 0) {
+                    ingredientId = existingIng[0].id;
+                } else {
+                    const [inserted] = await connection.query(
+                        `INSERT INTO ingredients (name) VALUES (?)`, [ingName.trim()]
+                    );
+                    ingredientId = inserted.insertId;
+                }
+                await connection.query(
+                    `INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity) VALUES (?, ?, ?)`,
+                    [id, ingredientId, ingQty]
+                );
+            }
+        }
+
+        if (Array.isArray(steps)) {
+            await connection.query(`DELETE FROM recipe_steps WHERE recipe_id = ?`, [id]);
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                const stepDesc = typeof step === 'string' ? step : step?.description;
+                const stepImageUrl = typeof step === 'string' ? null : (step?.imageUrl || null);
+                if (!stepDesc || !stepDesc.trim()) continue;
+                await connection.query(
+                    `INSERT INTO recipe_steps (recipe_id, step_number, description, image_url) VALUES (?, ?, ?, ?)`,
+                    [id, i + 1, stepDesc.trim(), stepImageUrl]
+                );
+            }
+        }
+
+        await connection.commit();
         res.json({ message: "Recipe updated" });
     } catch (err) {
+        try { await connection.rollback(); } catch {}
         console.error("updateRecipe error:", err);
         res.status(500).json({ message: "Failed to update recipe", error: err.message });
+    } finally {
+        connection.release();
     }
 };
 
@@ -509,7 +608,7 @@ exports.getMyRecipes = async (req, res) => {
         const [rows] = await db.query(`
             SELECT
                 r.*,
-                mt.name AS mealType,
+                COALESCE(mt.name, 'Meal') AS mealType,
                 COALESCE(AVG(rr.rating), 0) AS avgRating,
                 COUNT(DISTINCT rr.id) AS ratingCount,
                 COUNT(DISTINCT CASE WHEN rr.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN rr.id END) AS ratingCountThisMonth,
@@ -535,23 +634,59 @@ exports.getMyRecipes = async (req, res) => {
 // ==========================================
 exports.searchRecipes = async (req, res) => {
     try {
-        const { query, mealTypeId, minAge, maxAge } = req.query;
+        const { query, mealTypeId, mealType, weaningMethod, dietaryNeeds, occasion, minAge, maxAge } = req.query;
 
         let sql = `
-            SELECT r.*, mt.name AS mealType, u.full_name AS expertName
+            SELECT r.*,
+                   COALESCE(mt.name, 'Meal') AS mealType,
+                   COALESCE(u.full_name, 'BabyNutri Expert') AS expertName,
+                   COALESCE(AVG(rr.rating), 4.8) AS avgRating,
+                   COUNT(DISTINCT rr.id) AS ratingCount
             FROM recipes r
             LEFT JOIN meal_types mt ON r.meal_type_id = mt.id
             LEFT JOIN users u ON r.expert_id = u.id
+            LEFT JOIN recipe_ratings rr ON rr.recipe_id = r.id
             WHERE 1 = 1
         `;
         const params = [];
 
-        if (query) { sql += ` AND r.name LIKE ?`; params.push(`%${query}%`); }
-        if (mealTypeId) { sql += ` AND r.meal_type_id = ?`; params.push(mealTypeId); }
-        if (minAge) { sql += ` AND r.month_age >= ?`; params.push(minAge); }
-        if (maxAge) { sql += ` AND r.month_age <= ?`; params.push(maxAge); }
+        if (query) {
+            sql += ` AND (r.name LIKE ? OR r.description LIKE ? OR r.id IN (
+                SELECT ri.recipe_id FROM recipe_ingredients ri
+                JOIN ingredients i ON ri.ingredient_id = i.id
+                WHERE i.name LIKE ?
+            ))`;
+            params.push(`%${query}%`, `%${query}%`, `%${query}%`);
+        }
+        if (mealTypeId) {
+            sql += ` AND r.meal_type_id = ?`;
+            params.push(mealTypeId);
+        } else if (mealType) {
+            sql += ` AND (mt.name = ? OR r.meal_type_id = ?)`;
+            params.push(mealType, mealType);
+        }
+        if (weaningMethod) {
+            sql += ` AND (r.weaning_method = ? OR r.weaning_method_id = ?)`;
+            params.push(weaningMethod, weaningMethod);
+        }
+        if (dietaryNeeds) {
+            sql += ` AND (r.dietary_needs = ? OR r.dietary_needs_id = ?)`;
+            params.push(dietaryNeeds, dietaryNeeds);
+        }
+        if (occasion) {
+            sql += ` AND (r.occasion = ? OR r.occasion_id = ?)`;
+            params.push(occasion, occasion);
+        }
+        if (minAge) {
+            sql += ` AND r.month_age >= ?`;
+            params.push(minAge);
+        }
+        if (maxAge) {
+            sql += ` AND r.month_age <= ?`;
+            params.push(maxAge);
+        }
 
-        sql += ` ORDER BY r.id DESC`;
+        sql += ` GROUP BY r.id ORDER BY r.id DESC`;
 
         const [rows] = await db.query(sql, params);
         res.json(rows);

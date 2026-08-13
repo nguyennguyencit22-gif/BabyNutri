@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+    getRecipeMeta,
     getRecipes,
     getRecipeById,
     createRecipe,
@@ -21,6 +22,8 @@ const {
 } = require("../controllers/recipeController");
 const auth = require("../middleware/auth");
 
+router.get("/meta", getRecipeMeta);
+router.get("/categories", getRecipeMeta);
 router.get("/search", searchRecipes);
 router.post("/recommend", recommendRecipes);
 router.get("/favorites/mine", auth, getMyFavorites);

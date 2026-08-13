@@ -31,11 +31,20 @@ export interface Recipe {
   export interface RecipeListItem {
     id: number;
     name: string;
+    description?: string;
     image_url: string;
     month_age: number;
     calories: number;
     cooking_time: number;
     mealType?: string;
+    meal_type_id?: number;
+    weaning_method?: string | null;
+    dietary_needs?: string | null;
+    occasion?: string | null;
+    expert_id?: number | null;
+    expertName?: string;
+    avgRating?: number;
+    ratingCount?: number;
   }
   
   export interface IngredientInput {
@@ -64,15 +73,22 @@ export interface Recipe {
     weaningMethod?: string;
     dietaryNeeds?: string;
     occasion?: string;
+    weaningMethodId?: number;
+    dietaryNeedsId?: number;
+    occasionId?: number;
     ingredients: IngredientInput[];
     steps: RecipeStepItem[];
   }
   
-  export type UpdateRecipeDTO = Partial<Omit<CreateRecipeDTO, 'ingredients' | 'steps'>>;
+  export type UpdateRecipeDTO = Partial<CreateRecipeDTO>;
   
   export interface RecipeSearchParams {
     query?: string;
     mealTypeId?: number;
+    mealType?: string;
+    weaningMethod?: string;
+    dietaryNeeds?: string;
+    occasion?: string;
     minAge?: number;
     maxAge?: number;
-  }
+  }

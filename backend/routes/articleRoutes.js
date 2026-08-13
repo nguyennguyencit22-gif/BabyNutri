@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const {
+    getArticleMeta,
     getArticles,
     getArticleById,
     createArticle,
@@ -16,6 +17,10 @@ const {
     createOrUpdateArticleRating
 } = require("../controllers/articleController");
 const auth = require("../middleware/auth");
+
+// Metadata & Categories
+router.get("/meta", getArticleMeta);
+router.get("/categories", getArticleMeta);
 
 // "mine" placed BEFORE "/:id"
 router.get("/mine", auth, getMyArticles);

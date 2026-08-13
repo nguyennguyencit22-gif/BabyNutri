@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image } from 'react-native';
 import Icon from '../../components/common/AppIcon';
-import { articleService } from '../../services/article.service';
+import { articleService, ArticleMetadata } from '../../services/article.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, ARTICLE_CATEGORIES, ARTICLE_AGE_RANGES, ARTICLE_READING_TIMES } from '../../components/articles/ArticleFieldChips';
 
@@ -19,10 +19,22 @@ const EditArticleScreen = ({ route, navigation }: any) => {
   const [readingTime, setReadingTime] = useState('');
   const [tags, setTags] = useState('');
 
+  const [categoriesList, setCategoriesList] = useState(ARTICLE_CATEGORIES);
+  const [ageRangesList, setAgeRangesList] = useState(ARTICLE_AGE_RANGES);
+  const [readingTimesList, setReadingTimesList] = useState(ARTICLE_READING_TIMES);
+
   const fetchArticleDetail = useCallback(() => {
     setLoading(true);
-    articleService.getById(id)
-      .then((a) => {
+    Promise.all([
+      articleService.getById(id),
+      articleService.getMeta().catch(() => null),
+    ])
+      .then(([a, meta]) => {
+        if (meta) {
+          if (meta.categories?.length) setCategoriesList(meta.categories.map((c) => (typeof c === 'string' ? c : c.name)));
+          if (meta.ageRanges?.length) setAgeRangesList(meta.ageRanges);
+          if (meta.readingTimes?.length) setReadingTimesList(meta.readingTimes);
+        }
         setTitle(a.title);
         setSummary(a.summary || '');
         setImageUrl(a.image_url || '');
@@ -95,13 +107,13 @@ const EditArticleScreen = ({ route, navigation }: any) => {
       <TextInput style={inputStyle} value={title} onChangeText={setTitle} placeholderTextColor={colors.textSoft} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Category</Text>
-      <ChipSelectRow options={ARTICLE_CATEGORIES} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={categoriesList} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Target Baby Age</Text>
-      <ChipSelectRow options={ARTICLE_AGE_RANGES} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={ageRangesList} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Reading Time</Text>
-      <ChipSelectRow options={ARTICLE_READING_TIMES} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={readingTimesList} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.textSoft }]}>Tags</Text>
       <TextInput style={inputStyle} value={tags} onChangeText={setTags} placeholder="e.g. nutrition, baby food" placeholderTextColor={colors.textSoft} />

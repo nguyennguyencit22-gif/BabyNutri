@@ -1,14 +1,50 @@
 // @ts-nocheck
 const db = require("../db");
 
+// ==========================================
+// ARTICLE METADATA & CATEGORIES
+// ==========================================
+exports.getArticleMeta = async (req, res) => {
+    try {
+        const [categories] = await db.query(`SELECT id, name FROM article_categories ORDER BY id ASC`);
+        res.json({
+            categories: categories.length ? categories : [
+                { id: 1, name: 'Nutrition Tips' },
+                { id: 2, name: 'Weaning Guide' },
+                { id: 3, name: 'Recipes & Meals' },
+                { id: 4, name: 'Health & Safety' },
+                { id: 5, name: 'Development' }
+            ],
+            ageRanges: ['0-6 months', '6-12 months', '12-24 months', '24+ months'],
+            readingTimes: ['2 min read', '5 min read', '10 min read']
+        });
+    } catch (err) {
+        console.error("getArticleMeta error:", err);
+        res.status(500).json({ message: "Failed to fetch article metadata", error: err.message });
+    }
+};
+
 exports.getArticles = async (req, res) => {
     try {
-        const [rows] = await db.query(`
-            SELECT a.*, u.full_name AS author
+        const { category, targetAge } = req.query;
+        let sql = `
+            SELECT a.*, COALESCE(u.full_name, 'BabyNutri Expert') AS author, u.avatar AS authorAvatar
             FROM articles a
-            JOIN users u ON a.expert_id = u.id
-            ORDER BY a.id DESC
-        `);
+            LEFT JOIN users u ON a.expert_id = u.id
+            WHERE 1 = 1
+        `;
+        const params = [];
+        if (category) {
+            sql += ` AND (a.category = ? OR a.category_id = ?)`;
+            params.push(category, category);
+        }
+        if (targetAge) {
+            sql += ` AND a.target_age = ?`;
+            params.push(targetAge);
+        }
+        sql += ` ORDER BY a.id DESC`;
+
+        const [rows] = await db.query(sql, params);
         res.json(rows);
     } catch (err) {
         console.error("getArticles error:", err);
@@ -20,9 +56,9 @@ exports.getArticleById = async (req, res) => {
     try {
         const [rows] = await db.query(
             `
-            SELECT a.*, u.full_name AS author
+            SELECT a.*, COALESCE(u.full_name, 'BabyNutri Expert') AS author, u.avatar AS authorAvatar
             FROM articles a
-            JOIN users u ON a.expert_id = u.id
+            LEFT JOIN users u ON a.expert_id = u.id
             WHERE a.id = ?
             `,
             [req.params.id]

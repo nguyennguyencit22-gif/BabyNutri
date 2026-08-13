@@ -163,15 +163,47 @@ CREATE TABLE child_food_preferences (
 );
 
 -- ==========================================
--- 5. MEAL TYPES
+-- 5. LOOKUP TABLES & CATEGORIES
 -- ==========================================
 CREATE TABLE meal_types (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) UNIQUE
 );
 
 INSERT INTO meal_types(id, name)
 VALUES (1, 'Breakfast'), (2, 'Lunch'), (3, 'Dinner'), (4, 'Snack');
+
+CREATE TABLE weaning_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO weaning_methods(id, name)
+VALUES (1, 'Puree'), (2, 'Mashed'), (3, 'Baby-Led Weaning'), (4, 'Finger Food');
+
+CREATE TABLE dietary_needs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO dietary_needs(id, name)
+VALUES (1, 'Dairy-Free'), (2, 'Gluten-Free'), (3, 'Egg-Free'), (4, 'Nut-Free'), (5, 'Vegetarian');
+
+CREATE TABLE occasions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO occasions(id, name)
+VALUES (1, 'Everyday'), (2, 'First Foods'), (3, 'Meal Prep'), (4, 'On-the-Go'), (5, 'Special Occasion');
+
+CREATE TABLE article_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO article_categories(id, name)
+VALUES (1, 'Nutrition Tips'), (2, 'Weaning Guide'), (3, 'Recipes & Meals'), (4, 'Health & Safety'), (5, 'Development');
 
 -- ==========================================
 -- 6. RECIPES
@@ -195,9 +227,15 @@ CREATE TABLE recipes (
     weaning_method VARCHAR(100),
     dietary_needs VARCHAR(100),
     occasion VARCHAR(100),
+    weaning_method_id INT DEFAULT NULL,
+    dietary_needs_id INT DEFAULT NULL,
+    occasion_id INT DEFAULT NULL,
 
     FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL
+    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL,
+    FOREIGN KEY (weaning_method_id) REFERENCES weaning_methods(id) ON DELETE SET NULL,
+    FOREIGN KEY (dietary_needs_id) REFERENCES dietary_needs(id) ON DELETE SET NULL,
+    FOREIGN KEY (occasion_id) REFERENCES occasions(id) ON DELETE SET NULL
 );
 
 INSERT INTO recipes (id, name, description, image_url, expert_id, cooking_time, prep_time, serves, month_age, meal_type_id, calories, protein, fat, carbohydrate)

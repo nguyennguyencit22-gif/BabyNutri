@@ -127,6 +127,38 @@ exports.getMessages = async (req, res) => {
     }
 };
 
+exports.sendMessage = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const conversationId = req.params.id;
+        const { content } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Login required" });
+        }
+        if (!content || !content.trim()) {
+            return res.status(400).json({ message: "Content is required" });
+        }
+
+        const convo = await assertParticipant(conversationId, userId);
+        if (!convo) {
+            return res.status(403).json({ message: "Not a participant in this conversation" });
+        }
+
+        const messageId = await exports.persistMessage(conversationId, userId, content.trim());
+        res.status(201).json({
+            id: messageId,
+            conversationId: Number(conversationId),
+            senderId: userId,
+            content: content.trim(),
+            createdAt: new Date().toISOString(),
+        });
+    } catch (err) {
+        console.error("sendMessage error:", err);
+        res.status(500).json({ message: "Failed to send message", error: err.message });
+    }
+};
+
 exports.endConversation = async (req, res) => {
     try {
         const userId = req.user?.id;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import Icon from '../../components/common/AppIcon';
 import { useSelector } from 'react-redux';
-import { articleService } from '../../services/article.service';
+import { articleService, ArticleMetadata } from '../../services/article.service';
 import { useArticleStore } from '../../stores/useArticleStore';
 import { ArticleListItem } from '../../types/article';
 import type { RootState } from '../../store/store';
@@ -20,12 +20,26 @@ const AddArticleScreen = ({ navigation }: any) => {
   const [readingTime, setReadingTime] = useState('');
   const [tags, setTags] = useState('');
 
+  const [categoriesList, setCategoriesList] = useState(ARTICLE_CATEGORIES);
+  const [ageRangesList, setAgeRangesList] = useState(ARTICLE_AGE_RANGES);
+  const [readingTimesList, setReadingTimesList] = useState(ARTICLE_READING_TIMES);
+
   const [submitting, setSubmitting] = useState(false);
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const isExpert = authMode === 'authenticated' && (user?.role === 'expert' || (user?.role as any) === 'EXPERT' || user?.role === 'admin');
   const authorName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Nutrition Expert');
+
+  useEffect(() => {
+    articleService.getMeta().then((meta: ArticleMetadata) => {
+      if (meta.categories?.length) {
+        setCategoriesList(meta.categories.map((c) => (typeof c === 'string' ? c : c.name)));
+      }
+      if (meta.ageRanges?.length) setAgeRangesList(meta.ageRanges);
+      if (meta.readingTimes?.length) setReadingTimesList(meta.readingTimes);
+    }).catch((e) => console.warn('Could not fetch article meta:', e));
+  }, []);
 
   // Strict role guard: Only Experts & Admins can create articles
   useEffect(() => {
@@ -144,13 +158,13 @@ const AddArticleScreen = ({ navigation }: any) => {
       </View>
 
       <Text style={[styles.label, { color: colors.text }]}>Category</Text>
-      <ChipSelectRow options={ARTICLE_CATEGORIES} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={categoriesList} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.text }]}>Target Baby Age</Text>
-      <ChipSelectRow options={ARTICLE_AGE_RANGES} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={ageRangesList} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.text }]}>Reading Time</Text>
-      <ChipSelectRow options={ARTICLE_READING_TIMES} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
+      <ChipSelectRow options={readingTimesList} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
 
       <Text style={[styles.label, { color: colors.text }]}>Tags</Text>
       <TextInput
