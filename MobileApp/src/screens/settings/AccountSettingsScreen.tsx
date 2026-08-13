@@ -105,6 +105,7 @@ function AccountSettingsScreen({
         (state: RootState) =>
             state.auth.user,
     );
+    const isExpertOrAdmin = user?.role === 'expert' || user?.role === 'admin';
 
     const email = user?.email || 'No email';
     const photoURL = user?.photoURL;
@@ -163,17 +164,19 @@ function AccountSettingsScreen({
                 </Text>
             </Pressable>
 
-            <Pressable
-                onPress={handleDeleteAccount}
-                style={({ pressed }) => [
-                    styles.actionRow,
-                    pressed &&
-                    styles.actionRowPressed,
-                ]}>
-                <Text style={styles.actionText}>
-                    Delete data and account
-                </Text>
-            </Pressable>
+            {!isExpertOrAdmin && (
+                <Pressable
+                    onPress={handleDeleteAccount}
+                    style={({ pressed }) => [
+                        styles.actionRow,
+                        pressed &&
+                        styles.actionRowPressed,
+                    ]}>
+                    <Text style={styles.actionText}>
+                        Delete data and account
+                    </Text>
+                </Pressable>
+            )}
         </SafeAreaView>
     );
 }
