@@ -194,18 +194,22 @@ function ProfileScreen({
                 )}
 
                 {/* HISTORY SECTION */}
-                <Text style={styles.sectionLabel}>
-                    HISTORY
-                </Text>
+                {!isStaffOrAdmin && (
+                    <>
+                        <Text style={styles.sectionLabel}>
+                            HISTORY
+                        </Text>
 
-                <ProfileMenuItem
-                    title="History"
-                    leftIcon="history"
-                    showArrow
-                    onPress={() => {
-                        navigation.navigate('SavedItems', { initialTab: 'history' });
-                    }}
-                />
+                        <ProfileMenuItem
+                            title="History"
+                            leftIcon="history"
+                            showArrow
+                            onPress={() => {
+                                navigation.navigate('SavedItems', { initialTab: 'history' });
+                            }}
+                        />
+                    </>
+                )}
 
                 {/* OTHER SETTING SECTION (CHUẨN MEMBER A) */}
                 <Text style={styles.otherSettingLabel}>
