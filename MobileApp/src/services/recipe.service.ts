@@ -23,7 +23,9 @@ export type RecipeComment = {
 export type MyRecipeItem = RecipeListItem & {
   avgRating: number;
   ratingCount: number;
+  ratingCountThisMonth: number;
   commentCount: number;
+  created_at: string;
 };
 
 export const recipeService = {
@@ -85,6 +87,7 @@ export const recipeService = {
       ...r,
       avgRating: Number(r.avgRating) || 0,
       ratingCount: Number(r.ratingCount) || 0,
+      ratingCountThisMonth: Number(r.ratingCountThisMonth) || 0,
       commentCount: Number(r.commentCount) || 0,
     }));
   },

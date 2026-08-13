@@ -476,6 +476,7 @@ exports.getMyRecipes = async (req, res) => {
                 mt.name AS mealType,
                 COALESCE(AVG(rr.rating), 0) AS avgRating,
                 COUNT(DISTINCT rr.id) AS ratingCount,
+                COUNT(DISTINCT CASE WHEN rr.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN rr.id END) AS ratingCountThisMonth,
                 COUNT(DISTINCT rc.id) AS commentCount
             FROM recipes r
             LEFT JOIN meal_types mt ON r.meal_type_id = mt.id

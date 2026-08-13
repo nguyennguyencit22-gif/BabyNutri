@@ -3,41 +3,80 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platfo
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
 import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-const RING_SIZE = 88;
-const RING_STROKE = 8;
+const isThisMonth = (dateStr?: string | null) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+};
 
-// Fixed-size ring badge — Svg dimensions here are plain numbers (not "100%"
-// inside an auto-height View), which is the safe pattern for this app; see
-// GradientButton/BabyNutriBackground for the same rule.
-const StatRing = ({ value, label, color, onPress }: { value: string; label: string; color: string; onPress: () => void }) => {
+// Apple Health "Highlights"-style card — icon + title, a one-line summary,
+// then an All Time vs This Month pair of numbers. Each card is tappable and
+// jumps to the relevant detail list.
+const HighlightCard = ({
+  iconSource,
+  iconColor,
+  title,
+  description,
+  allTimeValue,
+  monthValue,
+  unit,
+  onPress,
+}: {
+  iconSource: string;
+  iconColor: string;
+  title: string;
+  description: string;
+  allTimeValue: number | string;
+  monthValue: number | string;
+  unit: string;
+  onPress: () => void;
+}) => {
   const { colors } = useAppTheme();
-  const radius = (RING_SIZE - RING_STROKE) / 2;
 
   return (
-    <TouchableOpacity style={styles.ringCol} onPress={onPress} activeOpacity={0.8}>
-      <View style={{ width: RING_SIZE, height: RING_SIZE }}>
-        <Svg width={RING_SIZE} height={RING_SIZE}>
-          <Circle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={radius}
-            stroke={color}
-            strokeWidth={RING_STROKE}
-            fill="none"
-          />
-        </Svg>
-        <View style={styles.ringCenter}>
-          <Text style={[styles.ringValue, { color }]}>{value}</Text>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <View style={styles.cardHeader}>
+        <Icon source={iconSource} size={16} color={iconColor} />
+        <Text style={[styles.cardTitle, { color: iconColor }]}>{title}</Text>
+        <View style={{ flex: 1 }} />
+        <Icon source="chevron-right" size={18} color={colors.textSoft} />
+      </View>
+
+      <Text style={[styles.cardDescription, { color: colors.text }]}>{description}</Text>
+
+      <View style={[styles.cardDivider, { backgroundColor: colors.border }]} />
+
+      <View style={styles.cardStatsRow}>
+        <View style={styles.cardStatCol}>
+          <View style={styles.cardStatLabelRow}>
+            <View style={[styles.dot, { backgroundColor: iconColor }]} />
+            <Text style={[styles.cardStatLabel, { color: colors.textSoft }]}>All Time</Text>
+          </View>
+          <Text style={[styles.cardStatValue, { color: colors.text }]}>
+            {allTimeValue} <Text style={[styles.cardStatUnit, { color: colors.textSoft }]}>{unit}</Text>
+          </Text>
+        </View>
+        <View style={styles.cardStatCol}>
+          <View style={styles.cardStatLabelRow}>
+            <View style={[styles.dot, { backgroundColor: colors.border }]} />
+            <Text style={[styles.cardStatLabel, { color: colors.textSoft }]}>This Month</Text>
+          </View>
+          <Text style={[styles.cardStatValue, { color: colors.text }]}>
+            {monthValue} <Text style={[styles.cardStatUnit, { color: colors.textSoft }]}>{unit}</Text>
+          </Text>
         </View>
       </View>
-      <Text style={[styles.ringLabel, { color: colors.textSoft }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -51,8 +90,12 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   const user = useSelector((state: RootState) => state.auth.user);
   const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
 
-  const [recipeCount, setRecipeCount] = useState(0);
-  const [articleCount, setArticleCount] = useState(0);
+  const [recipeTotal, setRecipeTotal] = useState(0);
+  const [recipeThisMonth, setRecipeThisMonth] = useState(0);
+  const [articleTotal, setArticleTotal] = useState(0);
+  const [articleThisMonth, setArticleThisMonth] = useState(0);
+  const [ratingTotal, setRatingTotal] = useState(0);
+  const [ratingThisMonth, setRatingThisMonth] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
 
   const loadStats = useCallback(async () => {
@@ -61,8 +104,16 @@ const ExpertHomeScreen = ({ navigation }: any) => {
         recipeService.getMine().catch(() => []),
         articleService.getMine().catch(() => []),
       ]);
-      setRecipeCount(recipes.length);
-      setArticleCount(articles.length);
+
+      setRecipeTotal(recipes.length);
+      setRecipeThisMonth(recipes.filter((r) => isThisMonth(r.created_at)).length);
+
+      setArticleTotal(articles.length);
+      setArticleThisMonth(articles.filter((a) => isThisMonth(a.published_date)).length);
+
+      setRatingTotal(recipes.reduce((sum, r) => sum + r.ratingCount, 0));
+      setRatingThisMonth(recipes.reduce((sum, r) => sum + r.ratingCountThisMonth, 0));
+
       const rated = recipes.filter((r) => r.ratingCount > 0);
       const totalRatings = rated.reduce((sum, r) => sum + r.ratingCount, 0);
       setAvgRating(totalRatings > 0
@@ -101,26 +152,46 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </Text>
         </View>
 
-        <View style={styles.ringRow}>
-          <StatRing
-            value={String(recipeCount)}
-            label="Recipes"
-            color="#FF5F70"
-            onPress={() => navigation.navigate('MyContent', { initialTab: 'recipes' })}
-          />
-          <StatRing
-            value={String(articleCount)}
-            label="Articles"
-            color="#EC4899"
-            onPress={() => navigation.navigate('MyContent', { initialTab: 'articles' })}
-          />
-          <StatRing
-            value={avgRating > 0 ? avgRating.toFixed(1) : '—'}
-            label="Avg Rating"
-            color="#F59E0B"
-            onPress={() => navigation.navigate('ExpertFeedback')}
-          />
-        </View>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Highlights</Text>
+
+        <HighlightCard
+          iconSource="bowl-mix-outline"
+          iconColor="#FF5F70"
+          title="Recipes"
+          description={recipeTotal > 0
+            ? `You've shared ${recipeTotal} recipe${recipeTotal === 1 ? '' : 's'} with parents so far.`
+            : "You haven't published any recipes yet — create your first one!"}
+          allTimeValue={recipeTotal}
+          monthValue={recipeThisMonth}
+          unit="recipes"
+          onPress={() => navigation.navigate('MyContent', { initialTab: 'recipes' })}
+        />
+
+        <HighlightCard
+          iconSource="text-box-outline"
+          iconColor="#EC4899"
+          title="Articles"
+          description={articleTotal > 0
+            ? `Your nutrition articles help parents make better choices.`
+            : "You haven't published any articles yet — share your expertise!"}
+          allTimeValue={articleTotal}
+          monthValue={articleThisMonth}
+          unit="articles"
+          onPress={() => navigation.navigate('MyContent', { initialTab: 'articles' })}
+        />
+
+        <HighlightCard
+          iconSource="star"
+          iconColor="#F59E0B"
+          title="Ratings"
+          description={ratingTotal > 0
+            ? `Parents rate your recipes ${avgRating.toFixed(1)}★ on average.`
+            : 'No ratings yet — they\'ll show up here once parents rate your recipes.'}
+          allTimeValue={ratingTotal}
+          monthValue={ratingThisMonth}
+          unit="ratings"
+          onPress={() => navigation.navigate('ExpertFeedback')}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -151,23 +222,29 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     fontWeight: '500',
   },
-  ringRow: {
+  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 14,
+  },
+  cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 24,
-  },
-  ringCol: { alignItems: 'center' },
-  ringCenter: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
     alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
   },
-  ringValue: { fontSize: 20, fontWeight: '800' },
-  ringLabel: { fontSize: 12, fontWeight: '600', marginTop: 8 },
+  cardTitle: { fontSize: 14, fontWeight: '800' },
+  cardDescription: { fontSize: 13, lineHeight: 19, fontWeight: '500' },
+  cardDivider: { height: 1, marginVertical: 14 },
+  cardStatsRow: { flexDirection: 'row' },
+  cardStatCol: { flex: 1 },
+  cardStatLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  cardStatLabel: { fontSize: 12, fontWeight: '600' },
+  cardStatValue: { fontSize: 20, fontWeight: '800' },
+  cardStatUnit: { fontSize: 12, fontWeight: '600' },
 });
 
 export default ExpertHomeScreen;
