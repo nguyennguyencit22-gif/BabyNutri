@@ -12,7 +12,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const formData = useRef({
     name: '',
     description: '',
-    imageUrl: DEFAULT_FOOD_IMAGE,
+    imageUrl: '',
     calories: '',
     monthAge: '',
     cookingTime: '',
@@ -107,9 +107,8 @@ const AddRecipeScreen = ({ navigation }: any) => {
       <Text style={[styles.label, { color: colors.textSoft }]}>Image URL</Text>
       <TextInput
         style={inputStyle}
-        defaultValue={DEFAULT_FOOD_IMAGE}
         onChangeText={(v) => (formData.current.imageUrl = v)}
-        placeholder="Image URL"
+        placeholder="Paste an image link..."
         placeholderTextColor={colors.textSoft}
       />
 
