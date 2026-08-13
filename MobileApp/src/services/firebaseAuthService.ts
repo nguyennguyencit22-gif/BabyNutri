@@ -23,67 +23,41 @@ export async function loginWithGoogle() {
         showPlayServicesUpdateDialog: true,
     });
 
-    try {
-        await GoogleSignin.signOut();
-    } catch {
-        // Ignore if no user was signed in previously
-    }
-
     const response = await GoogleSignin.signIn();
 
-    if (!isSuccessResponse(response)) {
-        throw new Error(
-            'Google sign-in was cancelled. Please tap on your Google account in the popup.',
-        );
+    let idToken: string | null | undefined = null;
+
+    if (isSuccessResponse(response)) {
+        idToken = response.data?.idToken;
+    } else if ((response as any)?.idToken) {
+        idToken = (response as any).idToken;
     }
-
-    /*
-     * Với phiên bản Google Sign-In mới,
-     * dữ liệu nằm trong response.data.
-     */
-    let idToken = response.data.idToken;
-
-    /*
-     * @react-native-firebase/auth (bản đang dùng) yêu cầu
-     * accessToken không rỗng, nên luôn lấy qua getTokens().
-     */
-    const tokens = await GoogleSignin.getTokens();
 
     if (!idToken) {
-        idToken = tokens.idToken;
+        try {
+            const tokens = await GoogleSignin.getTokens();
+            idToken = tokens.idToken;
+        } catch (e) {
+            console.log('getTokens fallback error:', e);
+        }
     }
-
-    const accessToken = tokens.accessToken;
 
     if (!idToken) {
-        throw new Error(
-            'Google ID token is missing.',
-        );
+        throw new Error('Google ID token is missing. Please select your Google account.');
     }
 
-    if (!accessToken) {
-        throw new Error(
-            'Google access token is missing.',
-        );
-    }
+    // GoogleAuthProvider.credential only requires idToken on React Native Firebase
+    const googleCredential = GoogleAuthProvider.credential(idToken);
 
-    const googleCredential =
-        GoogleAuthProvider.credential(
-            idToken,
-            accessToken,
-        );
+    const userCredential = await signInWithCredential(
+        getAuth(),
+        googleCredential,
+    );
 
-    const userCredential =
-        await signInWithCredential(
-            getAuth(),
-            googleCredential,
-        );
-
-    const firebaseIdToken =
-        await getIdToken(
-            userCredential.user,
-            true,
-        );
+    const firebaseIdToken = await getIdToken(
+        userCredential.user,
+        true,
+    );
 
     return {
         user: userCredential.user,
