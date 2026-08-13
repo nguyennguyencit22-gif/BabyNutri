@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS measurement_settings;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS weaning_features;
 DROP TABLE IF EXISTS journey_items;
+DROP TABLE IF EXISTS child_invitation_codes;
 DROP TABLE IF EXISTS child_food_preferences;
 DROP TABLE IF EXISTS child_known_allergies;
 DROP TABLE IF EXISTS child_allergies;

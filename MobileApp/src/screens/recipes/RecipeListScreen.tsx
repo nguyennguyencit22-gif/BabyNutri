@@ -23,7 +23,7 @@ const RecipeListScreen: React.FC<RecipeListScreenProps> = ({ navigation, hideTop
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
-  const isExpert = authMode === 'authenticated' && user?.role === 'expert';
+  const isExpert = authMode === 'authenticated' && ((user?.role || '').toLowerCase() === 'expert' || (user?.role || '').toLowerCase() === 'admin');
 
   const babies = useSelector((state: RootState) => state.baby.babies);
   const selectedBabyId = useSelector((state: RootState) => state.baby.selectedBabyId);
