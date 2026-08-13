@@ -3,7 +3,6 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platfo
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
@@ -22,7 +21,6 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   const [recipeCount, setRecipeCount] = useState(0);
   const [articleCount, setArticleCount] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
-  const [bannerSize, setBannerSize] = useState({ width: 0, height: 0 });
 
   const loadStats = useCallback(async () => {
     try {
@@ -53,32 +51,21 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.heroShadowWrap}>
-          <View
-            style={styles.heroBanner}
-            onLayout={(e) => {
-              const { width, height } = e.nativeEvent.layout;
-              setBannerSize({ width, height });
-            }}
-          >
-            {bannerSize.width > 0 && bannerSize.height > 0 && (
-              <Svg width={bannerSize.width} height={bannerSize.height} style={StyleSheet.absoluteFill}>
-                <Defs>
-                  <LinearGradient id="expertHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <Stop offset="0%" stopColor="#FF6B8A" />
-                    <Stop offset="55%" stopColor="#E23F72" />
-                    <Stop offset="100%" stopColor="#8E1E52" />
-                  </LinearGradient>
-                </Defs>
-                <Rect width={bannerSize.width} height={bannerSize.height} fill="url(#expertHeroGradient)" />
-              </Svg>
-            )}
-
-            <Text style={styles.heroGreeting}>Welcome back, {displayName}</Text>
-            <Text style={styles.heroDescription}>
-              Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
-            </Text>
+        <View style={styles.headerRow}>
+          <View style={[styles.avatarCircle, { backgroundColor: '#FF5F70' }]}>
+            <Text style={styles.avatarLetter}>{displayName.charAt(0).toUpperCase()}</Text>
           </View>
+          <View>
+            <Text style={[styles.greeting, { color: colors.textSoft }]}>Welcome back,</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
+          </View>
+        </View>
+
+        <View style={[styles.missionCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: isDark ? '#4A3236' : '#FFE2E6' }]}>
+          <Icon source="sparkles" size={18} color="#FF5F70" />
+          <Text style={[styles.missionText, { color: isDark ? '#F3D9DC' : '#B8465A' }]}>
+            Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
+          </Text>
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -139,30 +126,25 @@ const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 18, paddingTop: statusBarHeight ? 8 : 18, paddingBottom: 100 },
-  heroShadowWrap: {
-    borderRadius: 22,
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
+  avatarCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
+  avatarLetter: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
+  greeting: { fontSize: 13, fontWeight: '600' },
+  name: { fontSize: 20, fontWeight: '800' },
+  missionCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
     marginBottom: 20,
-    shadowColor: '#8E1E52',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 5,
   },
-  heroBanner: {
-    borderRadius: 22,
-    padding: 20,
-    overflow: 'hidden',
-  },
-  heroGreeting: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  heroDescription: {
+  missionText: {
+    flex: 1,
     fontSize: 13,
     lineHeight: 19,
-    color: 'rgba(255, 255, 255, 0.92)',
+    fontWeight: '500',
   },
   statsCard: {
     flexDirection: 'row',
