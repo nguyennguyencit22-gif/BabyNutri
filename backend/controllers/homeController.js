@@ -18,10 +18,12 @@ exports.getHomeData = async (req, res) => {
                 r.name AS title,
                 r.image_url AS image,
                 (r.prep_time + r.cooking_time) AS timeMinutes,
+                COALESCE(mt.name, 'Breakfast') AS category,
                 COALESCE(rt.averageRating, 0) AS averageRating,
                 COALESCE(rt.ratingCount, 0) AS ratingCount,
                 COALESCE(fv.favoriteCount, 0) AS favoriteCount
             FROM recipes r
+            LEFT JOIN meal_types mt ON mt.id = r.meal_type_id
             LEFT JOIN (
                 SELECT recipe_id, COUNT(*) AS favoriteCount
                 FROM favorite_recipes
@@ -33,7 +35,7 @@ exports.getHomeData = async (req, res) => {
                 GROUP BY recipe_id
             ) rt ON rt.recipe_id = r.id
             ORDER BY fv.favoriteCount DESC, averageRating DESC, r.id DESC
-            LIMIT 10
+            LIMIT 20
         `);
 
         const [expertRows] = await db.query(`
@@ -67,6 +69,7 @@ exports.getHomeData = async (req, res) => {
                 title: r.title,
                 time: `${r.timeMinutes} mins`,
                 image: r.image,
+                category: r.category,
                 rating: Number(Number(r.averageRating).toFixed(1)),
                 ratingCount: r.ratingCount,
                 favoriteCount: r.favoriteCount,

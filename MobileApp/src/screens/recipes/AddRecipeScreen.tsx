@@ -1,13 +1,25 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { IngredientInput } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 const DEFAULT_FOOD_IMAGE = 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600';
 
+const PRESET_PUBLIC_IMAGES = [
+  { label: 'Pumpkin Puree', url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=600', icon: 'food-apple' },
+  { label: 'Brekkie Bowl', url: 'https://images.unsplash.com/photo-1682622110332-d50f50b7146d?w=600', icon: 'bowl-mix' },
+  { label: 'Yogurt Pots', url: 'https://images.unsplash.com/photo-1753173302910-8470505e6994?w=600', icon: 'cup-water' },
+  { label: 'Scrambly Eggs', url: 'https://images.unsplash.com/photo-1687630433865-f86f07be989a?w=600', icon: 'egg' },
+  { label: 'Cheesy Pasta', url: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600', icon: 'pasta' },
+  { label: 'Chicken Curry', url: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600', icon: 'food-variant' },
+  { label: 'Avocado Bowl', url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600', icon: 'avocado' },
+];
+
 const AddRecipeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
+  const [selectedImageUrl, setSelectedImageUrl] = useState(DEFAULT_FOOD_IMAGE);
   const formData = useRef({
     name: '',
     description: '',
@@ -96,11 +108,46 @@ const AddRecipeScreen = ({ navigation }: any) => {
       <Text style={[styles.label, { color: colors.textSoft }]}>Image URL</Text>
       <TextInput
         style={inputStyle}
-        defaultValue={DEFAULT_FOOD_IMAGE}
-        onChangeText={(v) => (formData.current.imageUrl = v)}
+        value={selectedImageUrl}
+        onChangeText={(v) => {
+          setSelectedImageUrl(v);
+          formData.current.imageUrl = v;
+        }}
         placeholder="Image URL"
         placeholderTextColor={colors.textSoft}
       />
+
+      <Text style={[styles.label, { color: colors.textSoft, marginTop: 10 }]}>Select from Preset Photos:</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {PRESET_PUBLIC_IMAGES.map((img) => {
+            const isSelected = selectedImageUrl === img.url;
+            return (
+              <TouchableOpacity
+                key={img.label}
+                style={[
+                  styles.presetChip,
+                  { backgroundColor: isSelected ? '#FF5F70' : colors.surface, borderColor: isSelected ? '#FF5F70' : colors.border },
+                ]}
+                onPress={() => {
+                  setSelectedImageUrl(img.url);
+                  formData.current.imageUrl = img.url;
+                }}
+                activeOpacity={0.8}
+              >
+                <Icon source={img.icon} size={15} color={isSelected ? '#FFFFFF' : '#FF5F70'} />
+                <Text style={[styles.presetChipText, { color: isSelected ? '#FFFFFF' : colors.text }]}>{img.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {selectedImageUrl ? (
+        <View style={styles.imagePreviewContainer}>
+          <Image source={{ uri: selectedImageUrl }} style={styles.imagePreview} />
+        </View>
+      ) : null}
 
       <View style={styles.rowInputs}>
         <View style={styles.half}>
@@ -250,6 +297,31 @@ const styles = StyleSheet.create({
   addBtn: { color: '#FF7A59', fontWeight: '600', marginTop: 4 },
   submitBtn: { backgroundColor: '#FF7A59', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 28 },
   submitText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  presetChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  presetChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  imagePreviewContainer: {
+    width: '100%',
+    height: 140,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
 });
 
 export default AddRecipeScreen;

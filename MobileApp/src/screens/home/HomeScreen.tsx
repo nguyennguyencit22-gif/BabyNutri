@@ -37,7 +37,7 @@ const EMPTY_HOME_DATA: HomeData = {
 };
 
 function HomeScreen({ navigation }: any) {
-    const [selectedCategory, setSelectedCategory] = React.useState("Recipes");
+    const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
     const [homeData, setHomeData] = React.useState<HomeData>(EMPTY_HOME_DATA);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -250,7 +250,7 @@ function HomeScreen({ navigation }: any) {
                         renderItem={({ item }) => (
                             <Pressable
                                 onPress={() =>
-                                    setSelectedCategory(item)
+                                    setSelectedCategory(prev => prev === item ? null : item)
                                 }
                                 style={[
                                     styles.popularChip,
@@ -272,7 +272,13 @@ function HomeScreen({ navigation }: any) {
 
                     <FlatList
                         horizontal
-                        data={popularRecipes}
+                        data={popularRecipes.filter((r) => {
+                            if (!selectedCategory) return true;
+                            const catLower = selectedCategory.toLowerCase();
+                            const nameLower = (r.title || '').toLowerCase();
+                            const categoryLower = ((r as any).category || '').toLowerCase();
+                            return nameLower.includes(catLower) || categoryLower.includes(catLower);
+                        })}
                         keyExtractor={item => String(item.id)}
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.recipeList}
