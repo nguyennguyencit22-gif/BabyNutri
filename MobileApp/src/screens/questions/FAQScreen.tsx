@@ -47,6 +47,15 @@ const FAQScreen = ({ navigation }: any) => {
     }
   };
 
+  const loadPublicExperts = async () => {
+    try {
+      const list = await questionService.getPublicExperts();
+      setPublicExperts(list);
+    } catch {
+      console.warn('Failed to load public experts list');
+    }
+  };
+
   const toggleAccordion = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId((prev) => (prev === id ? null : id));
