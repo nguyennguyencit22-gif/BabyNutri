@@ -1,15 +1,16 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/common/AppIcon';
 import { useSelector } from 'react-redux';
 import ArticleCard from '../../components/articles/ArticleCard';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { useArticleStore } from '../../stores/useArticleStore';
+import { articleService, ArticleMetadata } from '../../services/article.service';
 import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 interface ArticleListScreenProps {
   navigation: any;
@@ -21,8 +22,21 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
   const { articles, loading, fetchArticles } = useArticleStore();
   const [refreshing, setRefreshing] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [categoriesList, setCategoriesList] = useState<string[]>(['All']);
+
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    articleService.getMeta().then((meta: ArticleMetadata) => {
+      if (meta.categories?.length) {
+        const names = meta.categories.map((c) => (typeof c === 'string' ? c : c.name));
+        setCategoriesList(['All', ...names]);
+      }
+    }).catch((e) => console.warn('Could not fetch article categories:', e));
+  }, []);
 
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -55,16 +69,39 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
     return score;
   }, []);
 
-  const sortedArticles = useMemo(() => {
+  const filteredArticles = useMemo(() => {
     if (!Array.isArray(articles)) return [];
-    return [...articles].sort((a, b) => calculateArticleScore(b) - calculateArticleScore(a));
-  }, [articles, calculateArticleScore]);
+    let list = [...articles];
+
+    // Filter by category
+    if (selectedCategory && selectedCategory !== 'All') {
+      list = list.filter((a) => {
+        const cat = (a.category || '').toLowerCase();
+        return cat === selectedCategory.toLowerCase();
+      });
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((a) => {
+        const title = (a.title || '').toLowerCase();
+        const summary = (a.summary || '').toLowerCase();
+        const author = (a.author || '').toLowerCase();
+        const tags = (a.tags || '').toLowerCase();
+        const category = (a.category || '').toLowerCase();
+        return title.includes(q) || summary.includes(q) || author.includes(q) || tags.includes(q) || category.includes(q);
+      });
+    }
+
+    return list.sort((a, b) => calculateArticleScore(b) - calculateArticleScore(a));
+  }, [articles, selectedCategory, searchQuery, calculateArticleScore]);
 
   const visibleArticles = useMemo(() => {
-    return sortedArticles.slice(0, page * PAGE_SIZE);
-  }, [sortedArticles, page]);
+    return filteredArticles.slice(0, page * PAGE_SIZE);
+  }, [filteredArticles, page]);
 
-  const hasMore = visibleArticles.length < sortedArticles.length;
+  const hasMore = visibleArticles.length < filteredArticles.length;
 
   const handleLoadMore = () => {
     if (loadingMore || !hasMore) return;
@@ -124,6 +161,52 @@ const ArticleListScreen: React.FC<ArticleListScreenProps> = ({ navigation, hideT
           </View>
         )}
       </View>
+
+      {/* Search Input Bar */}
+      <View style={[styles.searchBarBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Icon source="magnify" size={18} color="#FF7A59" />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Search articles by title, topic, author..."
+          placeholderTextColor={colors.textSoft}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Icon source="close-circle" size={16} color={colors.textSoft} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Category Filter Chips */}
+      {categoriesList.length > 1 && (
+        <View style={styles.categoryWrapper}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
+            {categoriesList.map((cat) => {
+              const isSelected = cat === selectedCategory;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.catChip,
+                    {
+                      backgroundColor: isSelected ? '#FF7A59' : colors.surface,
+                      borderColor: isSelected ? '#FF7A59' : colors.border,
+                    },
+                  ]}
+                  onPress={() => setSelectedCategory(cat)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.catChipText, { color: isSelected ? '#FFFFFF' : colors.textSoft }]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {loading && articles.length === 0 ? (
         <View style={[styles.center, { backgroundColor: colors.background }]}>
@@ -258,6 +341,39 @@ const styles = StyleSheet.create({
   },
   emptyBox: { alignItems: 'center', marginTop: 40 },
   emptyText: { color: '#888888', fontSize: 14 },
+  searchBarBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    paddingVertical: 0,
+  },
+  categoryWrapper: {
+    marginBottom: 8,
+  },
+  categoryScroll: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  catChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  catChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });
 
 export default ArticleListScreen;

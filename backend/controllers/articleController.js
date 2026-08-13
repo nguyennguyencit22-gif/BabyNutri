@@ -26,7 +26,8 @@ exports.getArticleMeta = async (req, res) => {
 
 exports.getArticles = async (req, res) => {
     try {
-        const { category, targetAge } = req.query;
+        const { category, targetAge, search, query } = req.query;
+        const searchTerm = search || query;
         let sql = `
             SELECT a.*, COALESCE(u.full_name, 'BabyNutri Expert') AS author, u.avatar AS authorAvatar
             FROM articles a
@@ -34,7 +35,12 @@ exports.getArticles = async (req, res) => {
             WHERE 1 = 1
         `;
         const params = [];
-        if (category) {
+        if (searchTerm) {
+            sql += ` AND (a.title LIKE ? OR a.summary LIKE ? OR a.content LIKE ? OR a.tags LIKE ? OR a.category LIKE ? OR u.full_name LIKE ?)`;
+            const q = `%${searchTerm}%`;
+            params.push(q, q, q, q, q, q);
+        }
+        if (category && category !== 'All') {
             sql += ` AND (a.category = ? OR a.category_id = ?)`;
             params.push(category, category);
         }
@@ -93,16 +99,37 @@ exports.getMyArticles = async (req, res) => {
 
 exports.createArticle = async (req, res) => {
     try {
-        const { title, summary, content, imageUrl, category, targetAge, readingTime, tags } = req.body;
+        const { title, summary, content, imageUrl, category, categoryId: reqCatId, targetAge, readingTime, tags } = req.body;
         if (!title || !content) {
             return res.status(400).json({ message: "Title and content are required" });
         }
         const expertId = req.user?.id || 2;
 
+        let categoryId = reqCatId || null;
+        let categoryName = category || null;
+
+        if (!categoryId && categoryName) {
+            const [catRows] = await db.query(
+                `SELECT id, name FROM article_categories WHERE name = ?`,
+                [categoryName]
+            );
+            if (catRows.length > 0) {
+                categoryId = catRows[0].id;
+            }
+        } else if (categoryId && !categoryName) {
+            const [catRows] = await db.query(
+                `SELECT id, name FROM article_categories WHERE id = ?`,
+                [categoryId]
+            );
+            if (catRows.length > 0) {
+                categoryName = catRows[0].name;
+            }
+        }
+
         const [result] = await db.query(
-            `INSERT INTO articles (title, summary, content, image_url, expert_id, category, target_age, reading_time, tags)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, summary || '', content, imageUrl || '', expertId, category || null, targetAge || null, readingTime || null, tags || null]
+            `INSERT INTO articles (title, summary, content, image_url, expert_id, category, category_id, target_age, reading_time, tags)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, summary || '', content, imageUrl || '', expertId, categoryName, categoryId, targetAge || null, readingTime || null, tags || null]
         );
         const articleId = result.insertId;
 
@@ -143,7 +170,29 @@ exports.createArticle = async (req, res) => {
 exports.updateArticle = async (req, res) => {
     try {
         const id = req.params.id;
-        const { title, summary, content, imageUrl, category, targetAge, readingTime, tags } = req.body;
+        const { title, summary, content, imageUrl, category, categoryId: reqCatId, targetAge, readingTime, tags } = req.body;
+
+        let categoryId = reqCatId || null;
+        let categoryName = category || null;
+
+        if (!categoryId && categoryName) {
+            const [catRows] = await db.query(
+                `SELECT id, name FROM article_categories WHERE name = ?`,
+                [categoryName]
+            );
+            if (catRows.length > 0) {
+                categoryId = catRows[0].id;
+            }
+        } else if (categoryId && !categoryName) {
+            const [catRows] = await db.query(
+                `SELECT id, name FROM article_categories WHERE id = ?`,
+                [categoryId]
+            );
+            if (catRows.length > 0) {
+                categoryName = catRows[0].name;
+            }
+        }
+
         await db.query(
             `UPDATE articles SET
                 title = COALESCE(?, title),
@@ -151,11 +200,12 @@ exports.updateArticle = async (req, res) => {
                 content = COALESCE(?, content),
                 image_url = COALESCE(?, image_url),
                 category = COALESCE(?, category),
+                category_id = COALESCE(?, category_id),
                 target_age = COALESCE(?, target_age),
                 reading_time = COALESCE(?, reading_time),
                 tags = COALESCE(?, tags)
              WHERE id = ?`,
-            [title, summary, content, imageUrl, category, targetAge, readingTime, tags, id]
+            [title, summary, content, imageUrl, categoryName, categoryId, targetAge, readingTime, tags, id]
         );
         res.json({ message: "Article updated" });
     } catch (err) {
