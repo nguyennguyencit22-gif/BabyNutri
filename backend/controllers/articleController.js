@@ -57,15 +57,16 @@ exports.getMyArticles = async (req, res) => {
 
 exports.createArticle = async (req, res) => {
     try {
-        const { title, summary, content, imageUrl } = req.body;
+        const { title, summary, content, imageUrl, category, targetAge, readingTime, tags } = req.body;
         if (!title || !content) {
             return res.status(400).json({ message: "Title and content are required" });
         }
         const expertId = req.user?.id || 2;
 
         const [result] = await db.query(
-            `INSERT INTO articles (title, summary, content, image_url, expert_id) VALUES (?, ?, ?, ?, ?)`,
-            [title, summary || '', content, imageUrl || '', expertId]
+            `INSERT INTO articles (title, summary, content, image_url, expert_id, category, target_age, reading_time, tags)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, summary || '', content, imageUrl || '', expertId, category || null, targetAge || null, readingTime || null, tags || null]
         );
         res.status(201).json({ message: "Article created", id: result.insertId });
     } catch (err) {
@@ -77,10 +78,19 @@ exports.createArticle = async (req, res) => {
 exports.updateArticle = async (req, res) => {
     try {
         const id = req.params.id;
-        const { title, summary, content, imageUrl } = req.body;
+        const { title, summary, content, imageUrl, category, targetAge, readingTime, tags } = req.body;
         await db.query(
-            `UPDATE articles SET title = COALESCE(?, title), summary = COALESCE(?, summary), content = COALESCE(?, content), image_url = COALESCE(?, image_url) WHERE id = ?`,
-            [title, summary, content, imageUrl, id]
+            `UPDATE articles SET
+                title = COALESCE(?, title),
+                summary = COALESCE(?, summary),
+                content = COALESCE(?, content),
+                image_url = COALESCE(?, image_url),
+                category = COALESCE(?, category),
+                target_age = COALESCE(?, target_age),
+                reading_time = COALESCE(?, reading_time),
+                tags = COALESCE(?, tags)
+             WHERE id = ?`,
+            [title, summary, content, imageUrl, category, targetAge, readingTime, tags, id]
         );
         res.json({ message: "Article updated" });
     } catch (err) {

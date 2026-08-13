@@ -365,6 +365,10 @@ CREATE TABLE articles (
     content TEXT,
     image_url VARCHAR(500),
     published_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    category VARCHAR(100) DEFAULT NULL,
+    target_age VARCHAR(50) DEFAULT NULL,
+    reading_time VARCHAR(50) DEFAULT NULL,
+    tags VARCHAR(500) DEFAULT NULL,
 
     FOREIGN KEY(expert_id) REFERENCES users(id) ON DELETE SET NULL
 );
