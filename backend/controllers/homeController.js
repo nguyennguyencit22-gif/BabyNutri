@@ -20,9 +20,9 @@ exports.getHomeData = async (req, res) => {
                 (r.prep_time + r.cooking_time) AS timeMinutes,
                 COALESCE(rt.averageRating, 0) AS averageRating,
                 COALESCE(rt.ratingCount, 0) AS ratingCount,
-                fv.favoriteCount AS favoriteCount
+                COALESCE(fv.favoriteCount, 0) AS favoriteCount
             FROM recipes r
-            INNER JOIN (
+            LEFT JOIN (
                 SELECT recipe_id, COUNT(*) AS favoriteCount
                 FROM favorite_recipes
                 GROUP BY recipe_id
