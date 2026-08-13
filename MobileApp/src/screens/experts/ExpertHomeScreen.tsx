@@ -121,38 +121,6 @@ const ExpertHomeScreen = ({ navigation }: any) => {
             onPress={() => navigation.navigate('ExpertFeedback')}
           />
         </View>
-
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Expert Tools</Text>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('MyContent')}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-            <Icon source="pencil" size={22} color="#FF5F70" />
-          </View>
-          <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Manage My Content</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>Create, edit and remove your recipes & articles</Text>
-          </View>
-          <Icon source="chevron-right" size={20} color={colors.textSoft} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('ExpertFeedback')}
-          activeOpacity={0.85}
-        >
-          <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-            <Icon source="star" size={22} color="#F59E0B" />
-          </View>
-          <View style={styles.actionTextGroup}>
-            <Text style={[styles.actionTitle, { color: colors.text }]}>Feedback & Ratings</Text>
-            <Text style={[styles.actionSubtitle, { color: colors.textSoft }]}>See how parents are rating your recipes</Text>
-          </View>
-          <Icon source="chevron-right" size={20} color={colors.textSoft} />
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -200,20 +168,6 @@ const styles = StyleSheet.create({
   },
   ringValue: { fontSize: 20, fontWeight: '800' },
   ringLabel: { fontSize: 12, fontWeight: '600', marginTop: 8 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 12,
-    gap: 14,
-  },
-  actionIconCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
-  actionTextGroup: { flex: 1 },
-  actionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  actionSubtitle: { fontSize: 12 },
 });
 
 export default ExpertHomeScreen;
