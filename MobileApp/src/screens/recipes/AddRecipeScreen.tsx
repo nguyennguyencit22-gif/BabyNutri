@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
 import Icon from '../../components/common/AppIcon';
+import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { recipeService } from '../../services/recipe.service';
 import { IngredientInput, RecipeStepItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -13,7 +14,6 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const formData = useRef({
     name: '',
     description: '',
-    imageUrl: '',
     calories: '',
     monthAge: '',
     cookingTime: '',
@@ -24,6 +24,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
     carbohydrate: '',
   });
 
+  const [imageUrl, setImageUrl] = useState('');
   const [ingredients, setIngredients] = useState<IngredientInput[]>([{ name: '', quantity: '' }]);
   const [steps, setSteps] = useState<RecipeStepItem[]>([{ description: '', imageUrl: '' }]);
   const [submitting, setSubmitting] = useState(false);
@@ -62,7 +63,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
       await recipeService.create({
         name: data.name.trim(),
         description: data.description.trim(),
-        imageUrl: data.imageUrl.trim() || DEFAULT_FOOD_IMAGE,
+        imageUrl: imageUrl.trim() || DEFAULT_FOOD_IMAGE,
         calories: Number(data.calories),
         monthAge: Number(data.monthAge),
         mealTypeId,
@@ -112,11 +113,16 @@ const AddRecipeScreen = ({ navigation }: any) => {
         placeholderTextColor={colors.textSoft}
       />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Image URL</Text>
+      <Text style={[styles.label, { color: colors.textSoft }]}>Cover Photo</Text>
+      {!!imageUrl && (
+        <Image source={{ uri: imageUrl }} style={styles.coverPreview} resizeMode="cover" />
+      )}
+      <ImageSourcePicker onUploaded={setImageUrl} isDark={isDark} />
       <TextInput
         style={inputStyle}
-        onChangeText={(v) => (formData.current.imageUrl = v)}
-        placeholder="Paste an image link..."
+        value={imageUrl}
+        onChangeText={setImageUrl}
+        placeholder="...or paste an image link"
         placeholderTextColor={colors.textSoft}
       />
 
@@ -289,6 +295,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },
   input: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1 },
   multiline: { height: 80, textAlignVertical: 'top' },
+  coverPreview: { width: '100%', height: 160, borderRadius: 12, marginBottom: 8, backgroundColor: '#EEE' },
   rowInputs: { flexDirection: 'row', justifyContent: 'space-between' },
   half: { width: '48%' },
   third: { width: '31%' },

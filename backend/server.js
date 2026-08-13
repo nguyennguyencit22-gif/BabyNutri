@@ -28,6 +28,7 @@ const questionRoutes = require('./routes/questionRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const expertRoutes = require('./routes/expertRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use(express.urlencoded({
 }));
 
 app.use("/images", express.static(path.join(__dirname, "../public/public/images")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get('/', (req, res) => {
     res.json({
@@ -64,6 +66,7 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/experts', expertRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.use((req, res) => {
     res.status(404).json({
