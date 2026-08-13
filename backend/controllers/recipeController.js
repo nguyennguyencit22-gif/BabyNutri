@@ -59,12 +59,12 @@ exports.getRecipeById = async (req, res) => {
         const ingredients = ingredientRows.map((i) => `${i.quantity} ${i.name}`);
 
         const [stepRows] = await db.query(`
-            SELECT step_number, description
+            SELECT step_number, description, image_url
             FROM recipe_steps
             WHERE recipe_id = ?
             ORDER BY step_number ASC
         `, [id]);
-        const steps = stepRows.map(s => s.description);
+        const steps = stepRows.map(s => ({ description: s.description, imageUrl: s.image_url || null }));
 
         const [allergyRows] = await db.query(`
             SELECT a.name
@@ -379,10 +379,13 @@ exports.createRecipe = async (req, res) => {
 
         if (Array.isArray(steps)) {
             for (let i = 0; i < steps.length; i++) {
-                if (!steps[i]) continue;
+                const step = steps[i];
+                const description = typeof step === 'string' ? step : step?.description;
+                const stepImageUrl = typeof step === 'string' ? null : (step?.imageUrl || null);
+                if (!description) continue;
                 await connection.query(
-                    `INSERT INTO recipe_steps (recipe_id, step_number, description) VALUES (?, ?, ?)`,
-                    [recipeId, i + 1, steps[i]]
+                    `INSERT INTO recipe_steps (recipe_id, step_number, description, image_url) VALUES (?, ?, ?, ?)`,
+                    [recipeId, i + 1, description, stepImageUrl]
                 );
             }
         }

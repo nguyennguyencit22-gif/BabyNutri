@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
-import { IngredientInput } from '../../types/recipe';
+import { IngredientInput, RecipeStepItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS } from '../../components/recipes/RecipeFieldChips';
 
@@ -24,7 +25,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
   });
 
   const [ingredients, setIngredients] = useState<IngredientInput[]>([{ name: '', quantity: '' }]);
-  const [steps, setSteps] = useState<string[]>(['']);
+  const [steps, setSteps] = useState<RecipeStepItem[]>([{ description: '', imageUrl: '' }]);
   const [submitting, setSubmitting] = useState(false);
 
   const [mealTypeName, setMealTypeName] = useState('');
@@ -38,10 +39,15 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const addIngredient = () => setIngredients([...ingredients, { name: '', quantity: '' }]);
   const removeIngredient = (index: number) => setIngredients(ingredients.filter((_, i) => i !== index));
 
-  const updateStep = (index: number, value: string) => {
-    steps[index] = value;
+  const updateStepDescription = (index: number, value: string) => {
+    steps[index].description = value;
   };
-  const addStep = () => setSteps([...steps, '']);
+  const updateStepImage = (index: number, value: string) => {
+    const next = [...steps];
+    next[index] = { ...next[index], imageUrl: value };
+    setSteps(next);
+  };
+  const addStep = () => setSteps([...steps, { description: '', imageUrl: '' }]);
   const removeStep = (index: number) => setSteps(steps.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
@@ -70,7 +76,9 @@ const AddRecipeScreen = ({ navigation }: any) => {
         dietaryNeeds: dietaryNeeds || undefined,
         occasion: occasion || undefined,
         ingredients: ingredients.filter((i) => i.name.trim()),
-        steps: steps.filter((s) => s.trim()),
+        steps: steps
+          .filter((s) => s.description.trim())
+          .map((s) => ({ description: s.description.trim(), imageUrl: s.imageUrl?.trim() || undefined })),
       });
       Alert.alert('Success', 'Recipe created successfully', [
         { text: 'OK', onPress: () => navigation.goBack() },
@@ -231,17 +239,37 @@ const AddRecipeScreen = ({ navigation }: any) => {
 
       <Text style={[styles.section, { color: colors.text }]}>Cooking Steps</Text>
       {steps.map((step, i) => (
-        <View key={i} style={styles.dynamicRow}>
-          <TextInput
-            style={[inputStyle, styles.flex1]}
-            defaultValue={step}
-            onChangeText={(v) => updateStep(i, v)}
-            placeholder={`Step ${i + 1}`}
-            placeholderTextColor={colors.textSoft}
-          />
-          <TouchableOpacity onPress={() => removeStep(i)}>
-            <Text style={styles.removeBtn}>✕</Text>
-          </TouchableOpacity>
+        <View key={i} style={[styles.stepCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF6F3', borderColor: colors.border }]}>
+          <View style={styles.dynamicRow}>
+            <View style={styles.stepNumberBadge}>
+              <Text style={styles.stepNumberText}>{i + 1}</Text>
+            </View>
+            <TextInput
+              style={[inputStyle, styles.flex1, { marginRight: 8 }]}
+              defaultValue={step.description}
+              onChangeText={(v) => updateStepDescription(i, v)}
+              placeholder={`Describe step ${i + 1}`}
+              placeholderTextColor={colors.textSoft}
+              multiline
+            />
+            <TouchableOpacity onPress={() => removeStep(i)}>
+              <Text style={styles.removeBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {!!step.imageUrl && (
+            <Image source={{ uri: step.imageUrl }} style={styles.stepImagePreview} resizeMode="cover" />
+          )}
+          <View style={styles.stepPhotoRow}>
+            <Icon source="camera" size={16} color={colors.textSoft} />
+            <TextInput
+              style={[styles.stepPhotoInput, { color: colors.text }]}
+              defaultValue={step.imageUrl || ''}
+              onChangeText={(v) => updateStepImage(i, v)}
+              placeholder="Add a photo for this step (optional)"
+              placeholderTextColor={colors.textSoft}
+            />
+          </View>
         </View>
       ))}
       <TouchableOpacity onPress={addStep}>
@@ -270,6 +298,12 @@ const styles = StyleSheet.create({
   flex2: { flex: 2 },
   removeBtn: { color: '#FF3B30', fontSize: 16, marginLeft: 10, paddingHorizontal: 4 },
   addBtn: { color: '#FF7A59', fontWeight: '600', marginTop: 4 },
+  stepCard: { borderRadius: 14, borderWidth: 1, padding: 10, marginBottom: 10 },
+  stepNumberBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#FF7A59', justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+  stepNumberText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
+  stepImagePreview: { width: '100%', height: 120, borderRadius: 10, marginBottom: 8 },
+  stepPhotoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 },
+  stepPhotoInput: { flex: 1, fontSize: 12, paddingVertical: 4 },
   submitBtn: { backgroundColor: '#FF7A59', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 28 },
   submitText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });
