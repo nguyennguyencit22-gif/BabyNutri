@@ -242,7 +242,26 @@ function ProfileScreen({
                 onEditBaby={handleEditBaby}
                 onAddCaregiver={() => {
                     if (!selectedBabyId) return;
-                    console.log('Add caregiver:', selectedBabyId);
+                    handleCloseBabyActions();
+                    if (!isAuthenticated) {
+                        Alert.alert('Login Required', 'Please log in to generate caregiver invitation codes for your baby.', [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Log In', onPress: () => navigation.navigate('Login') },
+                        ]);
+                        return;
+                    }
+                    getOrCreateInvitationCode(Number(selectedBabyId))
+                        .then(({ code }) => {
+                            Clipboard.setString(code);
+                            Alert.alert(
+                                'Caregiver Invitation Code 👨‍👩‍👧',
+                                `Code: ${code}\n\nCopied to clipboard! Share this code with another parent or caregiver so they can join caring for ${selectedBaby?.name || 'baby'}.`,
+                                [{ text: 'OK' }]
+                            );
+                        })
+                        .catch((err) => {
+                            Alert.alert('Notice', 'Unable to generate code right now. Please try again.');
+                        });
                 }}
                 invitationCode={invitationCode}
                 onCopyCode={
