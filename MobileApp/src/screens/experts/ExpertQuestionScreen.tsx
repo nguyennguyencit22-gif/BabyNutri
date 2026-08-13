@@ -98,6 +98,7 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
       setFaqModalVisible(false);
       setFaqTitle('');
       setFaqAnswer('');
+      setActiveTab('answered');
       loadQuestions();
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to create FAQ.');
