@@ -15,7 +15,6 @@ GoogleSignin.configure({
     webClientId:
         '838570278190-06ff9gejlh388s6b2k8bs6ttujo64pt6.apps.googleusercontent.com',
     offlineAccess: false,
-    scopes: ['profile', 'email'],
 });
 
 export async function loginWithGoogle() {
@@ -24,6 +23,7 @@ export async function loginWithGoogle() {
     });
 
     const response = await GoogleSignin.signIn();
+    console.log('[Google Auth] signIn response:', JSON.stringify(response));
 
     let idToken: string | null | undefined = null;
 
@@ -31,22 +31,24 @@ export async function loginWithGoogle() {
         idToken = response.data?.idToken;
     } else if ((response as any)?.idToken) {
         idToken = (response as any).idToken;
+    } else if ((response as any)?.data?.idToken) {
+        idToken = (response as any).data.idToken;
     }
 
     if (!idToken) {
         try {
             const tokens = await GoogleSignin.getTokens();
-            idToken = tokens.idToken;
+            console.log('[Google Auth] getTokens response:', tokens ? 'received tokens' : 'null');
+            idToken = tokens?.idToken;
         } catch (e) {
-            console.log('getTokens fallback error:', e);
+            console.log('[Google Auth] getTokens error:', e);
         }
     }
 
     if (!idToken) {
-        throw new Error('Google ID token is missing. Please select your Google account.');
+        throw new Error(`Google Sign-In response type: ${response?.type || 'unknown'}. Please choose your Google account.`);
     }
 
-    // GoogleAuthProvider.credential only requires idToken on React Native Firebase
     const googleCredential = GoogleAuthProvider.credential(idToken);
 
     const userCredential = await signInWithCredential(
