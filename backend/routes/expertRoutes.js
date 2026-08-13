@@ -6,10 +6,12 @@ const {
     getExpertById,
     toggleFollowExpert,
     updateMyExpertProfile,
+    getExpertRatingBreakdown,
 } = require("../controllers/expertController");
 
 router.get("/", auth, getExperts);
 router.put("/profile", auth, updateMyExpertProfile);
+router.get("/:id/rating-breakdown", getExpertRatingBreakdown);
 router.get("/:id", auth, getExpertById);
 router.post("/:id/follow", auth, toggleFollowExpert);
 

@@ -21,6 +21,7 @@ import ArticleCard from '../../components/articles/ArticleCard';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import { appAlert } from '../../utils/appAlert';
+import ExpertRatingBreakdownModal from '../../components/experts/ExpertRatingBreakdownModal';
 
 export const ExpertDetailScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -32,6 +33,7 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
 
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [ratingBreakdownVisible, setRatingBreakdownVisible] = useState(false);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [avgRating, setAvgRating] = useState(0);
@@ -156,10 +158,10 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
 
           {/* Stats Bar */}
           <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.statBox}>
+            <TouchableOpacity style={styles.statBox} onPress={() => setRatingBreakdownVisible(true)} activeOpacity={0.7}>
               <Text style={styles.statVal}>{avgRating > 0 ? avgRating.toFixed(1) : '4.8'} ⭐</Text>
-              <Text style={[styles.statSub, { color: colors.textSoft }]}>Avg Rating</Text>
-            </View>
+              <Text style={[styles.statSub, { color: colors.textSoft }]}>Avg Rating 🔍</Text>
+            </TouchableOpacity>
             <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
             <View style={styles.statBox}>
               <Text style={styles.statVal}>{recipes.length}</Text>
@@ -220,6 +222,13 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
           )}
         </ScrollView>
       )}
+
+      <ExpertRatingBreakdownModal
+        visible={ratingBreakdownVisible}
+        expertId={expertId}
+        expertName={expertName}
+        onClose={() => setRatingBreakdownVisible(false)}
+      />
     </SafeAreaView>
   );
 };

@@ -7,10 +7,13 @@ import {
     TouchableOpacity,
 } from 'react-native';
 
+import Icon from '../common/AppIcon';
+
 type ExpertCardProps = {
     name: string;
     role: string;
     image: ImageSourcePropType;
+    rating?: number;
     onPress?: () => void;
 };
 
@@ -18,6 +21,7 @@ function ExpertCard({
     name,
     role,
     image,
+    rating = 4.9,
     onPress,
 }: ExpertCardProps) {
     return (
@@ -38,6 +42,11 @@ function ExpertCard({
                 style={styles.role}>
                 {role}
             </Text>
+
+            <TouchableOpacity style={styles.ratingBadge} onPress={onPress} activeOpacity={0.7}>
+                <Icon source="star" size={11} color="#FFB800" />
+                <Text style={styles.ratingText}>{Number(rating).toFixed(1)}</Text>
+            </TouchableOpacity>
         </TouchableOpacity>
     );
 }
@@ -69,6 +78,25 @@ const styles = StyleSheet.create({
         color: '#9A7378',
         fontSize: 11,
         textAlign: 'center',
+    },
+
+    ratingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        marginTop: 4,
+        backgroundColor: '#FFF8E7',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#FFE099',
+    },
+
+    ratingText: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#B38300',
     },
 });
 

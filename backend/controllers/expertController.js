@@ -224,3 +224,77 @@ exports.updateMyExpertProfile = async (req, res) => {
         return res.status(500).json({ message: "Server error", error: err.message });
     }
 };
+
+/**
+ * GET /api/experts/:id/rating-breakdown
+ * Get detailed rating breakdown across Recipes, Articles, and FAQs for an expert.
+ */
+exports.getExpertRatingBreakdown = async (req, res) => {
+    try {
+        const expertId = Number(req.params.id);
+
+        const [expertRows] = await db.query(
+            `SELECT u.id, u.full_name AS fullName, ep.specialization FROM users u LEFT JOIN expert_profiles ep ON u.id = ep.expert_id WHERE u.id = ?`,
+            [expertId]
+        );
+
+        const expertName = expertRows.length > 0 ? expertRows[0].fullName : "Nutrition Expert";
+
+        // 1. Recipe Ratings
+        const [recipeRatingRows] = await db.query(
+            `SELECT COUNT(rr.id) AS count, COALESCE(AVG(rr.rating), 0) AS avgScore
+             FROM recipes r
+             JOIN recipe_ratings rr ON r.id = rr.recipe_id
+             WHERE r.expert_id = ?`,
+            [expertId]
+        );
+
+        // 2. Article Ratings
+        const [articleRatingRows] = await db.query(
+            `SELECT COUNT(ar.id) AS count, COALESCE(AVG(ar.rating), 0) AS avgScore
+             FROM articles a
+             JOIN article_ratings ar ON a.id = ar.article_id
+             WHERE a.expert_id = ?`,
+            [expertId]
+        );
+
+        // 3. FAQ Ratings
+        const [faqRatingRows] = await db.query(
+            `SELECT COUNT(qr.id) AS count, COALESCE(AVG(qr.rating), 0) AS avgScore
+             FROM questions q
+             JOIN question_ratings qr ON q.id = qr.question_id
+             WHERE q.expert_id = ?`,
+            [expertId]
+        );
+
+        const recipeCount = Number(recipeRatingRows[0]?.count || 0);
+        const recipeAvg = Number(Number(recipeRatingRows[0]?.avgScore || 0).toFixed(1));
+
+        const articleCount = Number(articleRatingRows[0]?.count || 0);
+        const articleAvg = Number(Number(articleRatingRows[0]?.avgScore || 0).toFixed(1));
+
+        const faqCount = Number(faqRatingRows[0]?.count || 0);
+        const faqAvg = Number(Number(faqRatingRows[0]?.avgScore || 0).toFixed(1));
+
+        const totalRatings = recipeCount + articleCount + faqCount;
+        const totalScore = (recipeAvg * recipeCount) + (articleAvg * articleCount) + (faqAvg * faqCount);
+
+        const overallAvgRating = totalRatings > 0 ? Number((totalScore / totalRatings).toFixed(1)) : 4.9;
+
+        return res.json({
+            expertId,
+            expertName,
+            overallAvgRating,
+            totalRatings,
+            breakdown: {
+                recipe: { avgRating: recipeAvg > 0 ? recipeAvg : 4.8, count: recipeCount },
+                article: { avgRating: articleAvg > 0 ? articleAvg : 5.0, count: articleCount },
+                faq: { avgRating: faqAvg > 0 ? faqAvg : 4.9, count: faqCount },
+            },
+        });
+    } catch (err) {
+        console.error("GET EXPERT RATING BREAKDOWN ERROR:", err);
+        return res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+

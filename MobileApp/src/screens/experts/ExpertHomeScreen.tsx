@@ -11,6 +11,7 @@ import { useAppTheme } from '../../theme/useAppTheme';
 
 import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
 import AdminReportsModal from '../admin/AdminReportsModal';
+import ExpertRatingBreakdownModal from '../../components/experts/ExpertRatingBreakdownModal';
 
 // Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
 // Expert accounts don't track a baby, so the journey/recipe-browsing home
@@ -19,14 +20,16 @@ import AdminReportsModal from '../admin/AdminReportsModal';
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
   const user = useSelector((state: RootState) => state.auth.user);
-  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'User');
+  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert User');
   const isAdmin = (user?.role || '').toLowerCase() === 'admin';
+  const expertId = Number(user?.id || 2);
 
   const [recipeCount, setRecipeCount] = useState(0);
   const [articleCount, setArticleCount] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
   const [adminModalVisible, setAdminModalVisible] = useState(false);
   const [reportsModalVisible, setReportsModalVisible] = useState(false);
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
 
   const loadStats = useCallback(async () => {
     try {
@@ -70,6 +73,8 @@ const ExpertHomeScreen = ({ navigation }: any) => {
     }, [loadStats])
   );
 
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
@@ -99,10 +104,10 @@ const ExpertHomeScreen = ({ navigation }: any) => {
               <Text style={[styles.statLabel, { color: colors.textSoft }]}>Articles</Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
-              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
-            </View>
+            <TouchableOpacity style={styles.statBox} onPress={() => setRatingModalVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'} ⭐</Text>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating 🔍</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -202,6 +207,13 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       <AdminReportsModal
         visible={reportsModalVisible}
         onClose={() => setReportsModalVisible(false)}
+      />
+
+      <ExpertRatingBreakdownModal
+        visible={ratingModalVisible}
+        expertId={expertId}
+        expertName={displayName}
+        onClose={() => setRatingModalVisible(false)}
       />
     </SafeAreaView>
   );
