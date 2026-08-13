@@ -22,6 +22,7 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   const [recipeCount, setRecipeCount] = useState(0);
   const [articleCount, setArticleCount] = useState(0);
   const [avgRating, setAvgRating] = useState(0);
+  const [bannerSize, setBannerSize] = useState({ width: 0, height: 0 });
 
   const loadStats = useCallback(async () => {
     try {
@@ -52,22 +53,32 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.heroBanner}>
-          <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
-            <Defs>
-              <LinearGradient id="expertHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#FF6B8A" />
-                <Stop offset="55%" stopColor="#E23F72" />
-                <Stop offset="100%" stopColor="#8E1E52" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#expertHeroGradient)" />
-          </Svg>
+        <View style={styles.heroShadowWrap}>
+          <View
+            style={styles.heroBanner}
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              setBannerSize({ width, height });
+            }}
+          >
+            {bannerSize.width > 0 && bannerSize.height > 0 && (
+              <Svg width={bannerSize.width} height={bannerSize.height} style={StyleSheet.absoluteFill}>
+                <Defs>
+                  <LinearGradient id="expertHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <Stop offset="0%" stopColor="#FF6B8A" />
+                    <Stop offset="55%" stopColor="#E23F72" />
+                    <Stop offset="100%" stopColor="#8E1E52" />
+                  </LinearGradient>
+                </Defs>
+                <Rect width={bannerSize.width} height={bannerSize.height} fill="url(#expertHeroGradient)" />
+              </Svg>
+            )}
 
-          <Text style={styles.heroGreeting}>Welcome back, {displayName}</Text>
-          <Text style={styles.heroDescription}>
-            Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
-          </Text>
+            <Text style={styles.heroGreeting}>Welcome back, {displayName}</Text>
+            <Text style={styles.heroDescription}>
+              Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
+            </Text>
+          </View>
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -128,16 +139,19 @@ const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 18, paddingTop: statusBarHeight ? 8 : 18, paddingBottom: 100 },
-  heroBanner: {
+  heroShadowWrap: {
     borderRadius: 22,
-    padding: 20,
     marginBottom: 20,
-    overflow: 'hidden',
     shadowColor: '#8E1E52',
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 5,
+  },
+  heroBanner: {
+    borderRadius: 22,
+    padding: 20,
+    overflow: 'hidden',
   },
   heroGreeting: {
     fontSize: 18,
