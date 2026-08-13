@@ -1,12 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
+import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
-import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 const isThisMonth = (dateStr?: string | null) => {
@@ -87,8 +86,6 @@ const HighlightCard = ({
 // Content" and "View Feedback / Ratings" instead.
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const displayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
 
   const [recipeTotal, setRecipeTotal] = useState(0);
   const [recipeThisMonth, setRecipeThisMonth] = useState(0);
@@ -131,20 +128,10 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
+      <TopHeaderBar />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: '#FF5F70' }]}>
-            <Text style={styles.avatarLetter}>{displayName.charAt(0).toUpperCase()}</Text>
-          </View>
-          <View>
-            <Text style={[styles.greeting, { color: colors.textSoft }]}>Welcome back,</Text>
-            <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
-          </View>
-        </View>
-
         <View style={[styles.missionCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: isDark ? '#4A3236' : '#FFE2E6' }]}>
           <Icon source="sparkles" size={18} color="#FF5F70" />
           <Text style={[styles.missionText, { color: isDark ? '#F3D9DC' : '#B8465A' }]}>
@@ -197,16 +184,9 @@ const ExpertHomeScreen = ({ navigation }: any) => {
   );
 };
 
-const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 18, paddingTop: statusBarHeight ? 8 : 18, paddingBottom: 100 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
-  avatarCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  avatarLetter: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
-  greeting: { fontSize: 13, fontWeight: '600' },
-  name: { fontSize: 20, fontWeight: '800' },
+  content: { padding: 18, paddingBottom: 100 },
   missionCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',

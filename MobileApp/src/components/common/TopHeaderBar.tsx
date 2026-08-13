@@ -73,6 +73,10 @@ const TopHeaderBar: React.FC = () => {
   const sessionMode = useSelector((state: RootState) => state.auth.mode);
   const isAuthenticated = sessionMode === 'authenticated';
 
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
+  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
+
   const babyName = selectedBaby ? selectedBaby.name : 'Baby Profile';
   const babyAgeText = selectedBaby ? `${calculateBabyAgeInMonths(selectedBaby.dateOfBirth)} months` : 'Create baby profile';
   const babyColor = selectedBaby?.profileColor || colors.primary;
@@ -119,36 +123,51 @@ const TopHeaderBar: React.FC = () => {
     <View style={styles.headerContainer}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
-      {/* Baby Profile Section */}
-      <TouchableOpacity
-        style={styles.profileSection}
-        onPress={() => {
-          if (!selectedBaby) {
-            navigation.navigate('AddBabyProfile');
-          } else {
-            handleOpenBabyActions();
-          }
-        }}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.avatar, { backgroundColor: babyColor }]}>
-          <Text style={styles.avatarLabel}>
-            {babyName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.userName}>{babyName}</Text>
-
-            {hasMultipleBaby && (
-              <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
-                <Text style={styles.arrow}>▼</Text>
-              </Pressable>
-            )}
+      {/* Profile Section: Expert/Admin accounts don't track a baby, so they
+          get a simple identity block instead of the baby-switcher one. */}
+      {isExpertOrAdmin ? (
+        <View style={styles.profileSection}>
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.avatarLabel}>
+              {expertDisplayName.charAt(0).toUpperCase()}
+            </Text>
           </View>
-          <Text style={styles.greetingText}>{babyAgeText}</Text>
+          <View style={styles.userInfo}>
+            <Text style={styles.greetingText}>Welcome back,</Text>
+            <Text style={styles.userName}>{expertDisplayName}</Text>
+          </View>
         </View>
-      </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.profileSection}
+          onPress={() => {
+            if (!selectedBaby) {
+              navigation.navigate('AddBabyProfile');
+            } else {
+              handleOpenBabyActions();
+            }
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.avatar, { backgroundColor: babyColor }]}>
+            <Text style={styles.avatarLabel}>
+              {babyName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.userInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.userName}>{babyName}</Text>
+
+              {hasMultipleBaby && (
+                <Pressable onPress={() => setShowBabySwitcher(true)} hitSlop={8}>
+                  <Text style={styles.arrow}>▼</Text>
+                </Pressable>
+              )}
+            </View>
+            <Text style={styles.greetingText}>{babyAgeText}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Header Action Buttons */}
       <View style={styles.actionSection}>
