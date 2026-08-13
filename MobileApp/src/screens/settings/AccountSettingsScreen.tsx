@@ -8,10 +8,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import DeleteAccountModal from '../../components/settings/DeleteAccountModal';
 import { logoutFromFirebase } from '../../services/firebaseAuthService';
+import { deleteMyAccount } from '../../services/auth.service';
+import { logoutSucceeded } from '../../store/auth/authSlice';
 
 import createStyles from '../../styles/settings/accountSettingStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -33,6 +36,10 @@ function AccountSettingsScreen({
         () => createStyles(colors),
         [colors],
     );
+    const dispatch = useDispatch();
+
+    const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+    const [deleting, setDeleting] = React.useState(false);
 
     const handleChangePhoto = () => {
         console.log('Open profile photo picker');
@@ -79,26 +86,37 @@ function AccountSettingsScreen({
         );
     };
 
-    const handleDeleteAccount = () => {
-        Alert.alert(
-            'Delete data and account',
-            'This action will permanently delete your account and data. Are you sure?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => {
-                        console.log(
-                            'Delete account API',
-                        );
+    const handleConfirmDeleteAccount = async () => {
+        setDeleting(true);
+        try {
+            await deleteMyAccount();
+
+            try {
+                await logoutFromFirebase();
+            } catch (error) {
+                console.log('Post-delete Firebase sign-out error:', error);
+            }
+
+            dispatch(logoutSucceeded());
+            setDeleteModalVisible(false);
+
+            navigation.reset({
+                index: 0,
+                routes: [
+                    {
+                        name: 'Welcome',
                     },
-                },
-            ],
-        );
+                ],
+            });
+        } catch (error) {
+            console.log('Delete account error:', error);
+            setDeleting(false);
+
+            Alert.alert(
+                'Unable to delete account',
+                'Please check your connection and try again.',
+            );
+        }
     };
 
     const user = useSelector(
@@ -166,7 +184,7 @@ function AccountSettingsScreen({
 
             {!isExpertOrAdmin && (
                 <Pressable
-                    onPress={handleDeleteAccount}
+                    onPress={() => setDeleteModalVisible(true)}
                     style={({ pressed }) => [
                         styles.actionRow,
                         pressed &&
@@ -177,6 +195,13 @@ function AccountSettingsScreen({
                     </Text>
                 </Pressable>
             )}
+
+            <DeleteAccountModal
+                visible={deleteModalVisible}
+                deleting={deleting}
+                onCancel={() => setDeleteModalVisible(false)}
+                onConfirm={handleConfirmDeleteAccount}
+            />
         </SafeAreaView>
     );
 }

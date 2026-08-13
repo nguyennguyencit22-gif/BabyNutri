@@ -40,8 +40,13 @@ function verifyIdToken(idToken) {
     return getAuth().verifyIdToken(idToken);
 }
 
+function deleteUser(uid) {
+    return getAuth().deleteUser(uid);
+}
+
 module.exports = {
     isReady,
     initError: () => initError,
     verifyIdToken,
+    deleteUser,
 };
