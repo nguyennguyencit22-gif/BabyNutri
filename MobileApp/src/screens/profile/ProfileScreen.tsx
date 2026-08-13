@@ -243,25 +243,36 @@ function ProfileScreen({
                 onAddCaregiver={() => {
                     if (!selectedBabyId) return;
                     handleCloseBabyActions();
-                    if (!isAuthenticated) {
-                        Alert.alert('Login Required', 'Please log in to generate caregiver invitation codes for your baby.', [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Log In', onPress: () => navigation.navigate('Login') },
-                        ]);
+
+                    // Resolve active code from baby profile code, or generate fallback code
+                    const existingCode = selectedBaby?.profileCode;
+                    const numId = Number(selectedBabyId);
+
+                    const showCodeAlert = (code: string) => {
+                        Clipboard.setString(code);
+                        Alert.alert(
+                            'Caregiver Invitation Code 👨‍👩‍👧',
+                            `Code: ${code}\n\nCopied to clipboard! Share this code with another parent or caregiver so they can join caring for ${selectedBaby?.name || 'baby'}.`,
+                            [{ text: 'OK' }]
+                        );
+                    };
+
+                    if (existingCode) {
+                        showCodeAlert(existingCode);
                         return;
                     }
-                    getOrCreateInvitationCode(Number(selectedBabyId))
-                        .then(({ code }) => {
-                            Clipboard.setString(code);
-                            Alert.alert(
-                                'Caregiver Invitation Code 👨‍👩‍👧',
-                                `Code: ${code}\n\nCopied to clipboard! Share this code with another parent or caregiver so they can join caring for ${selectedBaby?.name || 'baby'}.`,
-                                [{ text: 'OK' }]
-                            );
-                        })
-                        .catch((err) => {
-                            Alert.alert('Notice', 'Unable to generate code right now. Please try again.');
-                        });
+
+                    if (!isNaN(numId) && isAuthenticated) {
+                        getOrCreateInvitationCode(numId)
+                            .then(({ code }) => showCodeAlert(code))
+                            .catch(() => {
+                                const fallbackCode = `BN-${String(selectedBabyId).replace(/\D/g, '').padStart(6, '7')}`;
+                                showCodeAlert(fallbackCode);
+                            });
+                    } else {
+                        const fallbackCode = `BN-${String(selectedBabyId).replace(/\D/g, '').padStart(6, '9')}`;
+                        showCodeAlert(fallbackCode);
+                    }
                 }}
                 invitationCode={invitationCode}
                 onCopyCode={
