@@ -87,27 +87,29 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           </View>
         </View>
 
-        <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{recipeCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Recipes</Text>
+        {!isAdmin && (
+          <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{recipeCount}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Recipes</Text>
+            </View>
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{articleCount}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Articles</Text>
+            </View>
+            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
+            </View>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{articleCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Articles</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Avg Rating</Text>
-          </View>
-        </View>
+        )}
 
         {isAdmin ? (
           <>
             {/* ADMIN SYSTEM DASHBOARD - ACCOUNT & USER MANAGEMENT ONLY */}
-            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 10 }]}>Account & User Management</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 14 }]}>Account & User Management</Text>
 
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
