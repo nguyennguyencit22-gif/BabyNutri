@@ -6,10 +6,15 @@ import {
     TouchableOpacity,
     StatusBar,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
+import Icon from '../../components/common/AppIcon';
 import { FAQScreen } from '../questions/FAQScreen';
+import ParentChatList from '../chat/ParentChatList';
+import ExpertChatInbox from '../chat/ExpertChatInbox';
 import { useAppTheme } from '../../theme/useAppTheme';
 import type { AppColors } from '../../theme/colors';
+import type { RootState } from '../../store/store';
 
 function CommunityScreen({ navigation }: any) {
     const { colors } = useAppTheme();
@@ -18,6 +23,10 @@ function CommunityScreen({ navigation }: any) {
         [colors],
     );
     const [activeSubTab, setActiveSubTab] = useState<'discussion' | 'faq'>('discussion');
+
+    const authMode = useSelector((state: RootState) => state.auth.mode);
+    const user = useSelector((state: RootState) => state.auth.user);
+    const isExpertOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
 
     return (
         <View style={styles.container}>
@@ -66,20 +75,26 @@ function CommunityScreen({ navigation }: any) {
             {/* Sub-tab content */}
             <View style={styles.content}>
                 {activeSubTab === 'discussion' ? (
-                    <View style={styles.discussionPlaceholder}>
-                        <Text style={styles.emojiText}>💬</Text>
-                        <Text style={styles.discussionTitle}>Weaning Experience Forum</Text>
-                        <Text style={styles.discussionSubTitle}>
-                            A community for parents to share recipes, exchange feeding tips, and consult with nutrition experts.
-                        </Text>
-                        <TouchableOpacity 
-                            style={styles.askQuestionBtn}
-                            onPress={() => setActiveSubTab('faq')}
-                            activeOpacity={0.88}
-                        >
-                            <Text style={styles.askQuestionBtnText}>❓ View Frequently Asked Questions (FAQ)</Text>
-                        </TouchableOpacity>
-                    </View>
+                    isExpertOrAdmin ? (
+                        <ExpertChatInbox navigation={navigation} />
+                    ) : authMode === 'guest' ? (
+                        <View style={styles.discussionPlaceholder}>
+                            <Icon source="message-text-outline" size={40} color={colors.textSoft} />
+                            <Text style={styles.discussionTitle}>Chat with a Nutrition Expert</Text>
+                            <Text style={styles.discussionSubTitle}>
+                                Log in to ask our verified experts a question about your baby's nutrition.
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.askQuestionBtn}
+                                onPress={() => navigation.navigate('Login')}
+                                activeOpacity={0.88}
+                            >
+                                <Text style={styles.askQuestionBtnText}>Log In</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <ParentChatList navigation={navigation} />
+                    )
                 ) : (
                     <FAQScreen />
                 )}
@@ -151,10 +166,6 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         borderWidth: 1,
         borderStyle: 'solid',
         borderColor: colors.borderDashed,
-    },
-    emojiText: {
-        fontSize: 48,
-        marginBottom: 12,
     },
     discussionTitle: {
         fontSize: 18,

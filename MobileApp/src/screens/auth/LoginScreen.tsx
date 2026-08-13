@@ -76,6 +76,7 @@ function LoginScreen({ navigation }: any) {
                     firebaseIdToken,
                     user: {
                         uid: user.uid,
+                        id: backendUser.id,
                         email: backendUser.email,
                         displayName:
                             backendUser.fullName ||

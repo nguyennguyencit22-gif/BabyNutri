@@ -554,3 +554,42 @@ CREATE TABLE measurement_settings (
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- ==========================================
+-- 20. EXPERT CHAT (Parent <-> Expert, realtime)
+-- ==========================================
+CREATE TABLE chat_conversations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT NOT NULL,
+    expert_id INT NOT NULL,
+    status ENUM('active','ended') DEFAULT 'active',
+    last_message TEXT,
+    last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE chat_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE chat_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    parent_id INT NOT NULL,
+    rating TINYINT NOT NULL,
+    review TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE
+);
