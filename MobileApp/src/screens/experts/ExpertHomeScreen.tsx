@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Platfo
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
@@ -51,14 +52,22 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.headerRow}>
-          <View style={[styles.avatarCircle, { backgroundColor: '#FF5F70' }]}>
-            <Text style={styles.avatarLetter}>{displayName.charAt(0).toUpperCase()}</Text>
-          </View>
-          <View>
-            <Text style={[styles.greeting, { color: colors.textSoft }]}>Welcome back,</Text>
-            <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
-          </View>
+        <View style={styles.heroBanner}>
+          <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+            <Defs>
+              <LinearGradient id="expertHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <Stop offset="0%" stopColor="#FF6B8A" />
+                <Stop offset="55%" stopColor="#E23F72" />
+                <Stop offset="100%" stopColor="#8E1E52" />
+              </LinearGradient>
+            </Defs>
+            <Rect width="100%" height="100%" fill="url(#expertHeroGradient)" />
+          </Svg>
+
+          <Text style={styles.heroGreeting}>Welcome back, {displayName}</Text>
+          <Text style={styles.heroDescription}>
+            Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
+          </Text>
         </View>
 
         <View style={[styles.statsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -119,11 +128,28 @@ const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 18, paddingTop: statusBarHeight ? 8 : 18, paddingBottom: 100 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 },
-  avatarCircle: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center' },
-  avatarLetter: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
-  greeting: { fontSize: 13, fontWeight: '600' },
-  name: { fontSize: 20, fontWeight: '800' },
+  heroBanner: {
+    borderRadius: 22,
+    padding: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#8E1E52',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
+  },
+  heroGreeting: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  heroDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(255, 255, 255, 0.92)',
+  },
   statsCard: {
     flexDirection: 'row',
     borderRadius: 18,
