@@ -31,14 +31,13 @@ function LibraryScreen({ navigation }: any) {
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <TopHeaderBar />
 
-      {/* Banner Nút mở Lịch Dinh Dưỡng & Đề Xuất Món Ăn — Parent-only, Experts don't track a baby */}
+      {/* Banner Button: Nutrition Schedule & Meal Suggestions - Parent-only */}
       {!isExpertOrAdmin && (
         <TouchableOpacity
           style={styles.schedulerBanner}
           onPress={() => navigation.navigate('MealScheduler')}
           activeOpacity={0.88}
         >
-          <Text style={styles.schedulerBannerEmoji}>📅✨</Text>
           <View style={styles.schedulerBannerTextCol}>
             <Text style={styles.schedulerBannerTitle}>Nutrition Schedule & Meal Suggestions</Text>
             <Text style={styles.schedulerBannerSub}>Daily meal planner & expert-approved nutrition recommendations</Text>
@@ -46,7 +45,7 @@ function LibraryScreen({ navigation }: any) {
         </TouchableOpacity>
       )}
 
-      {/* Segmented Tab Switcher (Thư viện: Công thức & Bài viết) */}
+      {/* Segmented Tab Switcher: Recipes & Articles */}
       <View style={styles.segmentedContainer}>
         <TouchableOpacity
           style={[
@@ -62,7 +61,7 @@ function LibraryScreen({ navigation }: any) {
               activeSubTab === 'recipes' && styles.segmentTextActive,
             ]}
           >
-            🥣 Weaning Recipes
+            Weaning Recipes
           </Text>
         </TouchableOpacity>
 
@@ -80,7 +79,7 @@ function LibraryScreen({ navigation }: any) {
               activeSubTab === 'articles' && styles.segmentTextActive,
             ]}
           >
-            📚 Nutrition Articles
+            Nutrition Articles
           </Text>
         </TouchableOpacity>
       </View>

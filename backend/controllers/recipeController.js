@@ -130,7 +130,7 @@ exports.getRecipeById = async (req, res) => {
             assets: { stickers, heroImages, gallery }
         });
     } catch (err) {
-        console.error("🔥 getRecipeById error:", err);
+        console.error("getRecipeById error:", err);
         res.status(500).json({ message: "Server error", error: err.message });
     }
 };
@@ -362,7 +362,7 @@ exports.getMyFavorites = async (req, res) => {
 };
 
 // ==========================================
-// CREATE RECIPE (transaction thật)
+// CREATE RECIPE (transaction)
 // ==========================================
 exports.createRecipe = async (req, res) => {
     const connection = await db.getConnection();
@@ -377,7 +377,7 @@ exports.createRecipe = async (req, res) => {
         } = req.body;
 
         if (!name || !calories || !monthAge) {
-            return res.status(400).json({ message: "name, calories, monthAge là bắt buộc" });
+            return res.status(400).json({ message: "name, calories, and monthAge are required" });
         }
 
         const expertId = req.user?.id || null;

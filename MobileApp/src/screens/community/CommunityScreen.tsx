@@ -33,7 +33,7 @@ function CommunityScreen({ navigation }: any) {
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <TopHeaderBar />
 
-            {/* Segmented Tab Switcher (Cộng đồng: Diễn đàn & FAQ Hỏi đáp) */}
+            {/* Segmented Tab Switcher: Community Forum & Nutrition FAQ */}
             <View style={styles.segmentedContainer}>
                 <TouchableOpacity
                     style={[
@@ -49,7 +49,7 @@ function CommunityScreen({ navigation }: any) {
                             activeSubTab === 'discussion' && styles.segmentTextActive,
                         ]}
                     >
-                        💬 Community Forum
+                        Community Forum
                     </Text>
                 </TouchableOpacity>
 
@@ -67,7 +67,7 @@ function CommunityScreen({ navigation }: any) {
                             activeSubTab === 'faq' && styles.segmentTextActive,
                         ]}
                     >
-                        ❓ Nutrition FAQ
+                        Nutrition FAQ
                     </Text>
                 </TouchableOpacity>
             </View>

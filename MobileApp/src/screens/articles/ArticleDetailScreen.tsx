@@ -155,7 +155,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         type: 'comment',
         title: `Commented on: ${article?.title}`,
         details: `"${text.slice(0, 30)}..."`,
-        icon: '💬',
+        icon: 'comment',
       }));
 
       appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
@@ -178,7 +178,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         type: 'like',
         title: `Liked & Saved: ${article?.title || 'Article'}`,
         details: 'Added to Favourites & Saved Articles tab',
-        icon: '❤️',
+        icon: 'heart',
       }));
       appAlert.show(
         'Saved to Favourites',
@@ -227,7 +227,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       const webUrl = `https://babynutri.app/articles/${article.id}`;
       await Share.share({
         title: article.title,
-        message: `📖 ${article.title}\n\n${article.summary || ''}\n\nRead more on Web & App:\n${webUrl}`,
+        message: `${article.title}\n\n${article.summary || ''}\n\nRead more on Web & App:\n${webUrl}`,
         url: webUrl,
       });
 
@@ -235,7 +235,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         type: 'action',
         title: `Shared article link: ${article.title}`,
         details: 'External web & app link shared',
-        icon: '🔗',
+        icon: 'link',
       }));
     } catch (e) {
       console.error('Share article error:', e);

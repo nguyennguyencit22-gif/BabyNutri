@@ -179,7 +179,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         type: 'action',
         title: `Commented on recipe: ${recipe?.name || 'Recipe'}`,
         details: text,
-        icon: '💬',
+        icon: 'comment',
       }));
     } catch (e) {
       console.error('Add recipe comment error:', e);
@@ -202,7 +202,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
       const webUrl = `https://babynutri.app/recipes/${recipe.id}`;
       await Share.share({
         title: recipe.name,
-        message: `🥗 Baby recipe: ${recipe.name} (${recipe.month_age}+ months)\n\nIngredients: ${recipe.ingredients.slice(0, 3).join(', ')}...\n\nRead more on Web & App:\n${webUrl}`,
+        message: `Baby recipe: ${recipe.name} (${recipe.month_age}+ months)\n\nIngredients: ${recipe.ingredients.slice(0, 3).join(', ')}...\n\nRead more on Web & App:\n${webUrl}`,
         url: webUrl,
       });
 
@@ -210,7 +210,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         type: 'action',
         title: `Shared recipe link: ${recipe.name}`,
         details: 'External web & app link shared',
-        icon: '🔗',
+        icon: 'link',
       }));
     } catch (e) {
       console.error('Share recipe error:', e);
@@ -266,7 +266,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
         type: 'like',
         title: `Favorited Recipe: ${recipe?.name}`,
         details: 'Added to Favorite Recipes tab',
-        icon: '❤️',
+        icon: 'heart',
       }));
       appAlert.show(
         'Saved to Favorites',
@@ -529,7 +529,7 @@ const RecipeDetailScreen = ({ route, navigation }: any) => {
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.slotSelectText, { color: colors.text }, isSelected && styles.slotSelectTextActive]}>{slot.label}</Text>
-                    {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
+                    {isSelected && <Icon source="check" size={16} color="#FF5F70" />}
                   </TouchableOpacity>
                 );
               })}

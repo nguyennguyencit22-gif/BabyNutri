@@ -144,7 +144,16 @@ const SavedItemsScreen = ({ route, navigation }: any) => {
             renderItem={({ item }) => (
               <View style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={[styles.activityIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
-                  <Text style={{ fontSize: 18 }}>{item.icon || '📌'}</Text>
+                  <Icon 
+                    source={
+                      item.type === 'like' ? 'heart' :
+                      item.type === 'comment' ? 'comment-text-outline' :
+                      item.type === 'action' ? 'share-variant-outline' :
+                      'history'
+                    } 
+                    size={20} 
+                    color="#FF7A59" 
+                  />
                 </View>
 
                 <View style={styles.activityInfo}>

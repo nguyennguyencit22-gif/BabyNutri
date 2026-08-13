@@ -73,7 +73,7 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
     setSubmittingAnswer(true);
     try {
       await questionService.answerQuestion(selectedQuestion.id, answerText.trim());
-      Alert.alert('Success 🎉', 'Answer sent to parent and published!');
+      Alert.alert('Success', 'Answer sent to parent and published!');
       setAnswerModalVisible(false);
       setSelectedQuestion(null);
       setAnswerText('');
@@ -94,7 +94,7 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
     setSubmittingFaq(true);
     try {
       await questionService.createFAQ(faqTitle.trim(), faqTitle.trim(), faqAnswer.trim());
-      Alert.alert('Success 🎉', 'New FAQ created successfully!');
+      Alert.alert('Success', 'New FAQ created successfully!');
       setFaqModalVisible(false);
       setFaqTitle('');
       setFaqAnswer('');
@@ -270,7 +270,7 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
       <Modal visible={answerModalVisible} transparent animationType="slide" onRequestClose={() => setAnswerModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setAnswerModalVisible(false)}>
           <Pressable style={[styles.modalCard, { backgroundColor: colors.surface }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Answer Question 💬</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Answer Question</Text>
             {selectedQuestion && (
               <Text style={[styles.modalSub, { color: colors.textSoft }]}>"{selectedQuestion.title}"</Text>
             )}
@@ -301,7 +301,7 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
       <Modal visible={faqModalVisible} transparent animationType="slide" onRequestClose={() => setFaqModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setFaqModalVisible(false)}>
           <Pressable style={[styles.modalCard, { backgroundColor: colors.surface }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Create Standard FAQ 💡</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Create Standard FAQ</Text>
 
             <TextInput
               style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}

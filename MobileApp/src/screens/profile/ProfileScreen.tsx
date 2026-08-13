@@ -155,7 +155,7 @@ function ProfileScreen({
                     </>
                 ) : (
                     <>
-                        {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
+                        {/* PROFILES SECTION */}
                         <Text style={styles.sectionLabel}>
                             PROFILES
                         </Text>
@@ -214,7 +214,7 @@ function ProfileScreen({
                     }}
                 />
 
-                {/* OTHER SETTING SECTION (CHUẨN MEMBER A) */}
+                {/* OTHER SETTINGS SECTION */}
                 <Text style={styles.otherSettingLabel}>
                     OTHER SETTING
                 </Text>

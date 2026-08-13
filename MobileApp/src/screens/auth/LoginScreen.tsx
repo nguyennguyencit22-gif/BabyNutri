@@ -34,6 +34,7 @@ import {
 import { loadBabies } from '../../store/babySlice';
 
 import createStyles from '../../styles/auth/loginStyles';
+import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 function LoginScreen({ navigation }: any) {
@@ -185,7 +186,7 @@ function LoginScreen({ navigation }: any) {
                 <View style={styles.countryRow}>
                     <View style={styles.countryInfo}>
                         <View style={styles.flagCircle}>
-                            <Text style={styles.flagText}>★</Text>
+                            <Icon source="star" size={14} color="#FFEB3B" />
                         </View>
 
                         <Text style={styles.countryName}>Vietnam</Text>

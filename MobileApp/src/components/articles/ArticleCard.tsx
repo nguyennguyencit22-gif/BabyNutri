@@ -191,10 +191,10 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
           type: 'like',
           title: `Liked & Saved: ${article.title}`,
           details: 'Added to Favourites & Saved Articles tab',
-          icon: '❤️',
+          icon: 'heart',
         })
       );
-      Alert.alert('Saved to Favourites ❤️', 'This article has been added to your Saved & Favorite Articles list.');
+      Alert.alert('Saved to Favourites', 'This article has been added to your Saved & Favorite Articles list.');
     }
   };
 
@@ -204,7 +204,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
       const webUrl = `https://babynutri.app/articles/${article.id}`;
       await Share.share({
         title: article.title,
-        message: `📄 ${article.title}\n\nRead more on BabyNutri Web & App:\n${webUrl}`,
+        message: `${article.title}\n\nRead more on BabyNutri Web & App:\n${webUrl}`,
         url: webUrl,
       });
 
@@ -213,7 +213,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
           type: 'action',
           title: `Shared link: ${article.title}`,
           details: 'External web & app link shared',
-          icon: '🔗',
+          icon: 'link',
         })
       );
     } catch (e) {
@@ -365,7 +365,7 @@ const ArticleCard: React.FC<Props> = ({ article, onPress, onRefreshList }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal 3 Chấm Options */}
+      {/* 3-Dots Options Menu Modal */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuBox}>

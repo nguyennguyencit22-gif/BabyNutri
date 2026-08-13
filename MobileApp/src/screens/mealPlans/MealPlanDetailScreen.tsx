@@ -192,7 +192,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
         {/* Baby Profile Info Card */}
         <View style={styles.babyCard}>
           <View style={styles.babyAvatarBox}>
-            <Text style={{ fontSize: 24 }}>👶</Text>
+            <Icon source="baby-face-outline" size={24} color={colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.babyNameText}>{selectedBaby?.name || 'Baby Profile'}</Text>
@@ -215,8 +215,8 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
         <View style={styles.headerCard}>
           <View style={styles.headerCardTop}>
             <View>
-              <Text style={styles.title}>📅 {formattedDisplayDate}</Text>
-              <Text style={styles.totalCalories}>🔥 Energy Target: {mealPlan.totalCalories} kcal</Text>
+              <Text style={styles.title}>{formattedDisplayDate}</Text>
+              <Text style={styles.totalCalories}>Energy Target: {mealPlan.totalCalories} kcal</Text>
             </View>
 
             <TouchableOpacity 
@@ -248,7 +248,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
           </View>
         </View>
         
-        <Text style={styles.mealsTitle}>🥣 Planned Meals Breakdown ({weekTitle})</Text>
+        <Text style={styles.mealsTitle}>Planned Meals Breakdown ({weekTitle})</Text>
 
         {/* List of Categorized Meal Slots (Breakfast, Lunch, Snack, Dinner) */}
         {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map((slotName) => {
@@ -257,9 +257,6 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
             <View key={slotName} style={styles.slotCard}>
               <View style={styles.slotHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={{ fontSize: 16 }}>
-                    {slotName === 'Breakfast' ? '🌅' : slotName === 'Lunch' ? '☀️' : slotName === 'Snack' ? '🍎' : '🌙'}
-                  </Text>
                   <Text style={styles.slotTitle}>{slotName}</Text>
                 </View>
                 <TouchableOpacity onPress={handleOpenScheduler} activeOpacity={0.8}>
@@ -278,7 +275,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                         <Text style={styles.mealName}>{cleanName}</Text>
                         <View style={styles.timeTag}>
                           <Text style={styles.mealTime}>
-                            {meal.time && meal.time.trim() !== '' ? `⏰ ${meal.time}` : '⏰ Set Time'}
+                            {meal.time && meal.time.trim() !== '' ? meal.time : 'Set Time'}
                           </Text>
                         </View>
                       </View>
@@ -288,9 +285,9 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                       )}
 
                       <View style={styles.mealMetaRow}>
-                        <Text style={styles.mealCalories}>🔥 {meal.calories} kcal</Text>
-                        {!!meal.protein && <Text style={styles.macroPill}>🥩 Protein {meal.protein}g</Text>}
-                        {!!meal.carbs && <Text style={styles.macroPill}>🌾 Carbs {meal.carbs}g</Text>}
+                        <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
+                        {!!meal.protein && <Text style={styles.macroPill}>Protein {meal.protein}g</Text>}
+                        {!!meal.carbs && <Text style={styles.macroPill}>Carbs {meal.carbs}g</Text>}
                       </View>
 
                       {/* Interactive Action Buttons linking to Weaning Recipe, Schedule & Remove */}
@@ -300,7 +297,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                           onPress={() => handleOpenRecipeDetail(meal)}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.recipeDetailBtnText}>📖 View Recipe</Text>
+                          <Text style={styles.recipeDetailBtnText}>View Recipe</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -308,7 +305,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                           onPress={handleOpenScheduler}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.scheduleItemBtnText}>🗓️ Scheduler</Text>
+                          <Text style={styles.scheduleItemBtnText}>Scheduler</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -316,7 +313,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
                           onPress={() => handleRemoveDish(meal)}
                           activeOpacity={0.8}
                         >
-                          <Text style={styles.deleteDetailBtnText}>🗑️ Remove</Text>
+                          <Text style={styles.deleteDetailBtnText}>Remove</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -330,7 +327,7 @@ export const MealPlanDetailScreen = ({ route, navigation }: any) => {
         {/* Expert Weaning Nutrition Guidance Card */}
         <View style={styles.guidanceCard}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <Text style={{ fontSize: 18 }}>💡</Text>
+            <Icon source="lightbulb-on-outline" size={18} color="#D97706" />
             <Text style={styles.guidanceTitle}>Pediatric Weaning & Hydration Guidance</Text>
           </View>
           <Text style={styles.guidanceText}>

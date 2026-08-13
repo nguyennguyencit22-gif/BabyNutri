@@ -202,7 +202,7 @@ const FAQScreen = ({ navigation }: any) => {
       setAskModalVisible(false);
       setMainTab('myQuestions');
       loadQuestions();
-      Alert.alert('Success 🎉', 'Your question has been sent in real-time to Pediatric Nutrition Experts!');
+      Alert.alert('Success', 'Your question has been sent in real-time to Pediatric Nutrition Experts!');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to submit question.');
     }
@@ -415,7 +415,7 @@ const FAQScreen = ({ navigation }: any) => {
       <Modal visible={askModalVisible} transparent animationType="slide" onRequestClose={() => setAskModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setAskModalVisible(false)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalHeaderTitle}>Ask a Nutrition Expert 💬</Text>
+            <Text style={styles.modalHeaderTitle}>Ask a Nutrition Expert</Text>
             <Text style={styles.modalHeaderSub}>Your question will be answered by verified pediatric nutritionists.</Text>
 
             {/* Optional Expert Picker */}

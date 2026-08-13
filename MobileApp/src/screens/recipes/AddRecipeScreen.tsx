@@ -256,7 +256,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
             placeholderTextColor={colors.textSoft}
           />
           <TouchableOpacity onPress={() => removeIngredient(i)}>
-            <Text style={styles.removeBtn}>✕</Text>
+            <Icon source="close-circle-outline" size={22} color="#FF5F70" />
           </TouchableOpacity>
         </View>
       ))}
@@ -280,7 +280,7 @@ const AddRecipeScreen = ({ navigation }: any) => {
               multiline
             />
             <TouchableOpacity onPress={() => removeStep(i)}>
-              <Text style={styles.removeBtn}>✕</Text>
+              <Icon source="close-circle-outline" size={22} color="#FF5F70" />
             </TouchableOpacity>
           </View>
 

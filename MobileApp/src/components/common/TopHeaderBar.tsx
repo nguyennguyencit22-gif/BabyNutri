@@ -204,7 +204,7 @@ const TopHeaderBar: React.FC = () => {
         <Pressable style={styles.modalOverlay} onPress={() => setNotifVisible(false)}>
           <View style={styles.notifBox}>
             <View style={styles.notifHeaderRow}>
-              <Text style={styles.notifTitle}>🔔 Notifications</Text>
+              <Text style={styles.notifTitle}>Notifications</Text>
               <TouchableOpacity onPress={() => setNotifVisible(false)}>
                 <Text style={styles.notifCloseText}>Close</Text>
               </TouchableOpacity>
@@ -231,7 +231,7 @@ const TopHeaderBar: React.FC = () => {
                       <CheckCircleOutlineIcon size={16} color="#16A34A" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
+                      <Text style={styles.notifTextBold}>Daily Weaning Schedule for {babyName}</Text>
                       <Text style={styles.notifTextSub}>Breakfast (08:00), Lunch (11:30), Snack (15:00) & Dinner (18:00) planned.</Text>
                       <Text style={styles.notifTime}>Just now</Text>
                     </View>
@@ -245,7 +245,7 @@ const TopHeaderBar: React.FC = () => {
                       <SparklesIcon size={16} color="#FF6B4A" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
+                      <Text style={styles.notifTextBold}>Active Profile: {babyName} ({babyAgeText})</Text>
                       <Text style={styles.notifTextSub}>Smart allergy ranking is active. Safe recipes prioritized!</Text>
                       <Text style={styles.notifTime}>5 min ago</Text>
                     </View>
@@ -259,7 +259,7 @@ const TopHeaderBar: React.FC = () => {
                       <BookOpenOutlineIcon size={16} color="#0284C7" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
+                      <Text style={styles.notifTextBold}>Nutrition Guide for {babyName}</Text>
                       <Text style={styles.notifTextSub}>Tips to boost appetite & nutrient absorption tailored for {babyAgeText}.</Text>
                       <Text style={styles.notifTime}>1 hour ago</Text>
                     </View>

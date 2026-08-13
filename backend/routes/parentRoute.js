@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const auth = require("../middleware/auth");
-const db = require("../db"); // ✅ FIX IMPORTANT
+const db = require("../db");
 
 const { getDashboard } = require("../controllers/parentController");
 

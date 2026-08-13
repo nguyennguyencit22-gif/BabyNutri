@@ -6,6 +6,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView, } from 'react-native-safe-area-context';
+import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '@/theme/useAppTheme';
 import type { AppColors } from '@/theme/colors';
 
@@ -47,9 +48,7 @@ function FeatureIntroScreen({
                     </Text>
 
                     <View style={styles.preview}>
-                        <Text style={styles.previewIcon}>
-                            🥣
-                        </Text>
+                        <Icon source="silverware-fork-knife" size={24} color="#FF5F70" style={{ marginRight: 10 }} />
 
                         <Text style={styles.previewText}>
                             Healthy meals made easier

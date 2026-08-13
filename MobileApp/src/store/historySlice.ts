@@ -24,7 +24,7 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
         title: 'Created baby profile for Minh An',
         details: 'Gender: Boy · Added to active profiles',
         timestamp: new Date().toISOString(),
-        icon: '👶',
+        icon: 'account-child-circle',
     },
     {
         id: 'init-2',
@@ -32,7 +32,7 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
         title: 'Liked recipe: Pumpkin & Pork Porridge',
         details: 'Saved to favorite weaning recipes',
         timestamp: new Date(Date.now() - 3600000).toISOString(),
-        icon: '❤️',
+        icon: 'heart',
     },
     {
         id: 'init-3',
@@ -40,7 +40,7 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
         title: 'Commented on article: Weaning Guide for 6 Months',
         details: '"Very helpful guide for new mothers!"',
         timestamp: new Date(Date.now() - 7200000).toISOString(),
-        icon: '💬',
+        icon: 'comment',
     },
 ];
 

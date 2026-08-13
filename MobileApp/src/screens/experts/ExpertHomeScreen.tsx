@@ -172,7 +172,7 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           iconColor="#F59E0B"
           title="Ratings"
           description={ratingTotal > 0
-            ? `Parents rate your recipes ${avgRating.toFixed(1)}★ on average.`
+            ? `Parents rate your recipes ${avgRating.toFixed(1)} / 5 on average.`
             : 'No ratings yet — they\'ll show up here once parents rate your recipes.'}
           allTimeValue={ratingTotal}
           monthValue={ratingThisMonth}
