@@ -8,10 +8,14 @@ const {
     answerQuestion,
     createFAQ,
     deleteQuestion,
+    getQuestionMessages,
+    addQuestionMessage,
 } = require('../controllers/questionController');
 
 router.get('/', getQuestions);
 router.get('/public-experts', getPublicExperts);
+router.get('/:id/messages', getQuestionMessages);
+router.post('/:id/messages', auth, addQuestionMessage);
 router.post('/', auth, createQuestion);
 router.post('/faq', auth, createFAQ);
 router.post('/:id/answer', auth, answerQuestion);

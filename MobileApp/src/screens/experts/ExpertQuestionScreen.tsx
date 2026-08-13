@@ -242,10 +242,19 @@ const ExpertQuestionScreen = ({ navigation }: any) => {
               <Text style={[styles.qTitle, { color: colors.text }]}>{item.title}</Text>
               {item.answer && (
                 <View style={[styles.answerBox, { backgroundColor: isDark ? '#2E2B2C' : '#FFF0F2' }]}>
-                  <Text style={styles.expertTag}>💡 {item.answer.expertName}:</Text>
+                  <Text style={styles.expertTag}>{item.answer.expertName}:</Text>
                   <Text style={[styles.answerText, { color: colors.text }]}>{item.answer.content}</Text>
                 </View>
               )}
+
+              <TouchableOpacity
+                style={styles.chatBtn}
+                onPress={() => navigation.navigate('QnaChat', { questionId: item.id, title: item.title, expertName: item.answer?.expertName || 'Nutrition Expert' })}
+                activeOpacity={0.85}
+              >
+                <Icon source="chat-processing-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.chatBtnText}>Open Realtime Chat</Text>
+              </TouchableOpacity>
             </View>
           )}
           ListEmptyComponent={
@@ -403,6 +412,17 @@ const styles = StyleSheet.create({
   cancelBtnText: { fontSize: 13, fontWeight: '700', color: '#6B7280' },
   submitBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: '#FF7A59' },
   submitBtnText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
+  chatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  chatBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
 });
 
 export default ExpertQuestionScreen;

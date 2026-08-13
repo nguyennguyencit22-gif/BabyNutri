@@ -310,3 +310,82 @@ exports.deleteQuestion = async (req, res) => {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+/**
+ * GET /api/questions/:id/messages
+ * Get all realtime chat messages for a specific Q&A topic.
+ */
+exports.getQuestionMessages = async (req, res) => {
+    try {
+        const questionId = Number(req.params.id);
+
+        const [rows] = await db.query(
+            `SELECT
+                m.id,
+                m.question_id AS questionId,
+                m.sender_id AS senderId,
+                m.sender_role AS senderRole,
+                m.content,
+                m.created_at AS createdAt,
+                u.full_name AS senderName,
+                u.avatar AS senderAvatar
+             FROM qna_messages m
+             JOIN users u ON m.sender_id = u.id
+             WHERE m.question_id = ?
+             ORDER BY m.id ASC`,
+            [questionId]
+        );
+
+        return res.json(rows);
+    } catch (error) {
+        console.error("GET QUESTION MESSAGES ERROR:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+/**
+ * POST /api/questions/:id/messages
+ * HTTP fallback API to send a chat message in a Q&A topic.
+ */
+exports.addQuestionMessage = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized." });
+        }
+
+        const questionId = Number(req.params.id);
+        const senderId = req.user.id;
+        const senderRole = (req.user.role || "parent").toLowerCase();
+        const { content } = req.body;
+
+        if (!content || !content.trim()) {
+            return res.status(400).json({ message: "Message content cannot be empty." });
+        }
+
+        const [result] = await db.query(
+            `INSERT INTO qna_messages (question_id, sender_id, sender_role, content) VALUES (?, ?, ?, ?)`,
+            [questionId, senderId, senderRole, content.trim()]
+        );
+
+        if (senderRole === "expert") {
+            await db.query(`UPDATE questions SET status = 'Answered' WHERE id = ?`, [questionId]);
+        }
+
+        const [userRows] = await db.query(`SELECT full_name, avatar FROM users WHERE id = ?`, [senderId]);
+        const senderName = userRows.length > 0 ? userRows[0].full_name : "User";
+
+        return res.status(201).json({
+            id: result.insertId,
+            questionId,
+            senderId,
+            senderName,
+            senderRole,
+            content: content.trim(),
+            createdAt: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error("ADD QUESTION MESSAGE ERROR:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+

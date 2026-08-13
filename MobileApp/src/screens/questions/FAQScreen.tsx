@@ -261,12 +261,21 @@ const FAQScreen = ({ navigation }: any) => {
                   <View style={styles.faqBody}>
                     <View style={styles.expertBadgeRow}>
                       <Text style={styles.expertTagText}>
-                        💡 {item.answer ? `Expert Advice (${item.answer.expertName}):` : isAnswered ? 'Expert Advice:' : 'Question Details:'}
+                        {item.answer ? `Expert Advice (${item.answer.expertName}):` : isAnswered ? 'Expert Advice:' : 'Question Details:'}
                       </Text>
                     </View>
                     <Text style={styles.faqContent}>
                       {item.answer ? item.answer.content : item.content}
                     </Text>
+
+                    <TouchableOpacity
+                      style={styles.liveChatBtn}
+                      onPress={() => navigation.navigate('QnaChat', { questionId: item.id, title: item.title, expertName: item.targetExpertName || item.answer?.expertName || 'Nutrition Expert' })}
+                      activeOpacity={0.85}
+                    >
+                      <Icon source="chat-processing-outline" size={16} color="#FFFFFF" />
+                      <Text style={styles.liveChatBtnText}>Open Realtime Chat</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -624,6 +633,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF7A59',
   },
   modalSubmitText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  liveChatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  liveChatBtnText: {
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',

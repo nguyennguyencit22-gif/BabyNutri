@@ -79,15 +79,20 @@ app.use((error, req, res, next) => {
     });
 });
 
+const http = require('http');
+const { initSocket } = require('./socket');
+
 const port = Number(process.env.PORT || 5000);
+const server = http.createServer(app);
+initSocket(server);
 
 async function startServer() {
     try {
         await testDatabaseConnection();
 
-        app.listen(port, '0.0.0.0', () => {
+        server.listen(port, '0.0.0.0', () => {
             console.log(
-                `BabyNutri API running at http://localhost:${port}`,
+                `BabyNutri API with Socket.io running at http://localhost:${port}`,
             );
         });
     } catch (error) {
