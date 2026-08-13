@@ -73,8 +73,6 @@ const ExpertHomeScreen = ({ navigation }: any) => {
     }, [loadStats])
   );
 
-  const [ratingModalVisible, setRatingModalVisible] = useState(false);
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
@@ -183,7 +181,7 @@ const ExpertHomeScreen = ({ navigation }: any) => {
 
             <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => navigation.navigate('ExpertQuestions')}
+              onPress={() => navigation.navigate('ExpertQuestion')}
               activeOpacity={0.85}
             >
               <View style={[styles.actionIconCircle, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2' }]}>
