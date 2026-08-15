@@ -117,6 +117,64 @@ async function testDatabaseConnection() {
         // 4. Ensure recipe_steps has image_url
         await ensureColumn(connection, 'recipe_steps', 'image_url', 'VARCHAR(500) DEFAULT NULL');
 
+        // 5. Ensure caregiver & chat tables exist
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS child_caregivers (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                child_id INT NOT NULL,
+                user_id INT NOT NULL,
+                permission ENUM('owner','editor') NOT NULL DEFAULT 'editor',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_child_user (child_id, user_id),
+                FOREIGN KEY (child_id) REFERENCES child_profiles(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await connection.query(`
+            INSERT IGNORE INTO child_caregivers (child_id, user_id, permission)
+            SELECT id, parent_id, 'owner' FROM child_profiles WHERE parent_id IS NOT NULL
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS chat_conversations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                parent_id INT NOT NULL,
+                expert_id INT NOT NULL,
+                status ENUM('active','ended') DEFAULT 'active',
+                last_message TEXT,
+                last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conversation_id INT NOT NULL,
+                sender_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+                FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS chat_ratings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                conversation_id INT NOT NULL,
+                parent_id INT NOT NULL,
+                rating TINYINT NOT NULL,
+                review TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+                FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
+
     } catch (err) {
         console.warn('[DB] Auto-migration error:', err.message);
     } finally {

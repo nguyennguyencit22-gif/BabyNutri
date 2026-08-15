@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { recipeService, RecipeMetadata } from '../../services/recipe.service';
 import { RecipeListItem } from '../../types/recipe';
@@ -107,9 +108,12 @@ const SearchRecipeScreen = ({ navigation }: any) => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <View style={[styles.searchBarBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Icon source="magnify" size={20} color="#FF5F70" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingRight: 6 }}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search by name, ingredient, keyword..."
@@ -203,7 +207,7 @@ const SearchRecipeScreen = ({ navigation }: any) => {
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

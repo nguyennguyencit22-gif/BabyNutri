@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { recipeService, RecipeMetadata } from '../../services/recipe.service';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -117,103 +118,123 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
   const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
-      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name</Text>
-      <TextInput style={inputStyle} defaultValue={name} onChangeText={setName} placeholderTextColor={colors.textSoft} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Edit Recipe</Text>
+        <View style={{ width: 36 }} />
+      </View>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+        <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name</Text>
+        <TextInput style={inputStyle} defaultValue={name} onChangeText={setName} placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Description</Text>
-      <TextInput style={[inputStyle, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Description</Text>
+        <TextInput style={[inputStyle, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Image (URL)</Text>
-      <TextInput style={inputStyle} value={imageUrl} onChangeText={setImageUrl} placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Image (URL)</Text>
+        <TextInput style={inputStyle} value={imageUrl} onChangeText={setImageUrl} placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft, marginTop: 10 }]}>Select from Preset Photos:</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {PRESET_PUBLIC_IMAGES.map((img) => {
-            const isSelected = imageUrl === img.url;
-            return (
-              <TouchableOpacity
-                key={img.label}
-                style={[
-                  styles.presetChip,
-                  { backgroundColor: isSelected ? '#FF5F70' : colors.surface, borderColor: isSelected ? '#FF5F70' : colors.border },
-                ]}
-                onPress={() => setImageUrl(img.url)}
-                activeOpacity={0.8}
-              >
-                <Icon source={img.icon} size={15} color={isSelected ? '#FFFFFF' : '#FF5F70'} />
-                <Text style={[styles.presetChipText, { color: isSelected ? '#FFFFFF' : colors.text }]}>{img.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
+        <Text style={[styles.label, { color: colors.textSoft, marginTop: 10 }]}>Select from Preset Photos:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {PRESET_PUBLIC_IMAGES.map((img) => {
+              const isSelected = imageUrl === img.url;
+              return (
+                <TouchableOpacity
+                  key={img.label}
+                  style={[
+                    styles.presetChip,
+                    { backgroundColor: isSelected ? '#FF5F70' : colors.surface, borderColor: isSelected ? '#FF5F70' : colors.border },
+                  ]}
+                  onPress={() => setImageUrl(img.url)}
+                  activeOpacity={0.8}
+                >
+                  <Icon source={img.icon} size={15} color={isSelected ? '#FFFFFF' : '#FF5F70'} />
+                  <Text style={[styles.presetChipText, { color: isSelected ? '#FFFFFF' : colors.text }]}>{img.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+
+        {imageUrl ? (
+          <View style={styles.imagePreviewContainer}>
+            <Image source={{ uri: imageUrl }} style={styles.imagePreview} />
+          </View>
+        ) : null}
+
+        <View style={styles.rowInputs}>
+          <View style={styles.half}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Calories (kcal)</Text>
+            <TextInput style={inputStyle} defaultValue={calories} onChangeText={setCalories} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+          <View style={styles.half}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Target Age (mos)</Text>
+            <TextInput style={inputStyle} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
         </View>
+
+        <View style={styles.rowInputs}>
+          <View style={styles.half}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Prep Time (mins)</Text>
+            <TextInput style={inputStyle} defaultValue={prepTime} onChangeText={setPrepTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+          <View style={styles.half}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Cook Time (mins)</Text>
+            <TextInput style={inputStyle} defaultValue={cookingTime} onChangeText={setCookingTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+        </View>
+
+        <View style={styles.rowInputs}>
+          <View style={styles.third}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Protein (g)</Text>
+            <TextInput style={inputStyle} defaultValue={protein} onChangeText={setProtein} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+          <View style={styles.third}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Fat (g)</Text>
+            <TextInput style={inputStyle} defaultValue={fat} onChangeText={setFat} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+          <View style={styles.third}>
+            <Text style={[styles.label, { color: colors.textSoft }]}>Carbs (g)</Text>
+            <TextInput style={inputStyle} defaultValue={carbohydrate} onChangeText={setCarbohydrate} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
+          </View>
+        </View>
+
+        <Text style={[styles.label, { color: colors.textSoft }]}>Meal Type</Text>
+        <ChipSelectRow options={toOptionNames(mealTypes)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
+
+        <Text style={[styles.label, { color: colors.textSoft }]}>Weaning Method</Text>
+        <ChipSelectRow options={toOptionNames(weaningMethods)} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
+
+        <Text style={[styles.label, { color: colors.textSoft }]}>Dietary Needs</Text>
+        <ChipSelectRow options={toOptionNames(dietaryNeedsList)} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
+
+        <Text style={[styles.label, { color: colors.textSoft }]}>Occasion</Text>
+        <ChipSelectRow options={toOptionNames(occasionsList)} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
+
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSave} disabled={submitting}>
+          <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Changes'}</Text>
+        </TouchableOpacity>
       </ScrollView>
-
-      {imageUrl ? (
-        <View style={styles.imagePreviewContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.imagePreview} />
-        </View>
-      ) : null}
-
-      <View style={styles.rowInputs}>
-        <View style={styles.half}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Calories (kcal)</Text>
-          <TextInput style={inputStyle} defaultValue={calories} onChangeText={setCalories} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-        <View style={styles.half}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Age (months)</Text>
-          <TextInput style={inputStyle} defaultValue={monthAge} onChangeText={setMonthAge} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-      </View>
-
-      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Type</Text>
-      <ChipSelectRow options={toOptionNames(mealTypes)} value={mealTypeName} onChange={setMealTypeName} colors={colors} isDark={isDark} />
-
-      <Text style={[styles.label, { color: colors.textSoft }]}>Weaning Method</Text>
-      <ChipSelectRow options={toOptionNames(weaningMethods)} value={weaningMethod} onChange={setWeaningMethod} colors={colors} isDark={isDark} />
-
-      <Text style={[styles.label, { color: colors.textSoft }]}>Dietary Needs</Text>
-      <ChipSelectRow options={toOptionNames(dietaryNeedsList)} value={dietaryNeeds} onChange={setDietaryNeeds} colors={colors} isDark={isDark} />
-
-      <Text style={[styles.label, { color: colors.textSoft }]}>Occasion</Text>
-      <ChipSelectRow options={toOptionNames(occasionsList)} value={occasion} onChange={setOccasion} colors={colors} isDark={isDark} />
-
-      <View style={styles.rowInputs}>
-        <View style={styles.third}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Protein (g)</Text>
-          <TextInput style={inputStyle} defaultValue={protein} onChangeText={setProtein} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-        <View style={styles.third}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Fat (g)</Text>
-          <TextInput style={inputStyle} defaultValue={fat} onChangeText={setFat} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-        <View style={styles.third}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Carb (g)</Text>
-          <TextInput style={inputStyle} defaultValue={carbohydrate} onChangeText={setCarbohydrate} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-      </View>
-
-      <View style={styles.rowInputs}>
-        <View style={styles.half}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Prep Time (min)</Text>
-          <TextInput style={inputStyle} defaultValue={prepTime} onChangeText={setPrepTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-        <View style={styles.half}>
-          <Text style={[styles.label, { color: colors.textSoft }]}>Cooking Time (min)</Text>
-          <TextInput style={inputStyle} defaultValue={cookingTime} onChangeText={setCookingTime} keyboardType="numeric" placeholderTextColor={colors.textSoft} />
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSave} disabled={submitting}>
-        <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Changes'}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 18, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },

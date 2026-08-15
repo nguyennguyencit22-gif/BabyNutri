@@ -121,6 +121,26 @@ exports.createQuestion = async (req, res) => {
             [parentId, targetExpertId, title.trim(), content.trim()]
         );
 
+        let parentName = "Parent";
+        if (parentId) {
+            try {
+                const [pRows] = await db.query(`SELECT full_name FROM users WHERE id = ?`, [parentId]);
+                if (pRows.length > 0 && pRows[0].full_name) parentName = pRows[0].full_name;
+            } catch (pErr) {
+                console.warn("Lookup parent name failed:", pErr.message);
+            }
+        }
+
+        let targetExpertName = null;
+        if (targetExpertId) {
+            try {
+                const [eRows] = await db.query(`SELECT full_name FROM users WHERE id = ?`, [targetExpertId]);
+                if (eRows.length > 0 && eRows[0].full_name) targetExpertName = eRows[0].full_name;
+            } catch (eErr) {
+                console.warn("Lookup expert name failed:", eErr.message);
+            }
+        }
+
         const newQuestion = {
             id: result.insertId.toString(),
             title: title.trim(),
@@ -129,7 +149,9 @@ exports.createQuestion = async (req, res) => {
             status: "Pending",
             createdAt: new Date().toISOString(),
             parentId: parentId ? parentId.toString() : null,
+            parentName,
             targetExpertId: targetExpertId ? targetExpertId.toString() : null,
+            targetExpertName,
             answer: null,
         };
 

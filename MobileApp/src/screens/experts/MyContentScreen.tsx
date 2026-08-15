@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, StatusBar, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';

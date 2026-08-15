@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Icon from '../../components/common/AppIcon';
 import { chatService, ChatConversation } from '../../services/chat.service';
 import { formatRealTimeAgo } from '../../utils/formatRealTime';
@@ -8,7 +8,9 @@ import { useAppTheme } from '../../theme/useAppTheme';
 
 // Parent side of the Community tab's "Chat" sub-tab: their own
 // conversations with Experts, plus an entry point to start a new one.
-const ParentChatList = ({ navigation }: any) => {
+const ParentChatList = ({ navigation: propNav }: any) => {
+  const hookNav = useNavigation<any>();
+  const navigation = propNav || hookNav;
   const { colors, isDark } = useAppTheme();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [loading, setLoading] = useState(true);

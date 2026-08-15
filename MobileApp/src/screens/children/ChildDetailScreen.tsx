@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
@@ -63,95 +64,98 @@ export const ChildDetailScreen = ({ route, navigation }: any) => {
   const isMale = String(child.gender).toLowerCase() === 'male' || String(child.gender) === 'Nam';
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity 
-          style={[styles.backBtn, { backgroundColor: colors.surface }]}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.8}
-        >
-          <Icon source="arrow-left" size={20} color="#FF5F70" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.avatarCircle}>
-          <Icon source="baby-face-outline" size={36} color="#FF5F70" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity 
+            style={[styles.backBtn, { backgroundColor: colors.surface }]}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.8}
+          >
+            <Icon source="arrow-left" size={20} color="#FF5F70" />
+          </TouchableOpacity>
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]}>{child.name}</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.avatarCircle}>
+            <Icon source="baby-face-outline" size={36} color="#FF5F70" />
+          </View>
 
-        <View style={styles.badgeRow}>
-          <View style={[styles.badge, isMale ? styles.maleBadge : styles.femaleBadge]}>
-            <Text style={[styles.badgeText, isMale ? styles.maleText : styles.femaleText]}>
-              {isMale ? 'Boy' : 'Girl'}
-            </Text>
-          </View>
-          <View style={styles.ageBadge}>
-            <Text style={styles.ageBadgeText}>{child.age} yrs old</Text>
-          </View>
-        </View>
+          <Text style={[styles.title, { color: colors.text }]}>{child.name}</Text>
 
-        <View style={styles.statsGrid}>
-          <View style={[styles.statBox, { backgroundColor: isDark ? '#3A2E31' : '#FFF0EA', borderColor: colors.border }]}>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Height</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{child.height} <Text style={styles.unit}>cm</Text></Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: isDark ? '#3A2E31' : '#FFF0EA', borderColor: colors.border }]}>
-            <Text style={[styles.statLabel, { color: colors.textSoft }]}>Weight</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{child.weight} <Text style={styles.unit}>kg</Text></Text>
-          </View>
-        </View>
-
-        {child.allergies && child.allergies.length > 0 && (
-          <View style={[styles.allergyCard, { backgroundColor: isDark ? '#4A2A2A' : '#FEF2F2', borderColor: isDark ? '#8A4550' : '#FEE2E2' }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <Icon source="alert-circle-outline" size={18} color="#DC2626" />
-              <Text style={styles.allergyTitle}>Allergy History</Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.badge, isMale ? styles.maleBadge : styles.femaleBadge]}>
+              <Text style={[styles.badgeText, isMale ? styles.maleText : styles.femaleText]}>
+                {isMale ? 'Boy' : 'Girl'}
+              </Text>
             </View>
-            <Text style={[styles.allergyText, { color: colors.text }]}>{child.allergies.join(', ')}</Text>
+            <View style={styles.ageBadge}>
+              <Text style={styles.ageBadgeText}>{child.age} yrs old</Text>
+            </View>
           </View>
-        )}
-      </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity 
-          style={[styles.primaryBtn, { backgroundColor: '#FF3B70', flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
-          onPress={() => navigation.navigate('GrowthTracking', { childId: child.id })}
-          activeOpacity={0.88}
-        >
-          <Icon source="chart-line" size={20} color="#FFFFFF" />
-          <Text style={styles.primaryBtnText}>WHO Growth Chart</Text>
-        </TouchableOpacity>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statBox, { backgroundColor: isDark ? '#3A2E31' : '#FFF0EA', borderColor: colors.border }]}>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Height</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{child.height} <Text style={styles.unit}>cm</Text></Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: isDark ? '#3A2E31' : '#FFF0EA', borderColor: colors.border }]}>
+              <Text style={[styles.statLabel, { color: colors.textSoft }]}>Weight</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{child.weight} <Text style={styles.unit}>kg</Text></Text>
+            </View>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.primaryBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
-          onPress={() => navigation.navigate('MealPlanList', { childId: child.id })}
-          activeOpacity={0.88}
-        >
-          <Icon source="silverware-fork-knife" size={20} color="#FFFFFF" />
-          <Text style={styles.primaryBtnText}>View Meal Plans</Text>
-        </TouchableOpacity>
+          {child.allergies && child.allergies.length > 0 && (
+            <View style={[styles.allergyCard, { backgroundColor: isDark ? '#4A2A2A' : '#FEF2F2', borderColor: isDark ? '#8A4550' : '#FEE2E2' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Icon source="alert-circle-outline" size={18} color="#DC2626" />
+                <Text style={styles.allergyTitle}>Allergy History</Text>
+              </View>
+              <Text style={[styles.allergyText, { color: colors.text }]}>{child.allergies.join(', ')}</Text>
+            </View>
+          )}
+        </View>
 
-        <TouchableOpacity 
-          style={[styles.secondaryBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
-          onPress={() => navigation.navigate('AddEditChild', { childId: child.id })}
-          activeOpacity={0.88}
-        >
-          <Icon source="pencil-outline" size={20} color="#FF5F70" />
-          <Text style={styles.secondaryBtnText}>Edit Child Profile</Text>
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            style={[styles.primaryBtn, { backgroundColor: '#FF3B70', flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
+            onPress={() => navigation.navigate('GrowthTracking', { childId: child.id })}
+            activeOpacity={0.88}
+          >
+            <Icon source="chart-line" size={20} color="#FFFFFF" />
+            <Text style={styles.primaryBtnText}>WHO Growth Chart</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[styles.dangerBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
-          onPress={handleDelete}
-          activeOpacity={0.88}
-        >
-          <Icon source="delete-outline" size={20} color="#DC2626" />
-          <Text style={styles.dangerBtnText}>Delete Child Profile</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity 
+            style={[styles.primaryBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
+            onPress={() => navigation.navigate('MealPlanList', { childId: child.id })}
+            activeOpacity={0.88}
+          >
+            <Icon source="silverware-fork-knife" size={20} color="#FFFFFF" />
+            <Text style={styles.primaryBtnText}>View Meal Plans</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.secondaryBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
+            onPress={() => navigation.navigate('AddEditChild', { childId: child.id })}
+            activeOpacity={0.88}
+          >
+            <Icon source="pencil-outline" size={20} color="#FF5F70" />
+            <Text style={styles.secondaryBtnText}>Edit Child Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.dangerBtn, { flexDirection: 'row', justifyContent: 'center', gap: 8 }]} 
+            onPress={handleDelete}
+            activeOpacity={0.88}
+          >
+            <Icon source="delete-outline" size={20} color="#DC2626" />
+            <Text style={styles.dangerBtnText}>Delete Child Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

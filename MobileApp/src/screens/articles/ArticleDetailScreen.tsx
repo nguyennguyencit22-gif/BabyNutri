@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert, StatusBar, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -24,6 +25,8 @@ interface CommentItem {
 
 const ArticleDetailScreen = ({ route, navigation }: any) => {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const topSafeOffset = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 20) + 8;
   const id = Number(route?.params?.id);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -255,7 +258,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             resizeMode={isLocalArticleImage(article.id) ? 'contain' : 'cover'}
           />
           <TouchableOpacity 
-            style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]}
+            style={[styles.floatingBackBtn, { backgroundColor: colors.surface, top: topSafeOffset }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >

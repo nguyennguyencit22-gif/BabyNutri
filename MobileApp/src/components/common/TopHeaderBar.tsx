@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -57,7 +58,9 @@ const BookOpenOutlineIcon = ({ size = 16, color = '#0284C7' }: IconProps) => (
 // lived here (previously only on the other tabs).
 const TopHeaderBar: React.FC = () => {
   const { colors, isDark } = useAppTheme();
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 20);
+  const styles = React.useMemo(() => createStyles(colors, topInset), [colors, topInset]);
   const navigation = useNavigation<any>();
 
   const babies = useSelector((state: RootState) => state.baby.babies);
@@ -310,14 +313,14 @@ const TopHeaderBar: React.FC = () => {
   );
 };
 
-const createStyles = (colors: AppColors) => StyleSheet.create({
+const createStyles = (colors: AppColors, topInset: number = 24) => StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
     paddingHorizontal: 20,
-    paddingTop: statusBarHeight + 12,
+    paddingTop: topInset + 10,
     paddingBottom: 18,
   },
   profileSection: {

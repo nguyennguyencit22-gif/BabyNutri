@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { recipeService, RecipeMetadata } from '../../services/recipe.service';
@@ -58,45 +59,62 @@ const AddRecipeScreen = ({ navigation }: any) => {
     steps[index].description = value;
   };
   const updateStepImage = (index: number, value: string) => {
-    const next = [...steps];
-    next[index] = { ...next[index], imageUrl: value };
-    setSteps(next);
+    steps[index].imageUrl = value;
   };
   const addStep = () => setSteps([...steps, { description: '', imageUrl: '' }]);
   const removeStep = (index: number) => setSteps(steps.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
-    const data = formData.current;
-    if (!data.name.trim() || !data.calories.trim() || !data.monthAge.trim()) {
-      Alert.alert('Missing Info', 'Please enter recipe name, calories, and target age (months)');
+    const { name, calories, monthAge, cookingTime, prepTime, serves, protein, fat, carbohydrate } = formData.current;
+    if (!name.trim() || !calories || !monthAge) {
+      Alert.alert('Missing Fields', 'Please fill in Name, Calories, and Target Age.');
       return;
     }
+
+    const validIngredients = ingredients
+      .map((i) => i.name.trim())
+      .filter((n) => n.length > 0);
+
+    const validSteps = steps
+      .map((s, idx) => ({ step_number: idx + 1, description: s.description.trim(), imageUrl: s.imageUrl?.trim() || undefined }))
+      .filter((s) => s.description.length > 0);
+
+    if (validIngredients.length === 0) {
+      Alert.alert('Missing Ingredients', 'Please add at least one ingredient.');
+      return;
+    }
+
+    if (validSteps.length === 0) {
+      Alert.alert('Missing Steps', 'Please add at least one cooking step.');
+      return;
+    }
+
+    const selectedMealObj = mealTypes.find((m) => m.name === mealTypeName);
+    const selectedWeaningObj = weaningMethods.find((w) => w.name === weaningMethod);
+    const selectedDietObj = dietaryNeedsList.find((d) => d.name === dietaryNeeds);
+    const selectedOccasionObj = occasionsList.find((o) => o.name === occasion);
+
     setSubmitting(true);
     try {
-      const selectedMealType = mealTypes.find((m) => m.name === mealTypeName);
-      const selectedWeaning = weaningMethods.find((w) => w.name === weaningMethod);
-      const selectedDiet = dietaryNeedsList.find((d) => d.name === dietaryNeeds);
-      const selectedOccasion = occasionsList.find((o) => o.name === occasion);
-
       await recipeService.create({
-        name: data.name.trim(),
-        description: data.description.trim(),
+        name: name.trim(),
+        description: formData.current.description.trim() || 'Nutritious recipe for babies.',
         imageUrl: imageUrl.trim() || DEFAULT_FOOD_IMAGE,
-        calories: Number(data.calories),
-        monthAge: Number(data.monthAge),
-        mealTypeId: selectedMealType?.id,
-        weaningMethodId: selectedWeaning?.id,
-        dietaryNeedsId: selectedDiet?.id,
-        occasionId: selectedOccasion?.id,
-        cookingTime: Number(data.cookingTime) || 0,
-        prepTime: Number(data.prepTime) || 0,
-        serves: Number(data.serves) || 1,
-        protein: Number(data.protein) || 0,
-        fat: Number(data.fat) || 0,
-        carbohydrate: Number(data.carbohydrate) || 0,
+        calories: Number(calories) || 0,
+        monthAge: Number(monthAge) || 6,
+        mealTypeId: selectedMealObj?.id,
+        weaningMethodId: selectedWeaningObj?.id,
+        dietaryNeedsId: selectedDietObj?.id,
+        occasionId: selectedOccasionObj?.id,
         weaningMethod: weaningMethod || undefined,
         dietaryNeeds: dietaryNeeds || undefined,
         occasion: occasion || undefined,
+        cookingTime: Number(cookingTime) || 0,
+        prepTime: Number(prepTime) || 0,
+        serves: Number(serves) || 1,
+        protein: Number(protein) || 0,
+        fat: Number(fat) || 0,
+        carbohydrate: Number(carbohydrate) || 0,
         ingredients: ingredients.filter((i) => i.name.trim()),
         steps: steps
           .filter((s) => s.description.trim())
@@ -116,8 +134,17 @@ const AddRecipeScreen = ({ navigation }: any) => {
   const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name *</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Add New Recipe</Text>
+        <View style={{ width: 36 }} />
+      </View>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={[styles.label, { color: colors.textSoft }]}>Recipe Name *</Text>
       <TextInput
         style={inputStyle}
         onChangeText={(v) => (formData.current.name = v)}
@@ -307,11 +334,22 @@ const AddRecipeScreen = ({ navigation }: any) => {
         <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Recipe'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   content: { padding: 18, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },
   input: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, borderWidth: 1 },

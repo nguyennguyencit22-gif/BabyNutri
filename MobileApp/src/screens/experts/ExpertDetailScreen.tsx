@@ -8,9 +8,9 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { recipeService } from '../../services/recipe.service';

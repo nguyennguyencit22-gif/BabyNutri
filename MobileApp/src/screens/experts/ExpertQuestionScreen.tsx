@@ -10,10 +10,10 @@ import {
   Modal,
   TextInput,
   Pressable,
-  SafeAreaView,
   StatusBar,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/common/AppIcon';
 import { questionService, QuestionItem } from '../../services/questionService';

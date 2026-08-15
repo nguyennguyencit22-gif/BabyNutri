@@ -96,7 +96,7 @@ function CommunityScreen({ navigation }: any) {
                         <ParentChatList navigation={navigation} />
                     )
                 ) : (
-                    <FAQScreen />
+                    <FAQScreen navigation={navigation} />
                 )}
             </View>
         </View>

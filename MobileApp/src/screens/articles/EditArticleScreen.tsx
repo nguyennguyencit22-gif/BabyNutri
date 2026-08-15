@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { articleService, ArticleMetadata } from '../../services/article.service';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -62,15 +63,15 @@ const EditArticleScreen = ({ route, navigation }: any) => {
     try {
       await articleService.update(id, {
         title: title.trim(),
-        summary: summary.trim(),
+        summary: summary.trim() || undefined,
+        imageUrl: imageUrl.trim() || undefined,
         content: content.trim(),
-        imageUrl: imageUrl.trim(),
         category: category || undefined,
         targetAge: targetAge || undefined,
         readingTime: readingTime || undefined,
         tags: tags.trim() || undefined,
       });
-      Alert.alert('Success', 'Article updated', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+      Alert.alert('Success', 'Article updated successfully!', [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
       console.error('Update article error:', e);
       Alert.alert('Error', 'Unable to update article right now');
@@ -84,55 +85,75 @@ const EditArticleScreen = ({ route, navigation }: any) => {
   const inputStyle = [styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
-      <View style={[styles.coverCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        {imageUrl.trim() ? (
-          <Image source={{ uri: imageUrl.trim() }} style={styles.coverPreview} resizeMode="cover" />
-        ) : (
-          <View style={styles.coverPlaceholder}>
-            <Icon source="book-open-outline" size={26} color={colors.textSoft} />
-            <Text style={[styles.coverPlaceholderTitle, { color: colors.text }]}>Add a cover image</Text>
-          </View>
-        )}
-        <TextInput
-          style={[styles.coverUrlInput, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
-          value={imageUrl}
-          onChangeText={setImageUrl}
-          placeholder="Paste cover image URL..."
-          placeholderTextColor={colors.textSoft}
-        />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Edit Article</Text>
+        <View style={{ width: 36 }} />
       </View>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+        <View style={[styles.coverCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {imageUrl.trim() ? (
+            <Image source={{ uri: imageUrl.trim() }} style={styles.coverPreview} resizeMode="cover" />
+          ) : (
+            <View style={styles.coverPlaceholder}>
+              <Icon source="book-open-outline" size={26} color={colors.textSoft} />
+              <Text style={[styles.coverPlaceholderTitle, { color: colors.text }]}>Add a cover image</Text>
+            </View>
+          )}
+          <TextInput
+            style={[styles.coverUrlInput, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
+            value={imageUrl}
+            onChangeText={setImageUrl}
+            placeholder="Paste cover image URL..."
+            placeholderTextColor={colors.textSoft}
+          />
+        </View>
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Article Title</Text>
-      <TextInput style={inputStyle} value={title} onChangeText={setTitle} placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Article Title</Text>
+        <TextInput style={inputStyle} value={title} onChangeText={setTitle} placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Category</Text>
-      <ChipSelectRow options={categoriesList} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Category</Text>
+        <ChipSelectRow options={categoriesList} value={category} onChange={setCategory} colors={colors} isDark={isDark} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Target Baby Age</Text>
-      <ChipSelectRow options={ageRangesList} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Target Baby Age</Text>
+        <ChipSelectRow options={ageRangesList} value={targetAge} onChange={setTargetAge} colors={colors} isDark={isDark} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Reading Time</Text>
-      <ChipSelectRow options={readingTimesList} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Reading Time</Text>
+        <ChipSelectRow options={readingTimesList} value={readingTime} onChange={setReadingTime} colors={colors} isDark={isDark} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Tags</Text>
-      <TextInput style={inputStyle} value={tags} onChangeText={setTags} placeholder="e.g. nutrition, baby food" placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Tags</Text>
+        <TextInput style={inputStyle} value={tags} onChangeText={setTags} placeholder="e.g. nutrition, baby food" placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Short Summary</Text>
-      <TextInput style={inputStyle} value={summary} onChangeText={setSummary} placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Short Summary</Text>
+        <TextInput style={inputStyle} value={summary} onChangeText={setSummary} placeholderTextColor={colors.textSoft} />
 
-      <Text style={[styles.label, { color: colors.textSoft }]}>Detailed Content</Text>
-      <TextInput style={[inputStyle, styles.multiline]} value={content} onChangeText={setContent} multiline placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Detailed Content</Text>
+        <TextInput style={[inputStyle, styles.multiline]} value={content} onChangeText={setContent} multiline placeholderTextColor={colors.textSoft} />
 
-      <TouchableOpacity style={styles.submitBtn} onPress={handleSave} disabled={submitting}>
-        <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Changes'}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSave} disabled={submitting}>
+          <Text style={styles.submitText}>{submitting ? 'Saving...' : 'Save Changes'}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: 18, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 12 },

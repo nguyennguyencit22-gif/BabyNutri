@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, LayoutAnimation, Platform, UIManager, Alert, Modal, Pressable, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import io, { Socket } from 'socket.io-client';
 import Icon from '../../components/common/AppIcon';
@@ -12,7 +13,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQScreen = ({ navigation }: any) => {
+const FAQScreen = ({ navigation: propNav }: any) => {
+  const hookNav = useNavigation<any>();
+  const navigation = propNav || hookNav;
   const authMode = useSelector((state: RootState) => state.auth.mode);
   const user = useSelector((state: RootState) => state.auth.user);
   const currentUserId = Number((user as any)?.id || (user as any)?.uid || 0);
@@ -159,7 +162,11 @@ const FAQScreen = ({ navigation }: any) => {
 
   const filteredQuestions = useMemo(() => {
     const list = mainTab === 'faqs' ? questions : myQuestions;
+    const seen = new Set<string>();
     return list.filter((q) => {
+      const qId = String(q.id);
+      if (seen.has(qId)) return false;
+      seen.add(qId);
       const matchesCategory = selectedCategory === 'All' || q.category === selectedCategory;
       const matchesSearch =
         q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -175,25 +182,6 @@ const FAQScreen = ({ navigation }: any) => {
     }
 
     try {
-      if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit(
-          'create_question_socket',
-          {
-            parentId: currentUserId > 0 ? currentUserId : null,
-            expertId: selectedExpertId,
-            title: newTitle.trim(),
-            content: newContent.trim(),
-          },
-          (res: any) => {
-            if (res && res.question) {
-              const q = res.question;
-              setQuestions((prev) => [q, ...prev]);
-              setMyQuestions((prev) => [q, ...prev]);
-            }
-          }
-        );
-      }
-
       await questionService.createQuestion(newTitle.trim(), newContent.trim(), selectedExpertId);
 
       setNewTitle('');
@@ -202,7 +190,7 @@ const FAQScreen = ({ navigation }: any) => {
       setAskModalVisible(false);
       setMainTab('myQuestions');
       loadQuestions();
-      Alert.alert('Success', 'Your question has been sent in real-time to Pediatric Nutrition Experts!');
+      Alert.alert('Success', 'Your question has been sent!');
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to submit question.');
     }
@@ -329,7 +317,7 @@ const FAQScreen = ({ navigation }: any) => {
         <FlatList
           key="faq-accordion-list"
           data={filteredQuestions}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => {
             const isExpanded = expandedId === item.id;

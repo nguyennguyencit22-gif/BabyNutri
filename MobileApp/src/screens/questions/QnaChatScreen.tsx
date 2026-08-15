@@ -7,11 +7,11 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import io, { Socket } from 'socket.io-client';
 import Icon from '../../components/common/AppIcon';
 import { useAppTheme } from '../../theme/useAppTheme';
