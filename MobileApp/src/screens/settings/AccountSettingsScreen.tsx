@@ -123,10 +123,14 @@ function AccountSettingsScreen({
         (state: RootState) =>
             state.auth.user,
     );
-    const isExpertOrAdmin = user?.role === 'expert' || user?.role === 'admin';
+    const userRole = (user?.role || '').toLowerCase();
+    const isAdmin = userRole === 'admin';
+    const isExpert = userRole === 'expert';
+    const isExpertOrAdmin = isAdmin || isExpert;
 
     const email = user?.email || 'No email';
     const photoURL = user?.photoURL;
+    const roleLabel = isAdmin ? 'System Administrator' : isExpert ? 'Nutrition Expert' : 'Parent Caregiver';
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -145,7 +149,7 @@ function AccountSettingsScreen({
                             style={styles.avatar}
                         />
                     ) : (
-                        <View style={styles.avatarFallback}>
+                        <View style={[styles.avatarFallback, isAdmin && { backgroundColor: '#8B5CF6' }]}>
                             <Text style={styles.avatarLetter}>
                                 {email
                                     .charAt(0)
@@ -168,6 +172,11 @@ function AccountSettingsScreen({
                     style={styles.email}>
                     {email}
                 </Text>
+                <View style={{ marginTop: 6, backgroundColor: isAdmin ? '#EDE9FE' : isExpert ? '#FFF0F2' : '#F3F4F6', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: isAdmin ? '#8B5CF6' : isExpert ? '#FF5F70' : '#4B5563' }}>
+                        {roleLabel}
+                    </Text>
+                </View>
             </View>
 
             <Pressable

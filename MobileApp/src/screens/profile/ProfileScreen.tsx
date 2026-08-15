@@ -135,9 +135,10 @@ function ProfileScreen({
                 {/* USER PROFILE CARD */}
                 {isAuthenticated ? (
                     <ProfileSummaryCard
-                        name={user.displayName || 'BabyNutri Parent'}
+                        name={user.displayName || (isAdmin ? 'System Administrator' : isExpert ? 'Nutrition Expert' : 'BabyNutri Parent')}
                         email={user.email}
                         imageUrl={user.photoURL}
+                        roleLabel={isAdmin ? 'Administrator' : isExpert ? 'Nutrition Expert' : undefined}
                         onChangePhoto={() => {
                             console.log('Change profile photo');
                         }}

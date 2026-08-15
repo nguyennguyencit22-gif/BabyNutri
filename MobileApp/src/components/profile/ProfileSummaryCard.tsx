@@ -21,6 +21,7 @@ type ProfileSummaryCardProps = {
     name: string;
     email: string;
     imageUrl?: string;
+    roleLabel?: string;
     onChangePhoto?: () => void;
     onPress?: () => void;
 };
@@ -29,6 +30,7 @@ function ProfileSummaryCard({
     name,
     email,
     imageUrl,
+    roleLabel,
     onChangePhoto,
     onPress,
 }: ProfileSummaryCardProps) {
@@ -53,7 +55,7 @@ function ProfileSummaryCard({
                         style={styles.avatar}
                     />
                 ) : (
-                    <View style={styles.avatarFallback}>
+                    <View style={[styles.avatarFallback, roleLabel === 'Administrator' && { backgroundColor: '#8B5CF6' }]}>
                         <Text style={styles.avatarText}>
                             {name.charAt(0).toUpperCase()}
                         </Text>
@@ -74,11 +76,20 @@ function ProfileSummaryCard({
             </View>
 
             <View style={styles.userInfo}>
-                <Text
-                    numberOfLines={1}
-                    style={styles.name}>
-                    {name}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.name, { flexShrink: 1 }]}>
+                        {name}
+                    </Text>
+                    {!!roleLabel && (
+                        <View style={{ backgroundColor: roleLabel === 'Administrator' ? '#EDE9FE' : '#FFF0F2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: roleLabel === 'Administrator' ? '#8B5CF6' : '#FF5F70' }}>
+                                {roleLabel}
+                            </Text>
+                        </View>
+                    )}
+                </View>
 
                 <Text
                     numberOfLines={1}
