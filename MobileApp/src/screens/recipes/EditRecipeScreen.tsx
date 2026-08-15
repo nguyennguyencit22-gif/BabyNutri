@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
+import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { recipeService, RecipeMetadata } from '../../services/recipe.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS, toOptionNames } from '../../components/recipes/RecipeFieldChips';
@@ -134,8 +135,9 @@ const EditRecipeScreen = ({ route, navigation }: any) => {
         <Text style={[styles.label, { color: colors.textSoft }]}>Description</Text>
         <TextInput style={[inputStyle, styles.multiline]} defaultValue={description} onChangeText={setDescription} multiline placeholderTextColor={colors.textSoft} />
 
-        <Text style={[styles.label, { color: colors.textSoft }]}>Image (URL)</Text>
-        <TextInput style={inputStyle} value={imageUrl} onChangeText={setImageUrl} placeholderTextColor={colors.textSoft} />
+        <Text style={[styles.label, { color: colors.textSoft }]}>Cover Image</Text>
+        <ImageSourcePicker onUploaded={setImageUrl} isDark={isDark} />
+        <TextInput style={inputStyle} value={imageUrl} onChangeText={setImageUrl} placeholder="...or paste an image URL" placeholderTextColor={colors.textSoft} />
 
         <Text style={[styles.label, { color: colors.textSoft, marginTop: 10 }]}>Select from Preset Photos:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>

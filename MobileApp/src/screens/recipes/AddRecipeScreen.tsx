@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import ImageSourcePicker from '../../components/common/ImageSourcePicker';
+import { imagePickerService } from '../../services/upload.service';
 import { recipeService, RecipeMetadata } from '../../services/recipe.service';
 import { IngredientInput, RecipeStepItem } from '../../types/recipe';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -60,6 +61,20 @@ const AddRecipeScreen = ({ navigation }: any) => {
   };
   const updateStepImage = (index: number, value: string) => {
     steps[index].imageUrl = value;
+  };
+  const handleStepPhotoPick = async (index: number, source: 'camera' | 'gallery') => {
+    try {
+      const img = source === 'camera'
+        ? await imagePickerService.pickFromCamera()
+        : await imagePickerService.pickFromGallery();
+      if (!img) return;
+      const url = await imagePickerService.upload(img);
+      const updated = [...steps];
+      updated[index] = { ...updated[index], imageUrl: url };
+      setSteps(updated);
+    } catch (e) {
+      console.warn('Step photo pick error:', e);
+    }
   };
   const addStep = () => setSteps([...steps, { description: '', imageUrl: '' }]);
   const removeStep = (index: number) => setSteps(steps.filter((_, i) => i !== index));
@@ -315,12 +330,25 @@ const AddRecipeScreen = ({ navigation }: any) => {
             <Image source={{ uri: step.imageUrl }} style={styles.stepImagePreview} resizeMode="cover" />
           )}
           <View style={styles.stepPhotoRow}>
-            <Icon source="camera" size={16} color={colors.textSoft} />
+            <TouchableOpacity
+              onPress={() => handleStepPhotoPick(i, 'camera')}
+              style={[styles.stepMiniBtn, { backgroundColor: isDark ? '#4A3236' : '#FFF0F2', borderColor: isDark ? '#5A3D42' : '#FFE4E6' }]}
+              activeOpacity={0.8}
+            >
+              <Icon source="camera" size={14} color="#FF5F70" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleStepPhotoPick(i, 'gallery')}
+              style={[styles.stepMiniBtn, { backgroundColor: isDark ? '#4A3236' : '#FFF0F2', borderColor: isDark ? '#5A3D42' : '#FFE4E6' }]}
+              activeOpacity={0.8}
+            >
+              <Icon source="book-open-outline" size={14} color="#FF5F70" />
+            </TouchableOpacity>
             <TextInput
               style={[styles.stepPhotoInput, { color: colors.text }]}
-              defaultValue={step.imageUrl || ''}
+              value={step.imageUrl || ''}
               onChangeText={(v) => updateStepImage(i, v)}
-              placeholder="Add a photo for this step (optional)"
+              placeholder="Take/Pick photo or paste link"
               placeholderTextColor={colors.textSoft}
             />
           </View>
@@ -369,6 +397,7 @@ const styles = StyleSheet.create({
   stepNumberText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
   stepImagePreview: { width: '100%', height: 120, borderRadius: 10, marginBottom: 8 },
   stepPhotoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 },
+  stepMiniBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
   stepPhotoInput: { flex: 1, fontSize: 12, paddingVertical: 4 },
   submitBtn: { backgroundColor: '#FF7A59', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 28 },
   submitText: { color: '#fff', fontWeight: '700', fontSize: 15 },

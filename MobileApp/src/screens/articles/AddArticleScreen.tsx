@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
+import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { useSelector } from 'react-redux';
 import { articleService, ArticleMetadata } from '../../services/article.service';
 import { useArticleStore } from '../../stores/useArticleStore';
@@ -9,6 +10,8 @@ import { ArticleListItem } from '../../types/article';
 import type { RootState } from '../../store/store';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, ARTICLE_CATEGORIES, ARTICLE_AGE_RANGES, ARTICLE_READING_TIMES } from '../../components/articles/ArticleFieldChips';
+
+const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500';
 
 const AddArticleScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -59,10 +62,22 @@ const AddArticleScreen = ({ navigation }: any) => {
       return;
     }
 
-    if (!title.trim() || !content.trim()) {
-      Alert.alert('Missing Information', 'Please enter both a title and detailed content for your article.');
+    if (!title.trim()) {
+      Alert.alert('Missing Information', 'Please enter a title for your article.');
       return;
     }
+
+    const finalContent = content.trim() || summary.trim();
+    if (!finalContent) {
+      Alert.alert('Missing Information', 'Please enter detailed content or a summary for your article.');
+      return;
+    }
+
+    const finalSummary = summary.trim() || finalContent.slice(0, 120);
+    const finalCategory = category || categoriesList[0] || 'Nutrition';
+    const finalTargetAge = targetAge || ageRangesList[0] || '6-12 mos';
+    const finalReadingTime = readingTime || readingTimesList[0] || '3 mins';
+    const finalImage = imageUrl.trim() || DEFAULT_COVER_IMAGE;
 
     setSubmitting(true);
     const nowIso = new Date().toISOString();
@@ -71,13 +86,13 @@ const AddArticleScreen = ({ navigation }: any) => {
       const newArticle: ArticleListItem = {
         id: Date.now(),
         title: title.trim(),
-        summary: summary.trim() || content.trim().slice(0, 100),
-        image_url: imageUrl.trim() || 'https://images.unsplash.com/photo-1547592180-85f173990554?w=500',
+        summary: finalSummary,
+        image_url: finalImage,
         author: authorName,
         published_date: nowIso,
-        category: category || null,
-        target_age: targetAge || null,
-        reading_time: readingTime || null,
+        category: finalCategory,
+        target_age: finalTargetAge,
+        reading_time: finalReadingTime,
         tags: tags.trim() || null,
       };
 
@@ -87,14 +102,14 @@ const AddArticleScreen = ({ navigation }: any) => {
       // Post to backend/service
       await articleService.create({
         title: title.trim(),
-        summary: summary.trim() || content.trim().slice(0, 100),
-        content: content.trim(),
-        imageUrl: imageUrl.trim(),
+        summary: finalSummary,
+        content: finalContent,
+        imageUrl: finalImage,
         published_date: nowIso,
         author: authorName,
-        category: category || undefined,
-        targetAge: targetAge || undefined,
-        readingTime: readingTime || undefined,
+        category: finalCategory,
+        targetAge: finalTargetAge,
+        readingTime: finalReadingTime,
         tags: tags.trim() || undefined,
       });
 
@@ -131,7 +146,8 @@ const AddArticleScreen = ({ navigation }: any) => {
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
         <Text style={[styles.headerSubtitle, { color: colors.textSoft }]}>Publish Expert Article to BabyNutri Community</Text>
 
-        {/* Cover image — URL-based (no upload backend), styled as a preview card */}
+        {/* Cover image — with Camera & Gallery Upload */}
+        <Text style={[styles.label, { color: colors.textSoft }]}>Cover Photo</Text>
         <View style={[styles.coverCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {imageUrl.trim() ? (
             <Image source={{ uri: imageUrl.trim() }} style={styles.coverPreview} resizeMode="cover" />
@@ -139,25 +155,26 @@ const AddArticleScreen = ({ navigation }: any) => {
             <View style={styles.coverPlaceholder}>
               <Icon source="book-open-outline" size={28} color={colors.textSoft} />
               <Text style={[styles.coverPlaceholderTitle, { color: colors.text }]}>Add a cover image</Text>
-              <Text style={[styles.coverPlaceholderSub, { color: colors.textSoft }]}>Paste an image link below to make your article more engaging.</Text>
+              <Text style={[styles.coverPlaceholderSub, { color: colors.textSoft }]}>Take a photo, pick from gallery, or paste a link below.</Text>
             </View>
           )}
+          <ImageSourcePicker onUploaded={setImageUrl} isDark={isDark} />
           <TextInput
             style={[styles.coverUrlInput, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
             value={imageUrl}
             onChangeText={setImageUrl}
-            placeholder="Paste cover image URL..."
+            placeholder="...or paste cover image URL"
             placeholderTextColor={colors.textSoft}
           />
         </View>
 
+        <Text style={[styles.label, { color: colors.textSoft }]}>Article Title *</Text>
         <TextInput
-          style={[styles.titleInput, { color: colors.text }]}
+          style={inputStyle}
           value={title}
           onChangeText={setTitle}
-          placeholder="Enter article title"
+          placeholder="Enter article title (e.g. 5 Nutritious Weaning Soups)"
           placeholderTextColor={colors.textSoft}
-          multiline
         />
 
         <View style={styles.authorRow}>

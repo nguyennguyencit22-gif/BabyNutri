@@ -12,13 +12,25 @@ const storage = multer.diskStorage({
     },
 });
 
-const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
+const ALLOWED_MIME_TYPES = new Set([
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "image/gif",
+    "application/octet-stream",
+]);
+
+const ALLOWED_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif", ".gif"]);
 
 const fileFilter = (req, file, cb) => {
-    if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-        return cb(new Error("Only image files (jpeg, png, webp, heic) are allowed"));
+    const ext = path.extname(file.originalname || "").toLowerCase();
+    if (ALLOWED_MIME_TYPES.has(file.mimetype) || ALLOWED_EXTS.has(ext)) {
+        return cb(null, true);
     }
-    cb(null, true);
+    return cb(new Error("Only image files (jpeg, png, webp, heic) are allowed"));
 };
 
 module.exports = multer({

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
+import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { articleService, ArticleMetadata } from '../../services/article.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, ARTICLE_CATEGORIES, ARTICLE_AGE_RANGES, ARTICLE_READING_TIMES } from '../../components/articles/ArticleFieldChips';
@@ -104,6 +105,7 @@ const EditArticleScreen = ({ route, navigation }: any) => {
               <Text style={[styles.coverPlaceholderTitle, { color: colors.text }]}>Add a cover image</Text>
             </View>
           )}
+          <ImageSourcePicker onUploaded={setImageUrl} isDark={isDark} />
           <TextInput
             style={[styles.coverUrlInput, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
             value={imageUrl}
