@@ -1,3 +1,4 @@
+import { PermissionsAndroid, Platform } from 'react-native';
 import { launchCamera, launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
 import api from './api';
 
@@ -19,8 +20,22 @@ function toPickedImage(asset: Asset | null): PickedImage | null {
   };
 }
 
+// react-native-image-picker's own automatic permission check doesn't
+// reliably surface the system prompt on first use — request it ourselves
+// first so the user actually gets asked instead of the camera silently
+// doing nothing.
+async function ensureCameraPermission(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
+  const already = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+  if (already) return true;
+  const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+  return result === PermissionsAndroid.RESULTS.GRANTED;
+}
+
 export const imagePickerService = {
   pickFromCamera: async (): Promise<PickedImage | null> => {
+    const hasPermission = await ensureCameraPermission();
+    if (!hasPermission) throw new Error('CAMERA_PERMISSION_DENIED');
     const response = await launchCamera(pickerOptions);
     return toPickedImage(extractAsset(response));
   },

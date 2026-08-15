@@ -26,7 +26,11 @@ const ImageSourcePicker: React.FC<Props> = ({ onUploaded, isDark }) => {
       onUploaded(url);
     } catch (e) {
       console.error('Image upload error:', e);
-      Alert.alert('Upload Failed', 'Unable to upload this photo right now. You can also paste an image link below.');
+      if (e instanceof Error && e.message === 'CAMERA_PERMISSION_DENIED') {
+        Alert.alert('Camera Access Needed', 'Please allow camera access for BabyNutri in your device settings to take a photo.');
+      } else {
+        Alert.alert('Upload Failed', 'Unable to upload this photo right now. You can also paste an image link below.');
+      }
     } finally {
       setUploading(false);
     }
