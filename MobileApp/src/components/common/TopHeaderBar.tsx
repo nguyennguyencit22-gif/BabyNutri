@@ -70,14 +70,15 @@ const TopHeaderBar: React.FC = () => {
 
   const sessionMode = useSelector((state: RootState) => state.auth.mode);
   const isAuthenticated = sessionMode === 'authenticated';
-
   const user = useSelector((state: RootState) => state.auth.user);
-  const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
-  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
+
+  const userRole = (user?.role || '').toLowerCase();
+  const isAdmin = isAuthenticated && userRole === 'admin';
+  const isExpert = isAuthenticated && userRole === 'expert';
+  const isExpertOrAdmin = isAdmin || isExpert;
+  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : (isAdmin ? 'Admin' : 'Expert'));
 
   const [notifVisible, setNotifVisible] = useState(false);
-  // Experts have no real chat/task backend yet (see the modal below), so
-  // there's nothing to have a genuine unread badge over.
   const [hasUnread, setHasUnread] = useState(!isExpertOrAdmin);
   const [showBabySwitcher, setShowBabySwitcher] = useState(false);
   const [showBabyActions, setShowBabyActions] = useState(false);
@@ -133,13 +134,15 @@ const TopHeaderBar: React.FC = () => {
           get a simple identity block instead of the baby-switcher one. */}
       {isExpertOrAdmin ? (
         <View style={styles.profileSection}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+          <View style={[styles.avatar, { backgroundColor: isAdmin ? '#8B5CF6' : colors.primary }]}>
             <Text style={styles.avatarLabel}>
               {expertDisplayName.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Welcome back,</Text>
+            <Text style={[styles.greetingText, isAdmin && { color: '#8B5CF6', fontWeight: '700' }]}>
+              {isAdmin ? 'System Administrator' : 'Nutrition Expert'}
+            </Text>
             <Text style={styles.userName}>{expertDisplayName}</Text>
           </View>
         </View>

@@ -15,6 +15,8 @@ import BabyProfileItem from '../../components/profile/BabyProfileItem';
 import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
 import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
 import ExpertProfileCard from '../../components/profile/ExpertProfileCard';
+import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
+import AdminReportsModal from '../admin/AdminReportsModal';
 
 import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -50,9 +52,14 @@ function ProfileScreen({
     const [selectedBabyId, setSelectedBabyId] = React.useState<string | null>(null);
     const [showBabyActions, setShowBabyActions] = React.useState(false);
     const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
+    const [showAdminExpertsModal, setShowAdminExpertsModal] = React.useState(false);
+    const [showAdminReportsModal, setShowAdminReportsModal] = React.useState(false);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
-    const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
+    const userRole = (user?.role || '').toLowerCase();
+    const isAdmin = isAuthenticated && userRole === 'admin';
+    const isExpert = isAuthenticated && userRole === 'expert';
+    const isExpertOrAdmin = isAdmin || isExpert;
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,
@@ -146,7 +153,25 @@ function ProfileScreen({
                     />
                 )}
 
-                {isExpertOrAdmin ? (
+                {isAdmin ? (
+                    <>
+                        <Text style={[styles.sectionLabel, { color: '#8B5CF6' }]}>
+                            ADMINISTRATION & MANAGEMENT
+                        </Text>
+                        <ProfileMenuItem
+                            title="Manage Nutrition Experts"
+                            leftIcon="account-cog"
+                            showArrow
+                            onPress={() => setShowAdminExpertsModal(true)}
+                        />
+                        <ProfileMenuItem
+                            title="System Reports & Statistics"
+                            leftIcon="chart-bar"
+                            showArrow
+                            onPress={() => setShowAdminReportsModal(true)}
+                        />
+                    </>
+                ) : isExpert ? (
                     <>
                         <Text style={styles.sectionLabel}>
                             PROFESSIONAL INFO
@@ -270,6 +295,19 @@ function ProfileScreen({
                     navigation.navigate('Login');
                 }}
             />
+
+            {isAdmin && (
+                <>
+                    <AdminManageExpertsModal
+                        visible={showAdminExpertsModal}
+                        onClose={() => setShowAdminExpertsModal(false)}
+                    />
+                    <AdminReportsModal
+                        visible={showAdminReportsModal}
+                        onClose={() => setShowAdminReportsModal(false)}
+                    />
+                </>
+            )}
         </SafeAreaView>
     );
 }
