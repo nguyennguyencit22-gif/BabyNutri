@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import Icon from '../../components/common/AppIcon';
+import ImageSourcePicker from '../../components/common/ImageSourcePicker';
 import { useSelector } from 'react-redux';
 import { articleService } from '../../services/article.service';
 import { useArticleStore } from '../../stores/useArticleStore';
@@ -118,11 +119,14 @@ const AddArticleScreen = ({ navigation }: any) => {
             <Text style={[styles.coverPlaceholderSub, { color: colors.textSoft }]}>Paste an image link below to make your article more engaging.</Text>
           </View>
         )}
+        <View style={styles.coverPickerRow}>
+          <ImageSourcePicker onUploaded={setImageUrl} isDark={isDark} />
+        </View>
         <TextInput
           style={[styles.coverUrlInput, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
           value={imageUrl}
           onChangeText={setImageUrl}
-          placeholder="Paste cover image URL..."
+          placeholder="...or paste cover image URL"
           placeholderTextColor={colors.textSoft}
         />
       </View>
@@ -205,6 +209,7 @@ const styles = StyleSheet.create({
   coverPlaceholder: { alignItems: 'center', justifyContent: 'center', paddingVertical: 24, paddingHorizontal: 20, gap: 4 },
   coverPlaceholderTitle: { fontSize: 14, fontWeight: '700', marginTop: 6 },
   coverPlaceholderSub: { fontSize: 12, textAlign: 'center', lineHeight: 17 },
+  coverPickerRow: { paddingHorizontal: 12, paddingTop: 4 },
   coverUrlInput: { paddingHorizontal: 14, paddingVertical: 10, fontSize: 13 },
   titleInput: { fontSize: 20, fontWeight: '800', marginBottom: 12, padding: 0 },
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
