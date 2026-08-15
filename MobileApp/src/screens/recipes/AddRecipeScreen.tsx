@@ -266,13 +266,14 @@ const AddRecipeScreen = ({ navigation }: any) => {
           {!!step.imageUrl && (
             <Image source={{ uri: step.imageUrl }} style={styles.stepImagePreview} resizeMode="cover" />
           )}
+          <ImageSourcePicker onUploaded={(url) => updateStepImage(i, url)} isDark={isDark} />
           <View style={styles.stepPhotoRow}>
             <Icon source="camera" size={16} color={colors.textSoft} />
             <TextInput
               style={[styles.stepPhotoInput, { color: colors.text }]}
-              defaultValue={step.imageUrl || ''}
+              value={step.imageUrl || ''}
               onChangeText={(v) => updateStepImage(i, v)}
-              placeholder="Add a photo for this step (optional)"
+              placeholder="...or paste a photo link (optional)"
               placeholderTextColor={colors.textSoft}
             />
           </View>
