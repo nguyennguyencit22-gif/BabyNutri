@@ -11,10 +11,12 @@ const pickerOptions = {
   saveToPhotos: true,
 };
 
-async function requestCameraPermission(): Promise<boolean> {
+async function ensureCameraPermission(): Promise<boolean> {
   if (Platform.OS !== 'android') return true;
   try {
-    const granted = await PermissionsAndroid.request(
+    const already = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+    if (already) return true;
+    const result = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.CAMERA,
       {
         title: 'Camera Permission',
@@ -24,7 +26,7 @@ async function requestCameraPermission(): Promise<boolean> {
         buttonPositive: 'OK',
       }
     );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+    return result === PermissionsAndroid.RESULTS.GRANTED;
   } catch (err) {
     console.warn('Camera permission request error:', err);
     return false;
@@ -80,7 +82,7 @@ function toPickedImage(asset: Asset | null): PickedImage | null {
 
 export const imagePickerService = {
   pickFromCamera: async (): Promise<PickedImage | null> => {
-    const hasPermission = await requestCameraPermission();
+    const hasPermission = await ensureCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Please grant Camera permission to take photos.');
       return null;
