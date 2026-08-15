@@ -12,9 +12,9 @@ const {
     addQuestionMessage,
 } = require('../controllers/questionController');
 
-router.get('/', getQuestions);
+router.get('/', auth, getQuestions);
 router.get('/public-experts', getPublicExperts);
-router.get('/:id/messages', getQuestionMessages);
+router.get('/:id/messages', auth, getQuestionMessages);
 router.post('/:id/messages', auth, addQuestionMessage);
 router.post('/', auth, createQuestion);
 router.post('/faq', auth, createFAQ);

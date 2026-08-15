@@ -175,6 +175,129 @@ async function testDatabaseConnection() {
             )
         `);
 
+        // 6. Ensure expert_followers and expert_feedback
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS expert_followers (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                expert_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_follow (user_id, expert_id)
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS expert_feedback (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                expert_id INT NOT NULL,
+                rating TINYINT NOT NULL DEFAULT 5,
+                feedback TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // 7. Ensure notifications table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                type VARCHAR(50) DEFAULT 'general',
+                ref_id INT DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // 8. Ensure favorite_recipes, journey_items, weaning_tips
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS favorite_recipes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                recipe_id INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_fav (user_id, recipe_id)
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS journey_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                age_label VARCHAR(50) NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                color_month VARCHAR(50) DEFAULT '#FF6B4A',
+                image_key VARCHAR(100) DEFAULT 'journey_1',
+                article_id INT DEFAULT NULL,
+                sort_order INT DEFAULT 1
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS weaning_tips (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                text TEXT NOT NULL
+            )
+        `);
+
+        // 9. Ensure question_messages for realtime Q&A chat
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS question_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                question_id INT NOT NULL,
+                sender_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // 10. Ensure recipe_ratings and article_ratings
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS recipe_ratings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                recipe_id INT NOT NULL,
+                user_id INT NOT NULL,
+                rating TINYINT NOT NULL,
+                review TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_recipe_rate (recipe_id, user_id)
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS article_ratings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                article_id INT NOT NULL,
+                user_id INT NOT NULL,
+                rating TINYINT NOT NULL,
+                review TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_article_rate (article_id, user_id)
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS article_comments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                article_id INT NOT NULL,
+                user_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS recipe_comments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                recipe_id INT NOT NULL,
+                user_id INT NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
     } catch (err) {
         console.warn('[DB] Auto-migration error:', err.message);
     } finally {
