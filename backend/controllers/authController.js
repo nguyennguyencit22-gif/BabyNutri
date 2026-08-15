@@ -56,7 +56,13 @@ WHERE u.email = ?
 
         return res.json({
             token,
-            user,
+            user: {
+                id: user.id,
+                fullName: user.full_name,
+                email: user.email,
+                avatar: user.avatar || null,
+                role: user.role,
+            },
         });
     } catch (err) {
         console.error(err);
