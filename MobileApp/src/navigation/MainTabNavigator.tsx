@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import ExpertHomeScreen from '../screens/experts/ExpertHomeScreen';
+import AdminHomeScreen from '../screens/admin/AdminHomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';
 import LibraryScreen from '../screens/library/LibraryScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -178,7 +179,7 @@ function MainTabNavigator() {
     const user = useSelector((state: RootState) => state.auth.user);
     const userRole = (user?.role || '').toLowerCase();
     const isAdmin = authMode === 'authenticated' && userRole === 'admin';
-    const isExpertOrAdmin = authMode === 'authenticated' && (userRole === 'expert' || userRole === 'admin');
+    const isExpert = authMode === 'authenticated' && userRole === 'expert';
 
     return (
         <Tab.Navigator
@@ -227,7 +228,7 @@ function MainTabNavigator() {
 
             <Tab.Screen
                 name="HomeTab"
-                component={isExpertOrAdmin ? ExpertHomeScreen : HomeScreen}
+                component={isAdmin ? AdminHomeScreen : isExpert ? ExpertHomeScreen : HomeScreen}
                 options={{
                     tabBarIcon: HomeTabIcon,
                 }}

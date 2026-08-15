@@ -2,15 +2,11 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
 import TopHeaderBar from '../../components/common/TopHeaderBar';
 import { recipeService } from '../../services/recipe.service';
 import { articleService } from '../../services/article.service';
 import { useAppTheme } from '../../theme/useAppTheme';
-import type { RootState } from '../../store/store';
-import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
-import AdminReportsModal from '../admin/AdminReportsModal';
 
 const isThisMonth = (dateStr?: string | null) => {
   if (!dateStr) return false;
@@ -84,16 +80,9 @@ const HighlightCard = ({
   );
 };
 
-// Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
+// Dashboard shown for Expert users.
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const sessionMode = useSelector((state: RootState) => state.auth.mode);
-  const userRole = (user?.role || '').toLowerCase();
-  const isAdmin = sessionMode === 'authenticated' && userRole === 'admin';
-
-  const [showAdminExperts, setShowAdminExperts] = useState(false);
-  const [showAdminReports, setShowAdminReports] = useState(false);
 
   const [recipeTotal, setRecipeTotal] = useState(0);
   const [recipeThisMonth, setRecipeThisMonth] = useState(0);
@@ -140,46 +129,14 @@ const ExpertHomeScreen = ({ navigation }: any) => {
       <TopHeaderBar />
 
       <ScrollView contentContainerStyle={styles.content}>
-        {isAdmin ? (
-          <View style={[styles.adminCard, { backgroundColor: isDark ? '#2D2235' : '#F5F3FF', borderColor: isDark ? '#4C3366' : '#DDD6FE' }]}>
-            <View style={styles.adminCardHeader}>
-              <Icon source="shield-account" size={20} color="#8B5CF6" />
-              <Text style={[styles.adminCardTitle, { color: '#8B5CF6' }]}>Admin Control Center</Text>
-            </View>
-            <Text style={[styles.adminCardSub, { color: colors.textSoft }]}>
-              Manage verified nutrition experts, assign roles, and inspect real-time platform statistics.
-            </Text>
-            <View style={styles.adminActionRow}>
-              <TouchableOpacity
-                style={[styles.adminBtn, { backgroundColor: '#8B5CF6' }]}
-                onPress={() => setShowAdminExperts(true)}
-                activeOpacity={0.85}
-              >
-                <Icon source="account-cog" size={16} color="#FFFFFF" />
-                <Text style={styles.adminBtnText}>Manage Experts</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.adminBtn, { backgroundColor: isDark ? '#3D2F4E' : '#EDE9FE', borderWidth: 1, borderColor: '#8B5CF6' }]}
-                onPress={() => setShowAdminReports(true)}
-                activeOpacity={0.85}
-              >
-                <Icon source="chart-bar" size={16} color="#8B5CF6" />
-                <Text style={[styles.adminBtnText, { color: '#8B5CF6' }]}>System Reports</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
-          <View style={[styles.missionCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: isDark ? '#4A3236' : '#FFE2E6' }]}>
-            <Icon source="sparkles" size={18} color="#FF5F70" />
-            <Text style={[styles.missionText, { color: isDark ? '#F3D9DC' : '#B8465A' }]}>
-              Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
-            </Text>
-          </View>
-        )}
+        <View style={[styles.missionCard, { backgroundColor: isDark ? '#3A2E31' : '#FFF0F2', borderColor: isDark ? '#4A3236' : '#FFE2E6' }]}>
+          <Icon source="sparkles" size={18} color="#FF5F70" />
+          <Text style={[styles.missionText, { color: isDark ? '#F3D9DC' : '#B8465A' }]}>
+            Help parents build healthy eating habits for their babies with personalized nutrition guidance, balanced meal plans, and expert feeding support for every stage of growth.
+          </Text>
+        </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {isAdmin ? 'Platform Content & Highlights' : 'Highlights'}
-        </Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Highlights</Text>
 
         <HighlightCard
           iconSource="bowl-mix-outline"
@@ -220,19 +177,6 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           onPress={() => navigation.navigate('ExpertFeedback')}
         />
       </ScrollView>
-
-      {isAdmin && (
-        <>
-          <AdminManageExpertsModal
-            visible={showAdminExperts}
-            onClose={() => setShowAdminExperts(false)}
-          />
-          <AdminReportsModal
-            visible={showAdminReports}
-            onClose={() => setShowAdminReports(false)}
-          />
-        </>
-      )}
     </SafeAreaView>
   );
 };
@@ -240,45 +184,6 @@ const ExpertHomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 18, paddingBottom: 100 },
-  adminCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 20,
-  },
-  adminCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  adminCardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  adminCardSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-  adminActionRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  adminBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: 12,
-  },
-  adminBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
   missionCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
