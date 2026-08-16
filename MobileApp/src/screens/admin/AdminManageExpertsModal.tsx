@@ -29,6 +29,7 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
 
   const [experts, setExperts] = useState<AdminExpertItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,11 +43,13 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
 
   const loadExperts = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const list = await fetchAdminExperts();
       setExperts(list);
     } catch (err: any) {
       console.error('Fetch experts error:', err);
+      setLoadError(err?.message || 'Unable to load expert accounts. Pull down or reopen to retry.');
     } finally {
       setLoading(false);
     }
@@ -223,6 +226,14 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
 
           {loading ? (
             <ActivityIndicator size="large" color="#FF5F70" style={{ marginTop: 20 }} />
+          ) : loadError ? (
+            <View style={styles.errorBox}>
+              <Icon source="alert-circle-outline" size={22} color="#DC2626" />
+              <Text style={styles.errorText}>{loadError}</Text>
+              <TouchableOpacity onPress={loadExperts} style={styles.retryBtn}>
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
           ) : experts.length === 0 ? (
             <Text style={[styles.emptyText, { color: colors.textSoft }]}>No expert accounts found.</Text>
           ) : (
@@ -308,6 +319,21 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   sectionHeading: { fontSize: 16, fontWeight: '800', marginVertical: 12 },
   emptyText: { textAlign: 'center', marginVertical: 20, fontSize: 14 },
+  errorBox: {
+    alignItems: 'center',
+    gap: 8,
+    marginVertical: 20,
+    paddingHorizontal: 16,
+  },
+  errorText: { color: '#DC2626', fontSize: 13.5, textAlign: 'center', lineHeight: 19 },
+  retryBtn: {
+    marginTop: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FEE2E2',
+  },
+  retryBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 13 },
   expertItemCard: {
     borderRadius: 14,
     borderWidth: 1,
