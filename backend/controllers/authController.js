@@ -485,9 +485,28 @@ exports.deleteMyAccount = async (req, res) => {
         const questionIds = questionRows.map((q) => q.id);
         if (questionIds.length > 0) {
             await connection.query(`DELETE FROM answers WHERE question_id IN (?)`, [questionIds]);
+            await connection.query(`DELETE FROM qna_messages WHERE question_id IN (?)`, [questionIds]);
+            await connection.query(`DELETE FROM question_messages WHERE question_id IN (?)`, [questionIds]);
+            await connection.query(`DELETE FROM question_ratings WHERE question_id IN (?)`, [questionIds]);
         }
         await connection.query(`DELETE FROM answers WHERE expert_id = ?`, [userId]);
+        await connection.query(`DELETE FROM qna_messages WHERE sender_id = ?`, [userId]);
+        await connection.query(`DELETE FROM question_messages WHERE sender_id = ?`, [userId]);
+        await connection.query(`DELETE FROM question_ratings WHERE user_id = ?`, [userId]);
         await connection.query(`DELETE FROM questions WHERE parent_id = ? OR expert_id = ?`, [userId, userId]);
+
+        // Article ratings/comments — not covered by any live FK (schema
+        // drift: these tables exist without constraints), so must be
+        // deleted explicitly just like their recipe counterparts above.
+        await connection.query(`DELETE FROM article_ratings WHERE user_id = ?`, [userId]);
+        await connection.query(`DELETE FROM article_comments WHERE user_id = ?`, [userId]);
+
+        // Expert feedback/follows — this user could appear on either side
+        // (as the reviewer/follower, or as the Expert being reviewed/followed).
+        await connection.query(`DELETE FROM expert_feedback WHERE user_id = ? OR expert_id = ?`, [userId, userId]);
+        await connection.query(`DELETE FROM expert_followers WHERE user_id = ? OR expert_id = ?`, [userId, userId]);
+
+        await connection.query(`DELETE FROM user_settings WHERE user_id = ?`, [userId]);
 
         // Content this user authored (as an Expert) stays, just loses attribution.
         await connection.query(`UPDATE recipes SET expert_id = NULL WHERE expert_id = ?`, [userId]);
