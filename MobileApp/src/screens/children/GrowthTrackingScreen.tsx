@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../store/Store';
+import type { RootState } from '../../store/store';
 
 import {
     fetchGrowthData,
@@ -26,6 +26,7 @@ import {
 } from '../../services/growth.service';
 import { WHOChart } from '../../components/growth/WHOChart';
 import { AddEditGrowthModal } from '../../components/growth/AddEditGrowthModal';
+import { BabyGrowthReportModal } from './BabyGrowthReportModal';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 export const GrowthTrackingScreen = ({ route, navigation }: any) => {
@@ -45,6 +46,7 @@ export const GrowthTrackingScreen = ({ route, navigation }: any) => {
 
     // Modal state
     const [modalVisible, setModalVisible] = useState(false);
+    const [reportModalVisible, setReportModalVisible] = useState(false);
     const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null);
 
     const loadData = useCallback(async () => {
@@ -147,9 +149,17 @@ export const GrowthTrackingScreen = ({ route, navigation }: any) => {
                     <Icon source="arrow-left" size={20} color="#FF3B70" />
                 </TouchableOpacity>
                 <Text style={[styles.navTitle, { color: colors.text }]}>WHO Growth Chart</Text>
-                <TouchableOpacity style={styles.addNavBtn} onPress={handleOpenAddModal}>
-                    <Icon source="plus" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <TouchableOpacity
+                        style={[styles.addNavBtn, { backgroundColor: '#8B5CF6' }]}
+                        onPress={() => setReportModalVisible(true)}
+                    >
+                        <Icon source="file-document-outline" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.addNavBtn} onPress={handleOpenAddModal}>
+                        <Icon source="plus" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView
@@ -315,6 +325,13 @@ export const GrowthTrackingScreen = ({ route, navigation }: any) => {
                 onClose={() => setModalVisible(false)}
                 onSave={handleSaveRecord}
                 initialData={editingRecord}
+            />
+
+            <BabyGrowthReportModal
+                visible={reportModalVisible}
+                onClose={() => setReportModalVisible(false)}
+                baby={child}
+                growthLogs={records}
             />
         </SafeAreaView>
     );

@@ -5,13 +5,10 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
-const jwt = require('jsonwebtoken');
-const { Server: SocketIOServer } = require('socket.io');
 
 const {
     testDatabaseConnection,
 } = require('./db');
-const chatController = require('./controllers/chatController');
 
 const healthRoutes = require('./routes/healthRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -26,9 +23,13 @@ const growthRoutes = require('./routes/growthRoutes');
 const mealPlanRoutes = require('./routes/mealPlanRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const expertRoutes = require('./routes/expertRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+
+const { initSocket } = require('./socket');
 
 const app = express();
 
@@ -64,8 +65,10 @@ app.use('/api/children', growthRoutes);
 app.use('/api/mealplans', mealPlanRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/invitations', invitationRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/experts', expertRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/uploads', uploadRoutes);
 
 app.use((req, res) => {
@@ -84,83 +87,17 @@ app.use((error, req, res, next) => {
     });
 });
 
-const httpServer = http.createServer(app);
-const io = new SocketIOServer(httpServer, {
-    cors: { origin: '*' },
-});
-
-// Socket handshake auth — same JWT used by the REST API's auth middleware,
-// just verified once at connection time instead of per-request.
-io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
-    if (!token) {
-        return next(new Error('Unauthorized'));
-    }
-    try {
-        socket.user = jwt.verify(token, process.env.JWT_SECRET);
-        next();
-    } catch (err) {
-        next(new Error('Unauthorized'));
-    }
-});
-
-io.on('connection', (socket) => {
-    socket.on('join_conversation', async (conversationId, callback) => {
-        try {
-            const convo = await chatController.assertParticipant(conversationId, socket.user.id);
-            if (!convo) {
-                callback?.({ error: 'Not a participant in this conversation' });
-                return;
-            }
-            socket.join(`conversation:${conversationId}`);
-            callback?.({ ok: true });
-        } catch (err) {
-            console.error('join_conversation error:', err);
-            callback?.({ error: 'Failed to join conversation' });
-        }
-    });
-
-    socket.on('send_message', async ({ conversationId, content }, callback) => {
-        try {
-            const convo = await chatController.assertParticipant(conversationId, socket.user.id);
-            if (!convo) {
-                callback?.({ error: 'Not a participant in this conversation' });
-                return;
-            }
-
-            const trimmed = (content || '').trim();
-            if (!trimmed) {
-                callback?.({ error: 'Empty message' });
-                return;
-            }
-
-            const messageId = await chatController.persistMessage(conversationId, socket.user.id, trimmed);
-            const message = {
-                id: messageId,
-                conversationId: Number(conversationId),
-                senderId: socket.user.id,
-                content: trimmed,
-                createdAt: new Date().toISOString(),
-            };
-
-            io.to(`conversation:${conversationId}`).emit('new_message', message);
-            callback?.({ ok: true, message });
-        } catch (err) {
-            console.error('send_message error:', err);
-            callback?.({ error: 'Failed to send message' });
-        }
-    });
-});
-
 const port = Number(process.env.PORT || 5000);
+const server = http.createServer(app);
+initSocket(server);
 
 async function startServer() {
     try {
         await testDatabaseConnection();
 
-        httpServer.listen(port, '0.0.0.0', () => {
+        server.listen(port, '0.0.0.0', () => {
             console.log(
-                `BabyNutri API running at http://localhost:${port}`,
+                `BabyNutri API with Socket.io running at http://localhost:${port}`,
             );
         });
     } catch (error) {
@@ -174,3 +111,4 @@ async function startServer() {
 }
 
 startServer();
+

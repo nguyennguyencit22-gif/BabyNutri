@@ -270,8 +270,8 @@ function QuestionnaireScreen({ navigation, route }: any) {
             return;
         }
 
-        // Người dùng chưa có con:
-        // không tạo baby profile và đi thẳng vào Home.
+        // User does not have a child yet:
+        // do not create baby profile and navigate directly to Home.
         if (
             currentStep === 0 &&
             answers.hasChild === false
@@ -302,7 +302,7 @@ function QuestionnaireScreen({ navigation, route }: any) {
             return;
         }
 
-        // Đến đây chắc chắn đã validate gender.
+        // Gender is validated at this point.
         const gender =
             answers.gender === 'Boy'
                 ? 'boy'

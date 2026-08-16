@@ -39,7 +39,7 @@ export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
 
     useEffect(() => {
         if (initialData) {
-            setRecordDate(initialData.recordDate || today);
+            setRecordDate(initialData.recordDate ? String(initialData.recordDate).slice(0, 10) : today);
             setWeight(String(initialData.weight || ''));
             setHeight(String(initialData.height || ''));
             setHeadCircumference(initialData.headCircumference ? String(initialData.headCircumference) : '');
@@ -61,7 +61,8 @@ export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
             : null;
 
     const handleSubmit = async () => {
-        if (!recordDate.trim()) {
+        const cleanDate = recordDate.trim().slice(0, 10);
+        if (!cleanDate) {
             Alert.alert('Missing Information', 'Please select a measurement date.');
             return;
         }
@@ -79,7 +80,7 @@ export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
         try {
             setSubmitting(true);
             await onSave({
-                recordDate: recordDate.trim(),
+                recordDate: cleanDate,
                 weight: weightNum,
                 height: heightNum,
                 headCircumference: headCircumference ? parseFloat(headCircumference) : null,

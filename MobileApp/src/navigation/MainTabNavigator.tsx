@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import ExpertHomeScreen from '../screens/experts/ExpertHomeScreen';
+import AdminHomeScreen from '../screens/admin/AdminHomeScreen';
 import CommunityScreen from '../screens/community/CommunityScreen';
 import LibraryScreen from '../screens/library/LibraryScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -176,7 +177,9 @@ const ProfileTabIcon = ({
 function MainTabNavigator() {
     const authMode = useSelector((state: RootState) => state.auth.mode);
     const user = useSelector((state: RootState) => state.auth.user);
-    const isExpertOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
+    const userRole = (user?.role || '').toLowerCase();
+    const isAdmin = authMode === 'authenticated' && userRole === 'admin';
+    const isExpert = authMode === 'authenticated' && userRole === 'expert';
 
     return (
         <Tab.Navigator
@@ -225,27 +228,31 @@ function MainTabNavigator() {
 
             <Tab.Screen
                 name="HomeTab"
-                component={isExpertOrAdmin ? ExpertHomeScreen : HomeScreen}
+                component={isAdmin ? AdminHomeScreen : isExpert ? ExpertHomeScreen : HomeScreen}
                 options={{
                     tabBarIcon: HomeTabIcon,
                 }}
             />
 
-            <Tab.Screen
-                name="CommunityTab"
-                component={CommunityScreen}
-                options={{
-                    tabBarIcon: CommunityTabIcon,
-                }}
-            />
+            {!isAdmin && (
+                <Tab.Screen
+                    name="CommunityTab"
+                    component={CommunityScreen}
+                    options={{
+                        tabBarIcon: CommunityTabIcon,
+                    }}
+                />
+            )}
 
-            <Tab.Screen
-                name="LibraryTab"
-                component={LibraryScreen}
-                options={{
-                    tabBarIcon: LibraryTabIcon,
-                }}
-            />
+            {!isAdmin && (
+                <Tab.Screen
+                    name="LibraryTab"
+                    component={LibraryScreen}
+                    options={{
+                        tabBarIcon: LibraryTabIcon,
+                    }}
+                />
+            )}
 
             <Tab.Screen
                 name="ProfileTab"

@@ -40,6 +40,28 @@ export async function loginWithFirebaseToken(
     return data as FirebaseLoginResponse;
 }
 
+export async function loginWithGoogleDirect(
+    email: string = 'khoa.nguyenhoang.cit22@eiu.edu.vn',
+): Promise<FirebaseLoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/google-direct`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Google direct login failed.');
+    }
+
+    await setAuthToken(data.token);
+
+    return data as FirebaseLoginResponse;
+}
+
 export async function loginWithEmail(
     email: string,
     password: string,

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, Text, Modal, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, TextInput, TouchableOpacity, Text, Modal, Pressable, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector } from 'react-redux';
+import Icon from '../../components/common/AppIcon';
 import { articleService } from '../../services/article.service';
 import type { RootState } from '../../store/store';
 import RatingReviewSection from '../../components/common/RatingReviewSection';
@@ -29,11 +31,8 @@ interface CommentItem {
 }
 
 // Full "Ratings & Reviews" page for an article — reached by tapping the
-// compact RatingSummaryPreview on ArticleDetailScreen. Read-only breakdown +
-// full comment thread (with the edit modal); the interactive tap-to-rate
-// control and "write a comment" input both live on the compact preview
-// instead, alongside the 2-comment teaser.
-const ArticleReviewsScreen = ({ route }: any) => {
+// compact RatingSummaryPreview on ArticleDetailScreen.
+const ArticleReviewsScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
   const articleTitleRef = useRef(route?.params?.name || 'Article');
@@ -150,7 +149,15 @@ const ArticleReviewsScreen = ({ route }: any) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Reviews & Ratings</Text>
+        <View style={{ width: 36 }} />
+      </View>
       <ScrollView contentContainerStyle={styles.content}>
         <RatingReviewSection
           avgRating={avgRating}
@@ -192,11 +199,22 @@ const ArticleReviewsScreen = ({ route }: any) => {
           </View>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   content: { padding: 18 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20 },

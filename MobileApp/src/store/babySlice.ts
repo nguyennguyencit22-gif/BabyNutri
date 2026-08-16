@@ -271,7 +271,7 @@ export const saveBaby = createAsyncThunk<
         type: 'create',
         title: `Created baby profile for ${baby.name}`,
         details: `Gender: ${baby.gender} · Added to profiles`,
-        icon: '👶',
+        icon: 'account-child-circle',
     }));
 });
 
@@ -292,7 +292,7 @@ export const editBaby = createAsyncThunk<
         type: 'action',
         title: `Updated baby profile for ${baby.name}`,
         details: 'Saved latest profile updates',
-        icon: '✏️',
+        icon: 'pencil-outline',
     }));
 });
 
@@ -312,7 +312,7 @@ export const removeBaby = createAsyncThunk<
             type: 'delete',
             title: `Deleted baby profile for ${existingBaby.name}`,
             details: 'Profile removed',
-            icon: '🗑️',
+            icon: 'delete-outline',
         }));
     }
 });

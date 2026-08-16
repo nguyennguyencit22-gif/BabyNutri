@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, StatusBar, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -57,7 +58,9 @@ const BookOpenOutlineIcon = ({ size = 16, color = '#0284C7' }: IconProps) => (
 // lived here (previously only on the other tabs).
 const TopHeaderBar: React.FC = () => {
   const { colors, isDark } = useAppTheme();
-  const styles = React.useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 20);
+  const styles = React.useMemo(() => createStyles(colors, topInset), [colors, topInset]);
   const navigation = useNavigation<any>();
 
   const babies = useSelector((state: RootState) => state.baby.babies);
@@ -67,14 +70,15 @@ const TopHeaderBar: React.FC = () => {
 
   const sessionMode = useSelector((state: RootState) => state.auth.mode);
   const isAuthenticated = sessionMode === 'authenticated';
-
   const user = useSelector((state: RootState) => state.auth.user);
-  const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
-  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Expert');
+
+  const userRole = (user?.role || '').toLowerCase();
+  const isAdmin = isAuthenticated && userRole === 'admin';
+  const isExpert = isAuthenticated && userRole === 'expert';
+  const isExpertOrAdmin = isAdmin || isExpert;
+  const expertDisplayName = user?.displayName || (user?.email ? user.email.split('@')[0] : (isAdmin ? 'Admin' : 'Expert'));
 
   const [notifVisible, setNotifVisible] = useState(false);
-  // Experts have no real chat/task backend yet (see the modal below), so
-  // there's nothing to have a genuine unread badge over.
   const [hasUnread, setHasUnread] = useState(!isExpertOrAdmin);
   const [showBabySwitcher, setShowBabySwitcher] = useState(false);
   const [showBabyActions, setShowBabyActions] = useState(false);
@@ -130,13 +134,15 @@ const TopHeaderBar: React.FC = () => {
           get a simple identity block instead of the baby-switcher one. */}
       {isExpertOrAdmin ? (
         <View style={styles.profileSection}>
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+          <View style={[styles.avatar, { backgroundColor: isAdmin ? '#8B5CF6' : colors.primary }]}>
             <Text style={styles.avatarLabel}>
               {expertDisplayName.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Welcome back,</Text>
+            <Text style={[styles.greetingText, isAdmin && { color: '#8B5CF6', fontWeight: '700' }]}>
+              {isAdmin ? 'System Administrator' : 'Nutrition Expert'}
+            </Text>
             <Text style={styles.userName}>{expertDisplayName}</Text>
           </View>
         </View>
@@ -204,7 +210,7 @@ const TopHeaderBar: React.FC = () => {
         <Pressable style={styles.modalOverlay} onPress={() => setNotifVisible(false)}>
           <View style={styles.notifBox}>
             <View style={styles.notifHeaderRow}>
-              <Text style={styles.notifTitle}>🔔 Notifications</Text>
+              <Text style={styles.notifTitle}>Notifications</Text>
               <TouchableOpacity onPress={() => setNotifVisible(false)}>
                 <Text style={styles.notifCloseText}>Close</Text>
               </TouchableOpacity>
@@ -231,7 +237,7 @@ const TopHeaderBar: React.FC = () => {
                       <CheckCircleOutlineIcon size={16} color="#16A34A" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>🥣 Daily Weaning Schedule for {babyName}</Text>
+                      <Text style={styles.notifTextBold}>Daily Weaning Schedule for {babyName}</Text>
                       <Text style={styles.notifTextSub}>Breakfast (08:00), Lunch (11:30), Snack (15:00) & Dinner (18:00) planned.</Text>
                       <Text style={styles.notifTime}>Just now</Text>
                     </View>
@@ -245,7 +251,7 @@ const TopHeaderBar: React.FC = () => {
                       <SparklesIcon size={16} color="#FF6B4A" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>👶 Active Profile: {babyName} ({babyAgeText})</Text>
+                      <Text style={styles.notifTextBold}>Active Profile: {babyName} ({babyAgeText})</Text>
                       <Text style={styles.notifTextSub}>Smart allergy ranking is active. Safe recipes prioritized!</Text>
                       <Text style={styles.notifTime}>5 min ago</Text>
                     </View>
@@ -259,7 +265,7 @@ const TopHeaderBar: React.FC = () => {
                       <BookOpenOutlineIcon size={16} color="#0284C7" />
                     </View>
                     <View style={styles.notifContent}>
-                      <Text style={styles.notifTextBold}>📚 Nutrition Guide for {babyName}</Text>
+                      <Text style={styles.notifTextBold}>Nutrition Guide for {babyName}</Text>
                       <Text style={styles.notifTextSub}>Tips to boost appetite & nutrient absorption tailored for {babyAgeText}.</Text>
                       <Text style={styles.notifTime}>1 hour ago</Text>
                     </View>
@@ -294,24 +300,6 @@ const TopHeaderBar: React.FC = () => {
           }
           console.log('Add caregiver:', selectedBaby.id);
         }}
-        onEditEvents={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Edit events:', selectedBaby.id);
-        }}
-        onConfigureMainScreen={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Configure main screen:', selectedBaby.id);
-        }}
-        onReminders={() => {
-          if (!selectedBaby) {
-            return;
-          }
-          console.log('Reminders:', selectedBaby.id);
-        }}
         invitationCode={invitationCode}
         onCopyCode={
           isAuthenticated && selectedBaby?.permission === 'owner'
@@ -328,14 +316,14 @@ const TopHeaderBar: React.FC = () => {
   );
 };
 
-const createStyles = (colors: AppColors) => StyleSheet.create({
+const createStyles = (colors: AppColors, topInset: number = 24) => StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
     paddingHorizontal: 20,
-    paddingTop: statusBarHeight + 12,
+    paddingTop: topInset + 10,
     paddingBottom: 18,
   },
   profileSection: {

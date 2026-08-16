@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS measurement_settings;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS weaning_features;
 DROP TABLE IF EXISTS journey_items;
+DROP TABLE IF EXISTS child_invitation_codes;
 DROP TABLE IF EXISTS child_food_preferences;
 DROP TABLE IF EXISTS child_known_allergies;
 DROP TABLE IF EXISTS child_allergies;
@@ -162,15 +163,47 @@ CREATE TABLE child_food_preferences (
 );
 
 -- ==========================================
--- 5. MEAL TYPES
+-- 5. LOOKUP TABLES & CATEGORIES
 -- ==========================================
 CREATE TABLE meal_types (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100)
+    name VARCHAR(100) UNIQUE
 );
 
 INSERT INTO meal_types(id, name)
 VALUES (1, 'Breakfast'), (2, 'Lunch'), (3, 'Dinner'), (4, 'Snack');
+
+CREATE TABLE weaning_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO weaning_methods(id, name)
+VALUES (1, 'Puree'), (2, 'Mashed'), (3, 'Baby-Led Weaning'), (4, 'Finger Food');
+
+CREATE TABLE dietary_needs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO dietary_needs(id, name)
+VALUES (1, 'Dairy-Free'), (2, 'Gluten-Free'), (3, 'Egg-Free'), (4, 'Nut-Free'), (5, 'Vegetarian');
+
+CREATE TABLE occasions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO occasions(id, name)
+VALUES (1, 'Everyday'), (2, 'First Foods'), (3, 'Meal Prep'), (4, 'On-the-Go'), (5, 'Special Occasion');
+
+CREATE TABLE article_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+INSERT INTO article_categories(id, name)
+VALUES (1, 'Nutrition Tips'), (2, 'Weaning Guide'), (3, 'Recipes & Meals'), (4, 'Health & Safety'), (5, 'Development');
 
 -- ==========================================
 -- 6. RECIPES
@@ -194,9 +227,15 @@ CREATE TABLE recipes (
     weaning_method VARCHAR(100),
     dietary_needs VARCHAR(100),
     occasion VARCHAR(100),
+    weaning_method_id INT DEFAULT NULL,
+    dietary_needs_id INT DEFAULT NULL,
+    occasion_id INT DEFAULT NULL,
 
     FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL
+    FOREIGN KEY (meal_type_id) REFERENCES meal_types(id) ON DELETE SET NULL,
+    FOREIGN KEY (weaning_method_id) REFERENCES weaning_methods(id) ON DELETE SET NULL,
+    FOREIGN KEY (dietary_needs_id) REFERENCES dietary_needs(id) ON DELETE SET NULL,
+    FOREIGN KEY (occasion_id) REFERENCES occasions(id) ON DELETE SET NULL
 );
 
 INSERT INTO recipes (id, name, description, image_url, expert_id, cooking_time, prep_time, serves, month_age, meal_type_id, calories, protein, fat, carbohydrate)
@@ -451,6 +490,51 @@ CREATE TABLE recipe_comments (
 INSERT INTO recipe_comments(recipe_id, user_id, content)
 VALUES (1, 3, 'Very healthy!');
 
+CREATE TABLE article_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    article_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_article_rating (article_id, user_id),
+    FOREIGN KEY(article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE article_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    article_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(article_id) REFERENCES articles(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE question_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_question_rating (question_id, user_id),
+    FOREIGN KEY(question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE qna_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    sender_role VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- ==========================================
 -- 17. USER HISTORY & NOTIFICATIONS
 -- ==========================================
@@ -522,13 +606,15 @@ INSERT INTO users(id, full_name, email, password, role_id, avatar)
 VALUES
 (4, 'Troyan Smith', 'troyan.smith@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=12'),
 (5, 'James Wolden', 'james.wolden@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=11'),
-(6, 'Niki Samantha', 'niki.samantha@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=47');
+(6, 'Niki Samantha', 'niki.samantha@babynutri.com', '123456', 2, 'https://i.pravatar.cc/200?img=47'),
+(7, 'Khoa Nguyen', 'khoa.nguyenhoang.cit22@eiu.edu.vn', '123456', 1, 'https://i.pravatar.cc/200?img=60');
 
 INSERT INTO expert_profiles(expert_id, information, certificate, specialization, experience_year, is_verified)
 VALUES
 (4, 'Registered dietitian focused on infant nutrition', 'Registered Dietitian', 'Nutritionist', 6, TRUE),
 (5, 'Pediatrician specializing in early childhood health', 'Board Certified Pediatrician', 'Pediatrician', 10, TRUE),
-(6, 'Helps families build healthy weaning routines', 'Certified Nutrition Coach', 'Dietitian', 5, TRUE);
+(6, 'Helps families build healthy weaning routines', 'Certified Nutrition Coach', 'Dietitian', 5, TRUE),
+(7, 'Pediatric Nutrition Expert', 'Certified Nutritionist', 'Child Nutrition', 5, TRUE);
 
 UPDATE users SET avatar = 'https://i.pravatar.cc/200?img=68' WHERE id = 2;
 

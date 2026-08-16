@@ -15,6 +15,8 @@ import BabyProfileItem from '../../components/profile/BabyProfileItem';
 import BabyProfileActionsModal from '../../components/profile/BabyProfileActionsModal';
 import GuestProfileBanner from '../../components/profile/GuestProfileBanner';
 import ExpertProfileCard from '../../components/profile/ExpertProfileCard';
+import AdminManageExpertsModal from '../admin/AdminManageExpertsModal';
+import AdminReportsModal from '../admin/AdminReportsModal';
 
 import createStyles from '../../styles/profile/profileStyles';
 import { useAppTheme } from '../../theme/useAppTheme';
@@ -50,9 +52,14 @@ function ProfileScreen({
     const [selectedBabyId, setSelectedBabyId] = React.useState<string | null>(null);
     const [showBabyActions, setShowBabyActions] = React.useState(false);
     const [invitationCode, setInvitationCode] = React.useState<string | null>(null);
+    const [showAdminExpertsModal, setShowAdminExpertsModal] = React.useState(false);
+    const [showAdminReportsModal, setShowAdminReportsModal] = React.useState(false);
 
     const isAuthenticated = sessionMode === 'authenticated' && user !== null;
-    const isExpertOrAdmin = isAuthenticated && (user?.role === 'expert' || user?.role === 'admin');
+    const userRole = (user?.role || '').toLowerCase();
+    const isAdmin = isAuthenticated && userRole === 'admin';
+    const isExpert = isAuthenticated && userRole === 'expert';
+    const isExpertOrAdmin = isAdmin || isExpert;
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,
@@ -128,9 +135,10 @@ function ProfileScreen({
                 {/* USER PROFILE CARD */}
                 {isAuthenticated ? (
                     <ProfileSummaryCard
-                        name={user.displayName || 'BabyNutri Parent'}
+                        name={user.displayName || (isAdmin ? 'System Administrator' : isExpert ? 'Nutrition Expert' : 'BabyNutri Parent')}
                         email={user.email}
                         imageUrl={user.photoURL}
+                        roleLabel={isAdmin ? 'Administrator' : isExpert ? 'Nutrition Expert' : undefined}
                         onChangePhoto={() => {
                             console.log('Change profile photo');
                         }}
@@ -146,7 +154,25 @@ function ProfileScreen({
                     />
                 )}
 
-                {isExpertOrAdmin ? (
+                {isAdmin ? (
+                    <>
+                        <Text style={[styles.sectionLabel, { color: '#8B5CF6' }]}>
+                            ADMINISTRATION & MANAGEMENT
+                        </Text>
+                        <ProfileMenuItem
+                            title="Manage Nutrition Experts"
+                            leftIcon="account-cog"
+                            showArrow
+                            onPress={() => setShowAdminExpertsModal(true)}
+                        />
+                        <ProfileMenuItem
+                            title="System Reports & Statistics"
+                            leftIcon="chart-bar"
+                            showArrow
+                            onPress={() => setShowAdminReportsModal(true)}
+                        />
+                    </>
+                ) : isExpert ? (
                     <>
                         <Text style={styles.sectionLabel}>
                             PROFESSIONAL INFO
@@ -155,7 +181,7 @@ function ProfileScreen({
                     </>
                 ) : (
                     <>
-                        {/* PROFILES SECTION (QUẢN LÝ HỒ SƠ BÉ) */}
+                        {/* PROFILES SECTION */}
                         <Text style={styles.sectionLabel}>
                             PROFILES
                         </Text>
@@ -214,7 +240,7 @@ function ProfileScreen({
                     }}
                 />
 
-                {/* OTHER SETTING SECTION (CHUẨN MEMBER A) */}
+                {/* OTHER SETTINGS SECTION */}
                 <Text style={styles.otherSettingLabel}>
                     OTHER SETTING
                 </Text>
@@ -257,18 +283,6 @@ function ProfileScreen({
                     if (!selectedBabyId) return;
                     console.log('Add caregiver:', selectedBabyId);
                 }}
-                onEditEvents={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Edit events:', selectedBabyId);
-                }}
-                onConfigureMainScreen={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Configure main screen:', selectedBabyId);
-                }}
-                onReminders={() => {
-                    if (!selectedBabyId) return;
-                    console.log('Reminders:', selectedBabyId);
-                }}
                 invitationCode={invitationCode}
                 onCopyCode={
                     isAuthenticated &&
@@ -282,6 +296,19 @@ function ProfileScreen({
                     navigation.navigate('Login');
                 }}
             />
+
+            {isAdmin && (
+                <>
+                    <AdminManageExpertsModal
+                        visible={showAdminExpertsModal}
+                        onClose={() => setShowAdminExpertsModal(false)}
+                    />
+                    <AdminReportsModal
+                        visible={showAdminReportsModal}
+                        onClose={() => setShowAdminReportsModal(false)}
+                    />
+                </>
+            )}
         </SafeAreaView>
     );
 }

@@ -803,7 +803,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
                     activeOpacity={0.8}
                   >
                     <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#FF5F70' : colors.text }}>{slot.label}</Text>
-                    {isSelected && <Text style={{ fontSize: 16, color: '#FF5F70', fontWeight: '800' }}>✓</Text>}
+                    {isSelected && <Icon source="check" size={16} color="#FF5F70" />}
                   </TouchableOpacity>
                 );
               })}

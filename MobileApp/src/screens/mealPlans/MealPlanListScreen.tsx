@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, SafeAreaView, StatusBar, Alert, Modal, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, StatusBar, Alert, Modal, TextInput, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useSelector } from 'react-redux';
@@ -219,7 +220,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     return 4;
   };
 
-  // Sort meals strictly in order: Breakfast (Sáng) -> Lunch (Trưa) -> Snack (Phụ) -> Dinner (Tối), and chronologically
+  // Sort meals strictly in order: Breakfast -> Lunch -> Snack -> Dinner, and chronologically
   const sortedPlanMeals = React.useMemo(() => {
     if (!selectedPlan || !selectedPlan.meals) return [];
     return [...selectedPlan.meals].sort((a, b) => {
@@ -293,14 +294,13 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     };
   }, [sortedPlanMeals, selectedDate, nowDate, selectedBaby]);
 
-  // Trigger floating 1-hour prep alert when reminderEnabled is ON
   useEffect(() => {
     if (reminderEnabled && upcomingMealInfo?.isWithin1Hour && upcomingMealInfo.meal) {
       const mealKey = `${upcomingMealInfo.meal.id}-${toLocalIso(selectedDate)}`;
       if (alertedMealRef.current !== mealKey) {
         alertedMealRef.current = mealKey;
         Alert.alert(
-          '🔔 MEAL PREPARATION REMINDER',
+          'MEAL PREPARATION REMINDER',
           `Only ${upcomingMealInfo.countdownTicker} remaining until ${selectedBaby?.name || 'baby'}'s ${upcomingMealInfo.cleanName} (${upcomingMealInfo.meal.time || '08:00 AM'})! Please start preparing food for your baby now.`,
           [
             { text: 'Start Preparing' },
@@ -311,21 +311,17 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     }
   }, [reminderEnabled, upcomingMealInfo?.isWithin1Hour, upcomingMealInfo?.meal, selectedDate, selectedBaby]);
 
-  // State for 3-Dots Meal Action Modal
   const [selectedMealForAction, setSelectedMealForAction] = useState<Meal | null>(null);
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [editTimeModalVisible, setEditTimeModalVisible] = useState(false);
   const [editNotesModalVisible, setEditNotesModalVisible] = useState(false);
 
-  // Edit Time Steppers (Hour, Minute, AM/PM)
   const [editHour, setEditHour] = useState(8);
   const [editMinute, setEditMinute] = useState(0);
   const [editAmpm, setEditAmpm] = useState<'AM' | 'PM'>('AM');
 
-  // Edit Notes text
   const [editNoteText, setEditNoteText] = useState('');
 
-  // Open 3-Dots Action Menu Modal
   const handleOpenMealActionMenu = (meal: Meal) => {
     setSelectedMealForAction(meal);
     if (meal.time) {
@@ -343,7 +339,6 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     setActionModalVisible(true);
   };
 
-  // Confirm Meal Time Edit
   const handleSaveMealTime = async () => {
     if (!selectedMealForAction || !selectedPlan) return;
     const formattedTime = `${String(editHour).padStart(2, '0')}:${String(editMinute).padStart(2, '0')} ${editAmpm}`;
@@ -369,10 +364,9 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     setEditTimeModalVisible(false);
     setActionModalVisible(false);
     loadMealPlans();
-    Alert.alert('⏰ Time Updated', `Meal time updated to ${formattedTime}!`);
+    Alert.alert('Time Updated', `Meal time updated to ${formattedTime}!`);
   };
 
-  // Confirm Meal Note Edit
   const handleSaveMealNotes = async () => {
     if (!selectedMealForAction || !selectedPlan) return;
     const dateStr = toLocalIso(selectedDate);
@@ -397,10 +391,9 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     setEditNotesModalVisible(false);
     setActionModalVisible(false);
     loadMealPlans();
-    Alert.alert('📝 Notes Updated', 'Parent notes updated successfully!');
+    Alert.alert('Notes Updated', 'Parent notes updated successfully!');
   };
 
-  // Confirm Delete Dish from Action Menu
   const handleConfirmDeleteFromMenu = async () => {
     if (!selectedMealForAction) return;
     const dateStr = toLocalIso(selectedDate);
@@ -430,11 +423,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
   };
 
   const getMealIcon = (meal: Meal) => {
-    const rank = getMealRank(meal);
-    if (rank === 1) return '🍳';
-    if (rank === 2) return '🍲';
-    if (rank === 3) return '🥛';
-    return '🥣';
+    return '';
   };
 
   return (
@@ -482,14 +471,14 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
           </Text>
         </View>
         <View style={styles.bannerArrow}>
-          <Text style={styles.bannerArrowText}>➔</Text>
+          <Text style={styles.bannerArrowText}>›</Text>
         </View>
       </TouchableOpacity>
 
       {/* 4 Weekly Schedules Selection Bar (Synchronized with Meal Scheduler) */}
       <View style={styles.weekSectionContainer}>
         <View style={styles.weekHeaderRow}>
-          <Text style={styles.weekSectionTitle}>🗓️ Select Weekly Schedule</Text>
+          <Text style={styles.weekSectionTitle}>Select Weekly Schedule</Text>
         </View>
         <View style={styles.weekTabsRow}>
           {dynamicWeeks.map((week) => {
@@ -553,13 +542,12 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
               <View style={[styles.countdownCard, upcomingMealInfo.isWithin1Hour && styles.countdownCardUrgent]}>
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <Text style={{ fontSize: 16 }}>{upcomingMealInfo.isWithin1Hour ? '🔔' : '⏳'}</Text>
                     <Text style={styles.countdownTitle}>
                       Next Meal ({upcomingMealInfo.meal?.time && upcomingMealInfo.meal?.time.trim() !== '' ? upcomingMealInfo.meal?.time : 'Set Time'}): <Text style={{ color: colors.primary, fontWeight: '900' }}>{upcomingMealInfo.countdownTicker}</Text>
                     </Text>
                   </View>
                   <Text style={styles.countdownSub}>
-                    {upcomingMealInfo.isTomorrowMeal ? '🗓️ Tomorrow · ' : ''}{upcomingMealInfo.cleanName} ({upcomingMealInfo.meal?.calories} kcal)
+                    {upcomingMealInfo.isTomorrowMeal ? 'Tomorrow · ' : ''}{upcomingMealInfo.cleanName} ({upcomingMealInfo.meal?.calories} kcal)
                   </Text>
                 </View>
 
@@ -570,7 +558,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                       const nextState = !reminderEnabled;
                       setReminderEnabled(nextState);
                       Alert.alert(
-                        nextState ? '🔔 Reminders Turned ON' : '🔕 Reminders Muted',
+                        nextState ? 'Reminders Turned ON' : 'Reminders Muted',
                         nextState 
                           ? `Floating reminder enabled! You will be notified 1 hour before ${selectedBaby?.name || 'baby'}'s next meal.`
                           : 'Meal preparation reminders are now muted.',
@@ -580,7 +568,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.reminderToggleText, reminderEnabled ? styles.reminderToggleTextOn : styles.reminderToggleTextOff]}>
-                      {reminderEnabled ? '🔔 Remind: ON' : '🔕 Remind: OFF'}
+                      {reminderEnabled ? 'Remind: ON' : 'Remind: OFF'}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -603,11 +591,11 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   weekIndex: selectedWeekIndex 
                 })}
               >
-                <Text style={styles.detailLinkText}>📋 Daily Details</Text>
+                <Text style={styles.detailLinkText}>Daily Details</Text>
               </TouchableOpacity>
             </View>
             
-            {/* Meals items ordered strictly by Sáng -> Trưa -> Phụ -> Tối with exact times */}
+            {/* Meals items ordered strictly by time */}
             {sortedPlanMeals.map((meal, index) => (
               <View key={meal.id || index} style={styles.mealCard}>
                 <TouchableOpacity 
@@ -627,16 +615,16 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   }}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.mealTime}>{meal.time && meal.time.trim() !== '' ? ` ${meal.time}` : ' Set Time'}</Text>
+                  <Text style={styles.mealTime}>{meal.time && meal.time.trim() !== '' ? meal.time : 'Set Time'}</Text>
                   <View style={styles.timeLine} />
                 </TouchableOpacity>
 
                 <View style={styles.mealContent}>
                   <View style={styles.mealHeaderRow}>
                     <Text style={styles.mealName}>
-                      {getMealIcon(meal)} {meal.name}
+                      {meal.name}
                     </Text>
-                    <Text style={styles.mealCalories}>🔥 {meal.calories} kcal</Text>
+                    <Text style={styles.mealCalories}>{meal.calories} kcal</Text>
                   </View>
 
                   {!!meal.description && (
@@ -646,9 +634,9 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   {/* Macros info tags if available */}
                   {(meal.protein || meal.carbs || meal.fat) && (
                     <View style={styles.macroRow}>
-                      {!!meal.protein && <Text style={styles.macroTag}>🥩 Protein: {meal.protein}g</Text>}
-                      {!!meal.carbs && <Text style={styles.macroTag}>🌾 Carbs: {meal.carbs}g</Text>}
-                      {!!meal.fat && <Text style={styles.macroTag}>🥑 Fat: {meal.fat}g</Text>}
+                      {!!meal.protein && <Text style={styles.macroTag}>Protein: {meal.protein}g</Text>}
+                      {!!meal.carbs && <Text style={styles.macroTag}>Carbs: {meal.carbs}g</Text>}
+                      {!!meal.fat && <Text style={styles.macroTag}>Fat: {meal.fat}g</Text>}
                     </View>
                   )}
 
@@ -659,7 +647,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                       onPress={() => handleOpenRecipeDetail(meal)}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.recipeBtnText}>📖 View Recipe</Text>
+                      <Text style={styles.recipeBtnText}>View Recipe</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
@@ -677,7 +665,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
           </ScrollView>
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🥣</Text>
+            <Icon source="silverware-fork-knife" size={32} color={colors.textSoft} />
             <Text style={styles.emptyText}>No plan scheduled for {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
             <Text style={styles.emptySubText}>Set up a nutrition schedule or discover weaning recipes for your baby!</Text>
             
@@ -698,7 +686,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                 onPress={() => navigation.navigate('SearchRecipe')}
                 activeOpacity={0.88}
               >
-                <Text style={styles.addButtonSecondaryText}>🍲 Explore Weaning Recipes</Text>
+                <Text style={styles.addButtonSecondaryText}>Explore Weaning Recipes</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -727,10 +715,10 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   setEditTimeModalVisible(true);
                 }}
               >
-                <Text style={styles.menuOptionIcon}>⏰</Text>
+                <Icon source="clock-outline" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.menuOptionTitle}>Edit Scheduled Time</Text>
-                  <Text style={styles.menuOptionDesc}>Select custom meal time (e.g. 08:00 AM ➔ 09:15 AM)</Text>
+                  <Text style={styles.menuOptionDesc}>Select custom meal time (e.g. 08:00 AM to 09:15 AM)</Text>
                 </View>
               </TouchableOpacity>
 
@@ -742,7 +730,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                   setEditNotesModalVisible(true);
                 }}
               >
-                <Text style={styles.menuOptionIcon}>📝</Text>
+                <Icon source="note-edit-outline" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.menuOptionTitle}>Add / Edit Parent Note</Text>
                   <Text style={styles.menuOptionDesc}>Write custom feeding instructions or notes</Text>
@@ -754,7 +742,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                 style={[styles.menuOptionItem, styles.menuOptionDestructive]}
                 onPress={handleConfirmDeleteFromMenu}
               >
-                <Text style={styles.menuOptionIcon}>🗑️</Text>
+                <Icon source="trash-can-outline" size={20} color="#FF5F70" style={{ marginRight: 8 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.menuOptionTitle, { color: '#FF5F70' }]}>Delete Dish</Text>
                   <Text style={styles.menuOptionDesc}>Remove recipe from this meal plan</Text>
@@ -772,7 +760,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
         </Pressable>
       </Modal>
 
-      {/* Edit Time Clock Picker Sub-Modal (Identical Centered Card UI to Add to Schedule) */}
+      {/* Edit Time Clock Picker Sub-Modal */}
       <Modal
         visible={editTimeModalVisible}
         transparent
@@ -791,7 +779,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
 
             {/* Live Clock Display & Auto-Slot Preview */}
             <View style={styles.liveClockBox}>
-              <Text style={styles.liveClockText}>⏰ {String(editHour).padStart(2, '0')}:{String(editMinute).padStart(2, '0')} {editAmpm}</Text>
+              <Text style={styles.liveClockText}>{String(editHour).padStart(2, '0')}:{String(editMinute).padStart(2, '0')} {editAmpm}</Text>
               <Text style={styles.liveSlotText}>
                 Auto maps to: <Text style={{ fontWeight: '800', color: '#FF5F70' }}>
                   {(() => {
@@ -871,13 +859,13 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
                 style={[styles.periodBtn, editAmpm === 'AM' && styles.activePeriodBtn]}
                 onPress={() => setEditAmpm('AM')}
               >
-                <Text style={[styles.periodText, editAmpm === 'AM' && styles.activePeriodText]}>🌅 AM (Morning)</Text>
+                <Text style={[styles.periodText, editAmpm === 'AM' && styles.activePeriodText]}>AM (Morning)</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.periodBtn, editAmpm === 'PM' && styles.activePeriodBtn]}
                 onPress={() => setEditAmpm('PM')}
               >
-                <Text style={[styles.periodText, editAmpm === 'PM' && styles.activePeriodText]}>🌙 PM (Afternoon/Night)</Text>
+                <Text style={[styles.periodText, editAmpm === 'PM' && styles.activePeriodText]}>PM (Afternoon/Night)</Text>
               </TouchableOpacity>
             </View>
 
@@ -903,7 +891,7 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setEditNotesModalVisible(false)}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>📝 Parent Note</Text>
+            <Text style={styles.modalTitle}>Parent Note</Text>
 
             <TextInput
               style={styles.notesInput}

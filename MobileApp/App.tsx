@@ -18,6 +18,9 @@ import {
 import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
+import {
+  SafeAreaProvider,
+} from 'react-native-safe-area-context';
 
 import {
   Provider,
@@ -95,9 +98,11 @@ function AppContent() {
 function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <Provider store={store}>
-        <AppContent />
-      </Provider>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <AppContent />
+        </Provider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

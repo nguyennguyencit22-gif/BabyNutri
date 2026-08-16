@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { childService } from '../../services/childService';
 import { Child } from '../../types/child';
@@ -39,7 +40,15 @@ export const ChildListScreen = ({ navigation }: any) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Child Profiles</Text>
+        <View style={{ width: 36 }} />
+      </View>
       <FlatList
         data={children}
         keyExtractor={(item) => item.id}
@@ -77,15 +86,24 @@ export const ChildListScreen = ({ navigation }: any) => {
       <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.9}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFDF9',
   },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   center: {
     flex: 1,
     justifyContent: 'center',

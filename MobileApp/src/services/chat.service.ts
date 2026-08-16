@@ -53,6 +53,10 @@ export const chatService = {
     const res = await api.get(`${BASE}/conversations/${conversationId}/messages`);
     return res.data;
   },
+  sendMessage: async (conversationId: number, content: string): Promise<ChatMessage> => {
+    const res = await api.post(`${BASE}/conversations/${conversationId}/messages`, { content });
+    return res.data;
+  },
   endConversation: async (conversationId: number): Promise<void> => {
     await api.post(`${BASE}/conversations/${conversationId}/end`);
   },

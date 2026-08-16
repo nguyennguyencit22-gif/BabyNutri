@@ -40,6 +40,10 @@ import { FAQScreen } from '../screens/questions/FAQScreen';
 import MealSchedulerScreen from '../screens/recipes/MealSchedulerScreen';
 import MyContentScreen from '../screens/experts/MyContentScreen';
 import ExpertFeedbackScreen from '../screens/experts/ExpertFeedbackScreen';
+import ExpertQuestionScreen from '../screens/experts/ExpertQuestionScreen';
+import ExpertDetailScreen from '../screens/experts/ExpertDetailScreen';
+import NotificationsScreen from '../screens/notifications/NotificationsScreen';
+import QnaChatScreen from '../screens/questions/QnaChatScreen';
 import ChatExpertPickerScreen from '../screens/chat/ChatExpertPickerScreen';
 import ChatConversationScreen from '../screens/chat/ChatConversationScreen';
 
@@ -202,6 +206,26 @@ function AppNavigator() {
       <Stack.Screen
         name="ExpertFeedback"
         component={ExpertFeedbackScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ExpertQuestion"
+        component={ExpertQuestionScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ExpertDetail"
+        component={ExpertDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="QnaChat"
+        component={QnaChatScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

@@ -1,37 +1,149 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, TextInput, LayoutAnimation, Platform, UIManager, Alert, Modal, Pressable, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import io, { Socket } from 'socket.io-client';
 import Icon from '../../components/common/AppIcon';
 import { questionService } from '../../services/questionService';
+import api from '../../services/api';
 import { Question } from '../../types/question';
+import type { RootState } from '../../store/store';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQScreen = () => {
+const FAQScreen = ({ navigation: propNav }: any) => {
+  const hookNav = useNavigation<any>();
+  const navigation = propNav || hookNav;
+  const authMode = useSelector((state: RootState) => state.auth.mode);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const currentUserId = Number((user as any)?.id || (user as any)?.uid || 0);
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const [askModalVisible, setAskModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
 
+  const [publicExperts, setPublicExperts] = useState<{ id: number; fullName: string; specialization?: string }[]>([]);
+  const [selectedExpertId, setSelectedExpertId] = useState<number | null>(null);
+
+  const [mainTab, setMainTab] = useState<'faqs' | 'myQuestions'>('faqs');
+  const [myQuestions, setMyQuestions] = useState<Question[]>([]);
+
+  const socketRef = useRef<Socket | null>(null);
+
   useEffect(() => {
     loadQuestions();
-  }, []);
+    loadPublicExperts();
+
+    // Setup Socket.io Realtime connection for FAQ updates
+    const baseURL = api.defaults.baseURL || 'http://localhost:5000';
+    const socketHost = baseURL.replace(/\/api\/?$/, '');
+
+    const socket = io(socketHost, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 10,
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      console.log('Realtime socket connected on FAQScreen');
+      setIsSocketConnected(true);
+      socket.emit('join_faq_channel');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Realtime socket disconnected on FAQScreen');
+      setIsSocketConnected(false);
+    });
+
+    // Event: Realtime question/FAQ created
+    socket.on('question_created', (newQ: Question) => {
+      setQuestions((prev) => {
+        if (prev.some((q) => String(q.id) === String(newQ.id))) return prev;
+        return [newQ, ...prev];
+      });
+      if (newQ.parentId && Number(newQ.parentId) === currentUserId) {
+        setMyQuestions((prev) => {
+          if (prev.some((q) => String(q.id) === String(newQ.id))) return prev;
+          return [newQ, ...prev];
+        });
+      }
+    });
+
+    // Event: Realtime question answered by Expert
+    socket.on('question_answered', (data: { questionId: string; answer: any; status: string }) => {
+      const updateFaq = (q: Question) => {
+        if (String(q.id) === String(data.questionId)) {
+          return {
+            ...q,
+            status: 'Answered' as const,
+            answer: data.answer || q.answer,
+          };
+        }
+        return q;
+      };
+      setQuestions((prev) => prev.map(updateFaq));
+      setMyQuestions((prev) => prev.map(updateFaq));
+    });
+
+    // Event: Question activity / status update
+    socket.on('question_updated', (data: { questionId: string; status?: string; lastMessage?: any }) => {
+      const updateFaq = (q: Question) => {
+        if (String(q.id) === String(data.questionId)) {
+          return {
+            ...q,
+            status: (data.status as any) || (data.lastMessage?.senderRole === 'expert' ? 'Answered' : q.status),
+          };
+        }
+        return q;
+      };
+      setQuestions((prev) => prev.map(updateFaq));
+      setMyQuestions((prev) => prev.map(updateFaq));
+    });
+
+    // Event: Realtime question deleted
+    socket.on('question_deleted', (data: { questionId: string }) => {
+      setQuestions((prev) => prev.filter((q) => String(q.id) !== String(data.questionId)));
+      setMyQuestions((prev) => prev.filter((q) => String(q.id) !== String(data.questionId)));
+    });
+
+    return () => {
+      if (socket) {
+        socket.emit('leave_faq_channel');
+        socket.disconnect();
+      }
+    };
+  }, [currentUserId]);
 
   const loadQuestions = async () => {
     setLoading(true);
     try {
       const data = await questionService.getQuestions();
       setQuestions(data);
+      const myData = await questionService.getMyQuestions();
+      setMyQuestions(myData);
     } catch {
       console.warn('Failed to load questions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPublicExperts = async () => {
+    try {
+      const list = await questionService.getPublicExperts();
+      setPublicExperts(list);
+    } catch {
+      console.warn('Failed to load public experts list');
     }
   };
 
@@ -49,35 +161,69 @@ const FAQScreen = () => {
   }, [questions]);
 
   const filteredQuestions = useMemo(() => {
-    return questions.filter((q) => {
+    const list = mainTab === 'faqs' ? questions : myQuestions;
+    const seen = new Set<string>();
+    return list.filter((q) => {
+      const qId = String(q.id);
+      if (seen.has(qId)) return false;
+      seen.add(qId);
       const matchesCategory = selectedCategory === 'All' || q.category === selectedCategory;
       const matchesSearch =
         q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         q.content.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [questions, selectedCategory, searchQuery]);
+  }, [questions, myQuestions, mainTab, selectedCategory, searchQuery]);
 
-  const handleSubmitQuestion = () => {
+  const handleSubmitQuestion = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
       Alert.alert('Notice', 'Please fill in both question title and details.');
       return;
     }
 
-    const created: Question = {
-      id: `custom-faq-${Date.now()}`,
-      title: newTitle.trim(),
-      content: newContent.trim(),
-      category: 'User Question',
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      await questionService.createQuestion(newTitle.trim(), newContent.trim(), selectedExpertId);
 
-    setQuestions((prev) => [created, ...prev]);
-    setNewTitle('');
-    setNewContent('');
-    setAskModalVisible(false);
+      setNewTitle('');
+      setNewContent('');
+      setSelectedExpertId(null);
+      setAskModalVisible(false);
+      setMainTab('myQuestions');
+      loadQuestions();
+      Alert.alert('Success', 'Your question has been sent!');
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to submit question.');
+    }
+  };
 
-    Alert.alert('Success 🎉', 'Your question has been sent to our Nutrition Experts!');
+  const handleAskPress = () => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please log in to ask questions to Pediatric Nutrition Experts.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+    setAskModalVisible(true);
+  };
+
+  const handleMyQuestionsTabPress = () => {
+    if (authMode === 'guest') {
+      Alert.alert(
+        'Login Required',
+        'Please log in to view your submitted questions.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Log In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+    setMainTab('myQuestions');
   };
 
   return (
@@ -85,10 +231,18 @@ const FAQScreen = () => {
       {/* Header Banner */}
       <View style={styles.headerBanner}>
         <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>Nutrition FAQ & Help</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.headerTitle}>Nutrition FAQ & Help</Text>
+            <View style={[styles.realtimeBadge, { backgroundColor: isSocketConnected ? '#ECFDF5' : '#FEF3C7', borderColor: isSocketConnected ? '#A7F3D0' : '#FDE68A' }]}>
+              <View style={[styles.greenDot, { backgroundColor: isSocketConnected ? '#10B981' : '#F59E0B' }]} />
+              <Text style={[styles.realtimeText, { color: isSocketConnected ? '#047857' : '#B45309' }]}>
+                {isSocketConnected ? 'Live' : 'Syncing'}
+              </Text>
+            </View>
+          </View>
           <TouchableOpacity
             style={styles.askBtn}
-            onPress={() => setAskModalVisible(true)}
+            onPress={handleAskPress}
             activeOpacity={0.85}
           >
             <Icon source="plus" size={16} color="#FFFFFF" />
@@ -96,6 +250,29 @@ const FAQScreen = () => {
           </TouchableOpacity>
         </View>
         <Text style={styles.headerSub}>Common weaning questions answered by Pediatric Nutrition Experts</Text>
+
+        {/* Main Tab Switcher */}
+        <View style={styles.mainTabRow}>
+          <TouchableOpacity
+            style={[styles.mainTabBtn, mainTab === 'faqs' && styles.activeMainTabBtn]}
+            onPress={() => setMainTab('faqs')}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.mainTabText, mainTab === 'faqs' && styles.activeMainTabText]}>
+              All FAQs
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mainTabBtn, mainTab === 'myQuestions' && styles.activeMainTabBtn]}
+            onPress={handleMyQuestionsTabPress}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.mainTabText, mainTab === 'myQuestions' && styles.activeMainTabText]}>
+              My Questions ({myQuestions.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
@@ -110,23 +287,25 @@ const FAQScreen = () => {
         </View>
 
         {/* Category Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryRow}>
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[styles.categoryChip, isSelected && styles.activeCategoryChip]}
-                onPress={() => setSelectedCategory(cat)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.categoryChipText, isSelected && styles.activeCategoryChipText]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        {mainTab === 'faqs' && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryRow}>
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.categoryChip, isSelected && styles.activeCategoryChip]}
+                  onPress={() => setSelectedCategory(cat)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.categoryChipText, isSelected && styles.activeCategoryChipText]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       {/* Accordion Questions List */}
@@ -138,10 +317,11 @@ const FAQScreen = () => {
         <FlatList
           key="faq-accordion-list"
           data={filteredQuestions}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => {
             const isExpanded = expandedId === item.id;
+            const isAnswered = item.status === 'Answered' || !!item.answer;
             return (
               <View style={[styles.faqCard, isExpanded && styles.expandedFaqCard]}>
                 <TouchableOpacity
@@ -150,11 +330,30 @@ const FAQScreen = () => {
                   activeOpacity={0.8}
                 >
                   <View style={styles.faqTitleBox}>
-                    {!!item.category && (
-                      <View style={styles.faqBadge}>
-                        <Text style={styles.faqBadgeText}>{item.category}</Text>
-                      </View>
-                    )}
+                    <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                      {mainTab === 'myQuestions' && (
+                        <View style={[styles.faqBadge, { backgroundColor: isAnswered ? '#ECFDF5' : '#FEF3C7' }]}>
+                          <Text style={[styles.faqBadgeText, { color: isAnswered ? '#10B981' : '#D97706' }]}>
+                            {isAnswered ? 'Answered' : 'Pending'}
+                          </Text>
+                        </View>
+                      )}
+
+                      {!!item.targetExpertName && (
+                        <View style={[styles.faqBadge, { backgroundColor: '#E0E7FF' }]}>
+                          <Text style={[styles.faqBadgeText, { color: '#4338CA' }]}>
+                            Targeted: {item.targetExpertName}
+                          </Text>
+                        </View>
+                      )}
+
+                      {!!item.category && (
+                        <View style={styles.faqBadge}>
+                          <Text style={styles.faqBadgeText}>{item.category}</Text>
+                        </View>
+                      )}
+                    </View>
+
                     <Text style={styles.faqTitle}>{item.title}</Text>
                   </View>
                   <View style={styles.chevronBox}>
@@ -165,9 +364,22 @@ const FAQScreen = () => {
                 {isExpanded && (
                   <View style={styles.faqBody}>
                     <View style={styles.expertBadgeRow}>
-                      <Text style={styles.expertTagText}>💡 Expert Advice:</Text>
+                      <Text style={styles.expertTagText}>
+                        {item.answer ? `Expert Advice (${item.answer.expertName}):` : isAnswered ? 'Expert Advice:' : 'Question Details:'}
+                      </Text>
                     </View>
-                    <Text style={styles.faqContent}>{item.content}</Text>
+                    <Text style={styles.faqContent}>
+                      {item.answer ? item.answer.content : item.content}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={styles.liveChatBtn}
+                      onPress={() => navigation.navigate('QnaChat', { questionId: item.id, title: item.title, expertName: item.targetExpertName || item.answer?.expertName || 'Nutrition Expert' })}
+                      activeOpacity={0.85}
+                    >
+                      <Icon source="chat-processing-outline" size={16} color="#FFFFFF" />
+                      <Text style={styles.liveChatBtnText}>Open Realtime Chat</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -176,8 +388,12 @@ const FAQScreen = () => {
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Icon source="help-circle-outline" size={44} color="#D1D5DB" />
-              <Text style={styles.emptyText}>No matching questions found.</Text>
-              <Text style={styles.emptySubText}>Try searching another keyword or tap "Ask Question" to send to Experts.</Text>
+              <Text style={styles.emptyText}>
+                {mainTab === 'myQuestions' ? 'You have not asked any questions yet.' : 'No matching questions found.'}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {mainTab === 'myQuestions' ? 'Tap "Ask Question" to get expert advice for your baby.' : 'Try searching another keyword or tap "Ask Question" to send to Experts.'}
+              </Text>
             </View>
           }
         />
@@ -187,8 +403,44 @@ const FAQScreen = () => {
       <Modal visible={askModalVisible} transparent animationType="slide" onRequestClose={() => setAskModalVisible(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setAskModalVisible(false)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalHeaderTitle}>Ask a Nutrition Expert 💬</Text>
+            <Text style={styles.modalHeaderTitle}>Ask a Nutrition Expert</Text>
             <Text style={styles.modalHeaderSub}>Your question will be answered by verified pediatric nutritionists.</Text>
+
+            {/* Optional Expert Picker */}
+            {publicExperts.length > 0 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4B3034', marginBottom: 6 }}>
+                  Select Expert (Optional):
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.categoryChip,
+                      selectedExpertId === null && styles.activeCategoryChip
+                    ]}
+                    onPress={() => setSelectedExpertId(null)}
+                  >
+                    <Text style={[styles.categoryChipText, selectedExpertId === null && styles.activeCategoryChipText]}>
+                      Any Expert
+                    </Text>
+                  </TouchableOpacity>
+                  {publicExperts.map((exp) => {
+                    const isSel = selectedExpertId === exp.id;
+                    return (
+                      <TouchableOpacity
+                        key={exp.id}
+                        style={[styles.categoryChip, isSel && styles.activeCategoryChip]}
+                        onPress={() => setSelectedExpertId(exp.id)}
+                      >
+                        <Text style={[styles.categoryChipText, isSel && styles.activeCategoryChipText]}>
+                          {exp.fullName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
 
             <TextInput
               style={styles.modalInput}
@@ -245,6 +497,24 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#4B3034',
   },
+  realtimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  greenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  realtimeText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
   askBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -263,6 +533,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#8E7377',
     marginBottom: 12,
+  },
+  mainTabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF0F2',
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 10,
+  },
+  mainTabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  activeMainTabBtn: {
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  mainTabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E7377',
+  },
+  activeMainTabText: {
+    color: '#FF5F70',
+    fontWeight: '800',
   },
   searchBar: {
     flexDirection: 'row',
@@ -455,6 +755,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF7A59',
   },
   modalSubmitText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  liveChatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  liveChatBtnText: {
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',

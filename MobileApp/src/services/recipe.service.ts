@@ -28,7 +28,41 @@ export type MyRecipeItem = RecipeListItem & {
   created_at: string;
 };
 
+export type RecipeMetadata = {
+  mealTypes: { id: number; name: string }[];
+  weaningMethods: { id: number; name: string }[];
+  dietaryNeeds: { id: number; name: string }[];
+  occasions: { id: number; name: string }[];
+  ageRanges: string[];
+};
+
 export const recipeService = {
+  getMeta: async (): Promise<RecipeMetadata> => {
+    try {
+      const res = await api.get(`${BASE}/meta`);
+      return res.data;
+    } catch {
+      return {
+        mealTypes: [
+          { id: 1, name: 'Breakfast' }, { id: 2, name: 'Lunch' },
+          { id: 3, name: 'Dinner' }, { id: 4, name: 'Snack' },
+        ],
+        weaningMethods: [
+          { id: 1, name: 'Puree' }, { id: 2, name: 'Mashed' },
+          { id: 3, name: 'Baby-Led Weaning' }, { id: 4, name: 'Finger Food' },
+        ],
+        dietaryNeeds: [
+          { id: 1, name: 'Dairy-Free' }, { id: 2, name: 'Gluten-Free' },
+          { id: 3, name: 'Egg-Free' }, { id: 4, name: 'Nut-Free' }, { id: 5, name: 'Vegetarian' },
+        ],
+        occasions: [
+          { id: 1, name: 'Everyday' }, { id: 2, name: 'First Foods' },
+          { id: 3, name: 'Meal Prep' }, { id: 4, name: 'On-the-Go' }, { id: 5, name: 'Special Occasion' },
+        ],
+        ageRanges: ['0-6 months', '6-12 months', '12-24 months', '24+ months'],
+      };
+    }
+  },
   getAll: async (): Promise<RecipeListItem[]> => {
     const res = await api.get(BASE);
     return res.data;
@@ -90,5 +124,9 @@ export const recipeService = {
       ratingCountThisMonth: Number(r.ratingCountThisMonth) || 0,
       commentCount: Number(r.commentCount) || 0,
     }));
+  },
+  getRecommendations: async (monthAge: number, allergies: string[]): Promise<{ babyAgeMonths: number; recommendations: RecipeListItem[] }> => {
+    const res = await api.post(`${BASE}/recommend`, { monthAge, allergies });
+    return res.data;
   },
 };

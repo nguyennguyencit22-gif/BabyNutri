@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Alert, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from '../../components/common/AppIcon';
 import { childService } from '../../services/childService';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { Child } from '../../types/child';
@@ -71,10 +73,17 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
   const inputBg = isDark ? '#3A2E31' : '#FFFFFF';
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.screenTitle, { color: colors.text }]}>{isEditing ? 'Edit Child Profile' : 'Create Child Profile'}</Text>
-
-      <Text style={[styles.label, { color: colors.textSoft }]}>Child Name *</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{isEditing ? 'Edit Child Profile' : 'Add Child Profile'}</Text>
+        <View style={{ width: 36 }} />
+      </View>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.label, { color: colors.textSoft }]}>Child Name *</Text>
       <TextInput 
         style={[styles.input, { backgroundColor: inputBg, color: colors.text, borderColor: colors.border }]} 
         value={name} 
@@ -149,13 +158,23 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
         <Text style={styles.saveBtnText}>{isEditing ? 'Update Profile' : 'Save Child Profile'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   container: {
     padding: 20,
-    backgroundColor: '#FFFDF9',
     flexGrow: 1,
   },
   screenTitle: {

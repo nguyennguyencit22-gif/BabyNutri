@@ -388,6 +388,76 @@ exports.firebaseLogin = async (req, res) => {
 };
 
 /**
+ * DIRECT GOOGLE LOGIN (Fallback for Emulator / Dev environments)
+ */
+exports.googleDirect = async (req, res) => {
+    try {
+        const email = req.body?.email || "khoa.nguyenhoang.cit22@eiu.edu.vn";
+
+        const [existing] = await db.query(
+            `
+            SELECT
+                u.*,
+                r.name AS role
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.email = ?
+            `,
+            [email]
+        );
+
+        let user;
+
+        if (existing.length > 0) {
+            user = existing[0];
+        } else {
+            const [insertResult] = await db.query(
+                `
+                INSERT INTO users
+                    (full_name, email, password, role_id)
+                VALUES (?, ?, NULL, 3)
+                `,
+                [email.split("@")[0], email]
+            );
+
+            user = {
+                id: insertResult.insertId,
+                full_name: email.split("@")[0],
+                email,
+                avatar: null,
+                role: "Parent",
+            };
+        }
+
+        const token = jwt.sign(
+            {
+                id: user.id,
+                role: user.role,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return res.json({
+            token,
+            user: {
+                id: user.id,
+                fullName: user.full_name,
+                email: user.email,
+                avatar: user.avatar,
+                role: user.role,
+            },
+        });
+    } catch (err) {
+        console.error("GOOGLE DIRECT LOGIN ERROR:", err);
+        return res.status(500).json({
+            message: "Server error",
+            error: err.message,
+        });
+    }
+};
+
+/**
  * DELETE MY ACCOUNT — permanently deletes the authenticated user's account
  * and every piece of data tied to it. Irreversible.
  *

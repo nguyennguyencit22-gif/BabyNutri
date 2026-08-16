@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -104,13 +105,29 @@ const ChatConversationScreen = ({ route, navigation }: any) => {
     if (!text || status === 'ended') return;
 
     setInput('');
-    const socket = await getSocket();
-    socket.emit('send_message', { conversationId, content: text }, (res: { error?: string }) => {
-      if (res?.error) {
-        console.error('send_message error:', res.error);
+    try {
+      const socket = await getSocket().catch(() => null);
+      if (socket && socket.connected) {
+        socket.emit('send_message', { conversationId, content: text }, async (res: { error?: string }) => {
+          if (res?.error) {
+            console.warn('send_message socket warning, falling back to REST:', res.error);
+            const sent = await chatService.sendMessage(conversationId, text);
+            setMessages((prev) => [...prev, sent]);
+          }
+        });
+      } else {
+        const sent = await chatService.sendMessage(conversationId, text);
+        setMessages((prev) => [...prev, sent]);
+      }
+    } catch (err) {
+      try {
+        const sent = await chatService.sendMessage(conversationId, text);
+        setMessages((prev) => [...prev, sent]);
+      } catch (e) {
+        console.error('send message error:', e);
         appAlert.show('Error', 'Unable to send your message right now.', undefined, 'error');
       }
-    });
+    }
   };
 
   const handleEndChat = () => {
@@ -157,7 +174,7 @@ const ChatConversationScreen = ({ route, navigation }: any) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
       <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
           <Icon source="chevron-left" size={24} color="#FF7A59" />
@@ -288,7 +305,7 @@ const ChatConversationScreen = ({ route, navigation }: any) => {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 

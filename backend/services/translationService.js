@@ -45,7 +45,7 @@ const translateText = async (
             error.message,
         );
 
-        // Nếu dịch lỗi thì trả lại nội dung gốc
+        // Fallback to original text if translation fails
         return text;
     }
 };

@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const {
+    getRecipeMeta,
     getRecipes,
     getRecipeById,
     createRecipe,
     updateRecipe,
     deleteRecipe,
     searchRecipes,
+    recommendRecipes,
     getRecipeComments,
     getRecipeRatings,
     getRecipeRatingSummary,
@@ -20,8 +22,10 @@ const {
 } = require("../controllers/recipeController");
 const auth = require("../middleware/auth");
 
-// Search / favorites / mine đặt TRƯỚC "/:id" để không bị nuốt route
+router.get("/meta", getRecipeMeta);
+router.get("/categories", getRecipeMeta);
 router.get("/search", searchRecipes);
+router.post("/recommend", recommendRecipes);
 router.get("/favorites/mine", auth, getMyFavorites);
 router.get("/mine", auth, getMyRecipes);
 

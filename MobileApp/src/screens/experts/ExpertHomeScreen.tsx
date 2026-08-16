@@ -80,10 +80,7 @@ const HighlightCard = ({
   );
 };
 
-// Dashboard shown instead of the Parent HomeScreen for Expert/Admin users.
-// Expert accounts don't track a baby, so the journey/recipe-browsing home
-// doesn't apply to them — this is their entry point into "Create & Manage
-// Content" and "View Feedback / Ratings" instead.
+// Dashboard shown for Expert users.
 const ExpertHomeScreen = ({ navigation }: any) => {
   const { colors, isDark } = useAppTheme();
 
@@ -172,7 +169,7 @@ const ExpertHomeScreen = ({ navigation }: any) => {
           iconColor="#F59E0B"
           title="Ratings"
           description={ratingTotal > 0
-            ? `Parents rate your recipes ${avgRating.toFixed(1)}★ on average.`
+            ? `Parents rate your recipes ${avgRating.toFixed(1)} / 5 on average.`
             : 'No ratings yet — they\'ll show up here once parents rate your recipes.'}
           allTimeValue={ratingTotal}
           monthValue={ratingThisMonth}

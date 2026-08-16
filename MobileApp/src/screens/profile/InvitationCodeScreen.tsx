@@ -16,6 +16,7 @@ import {
 import { useDispatch } from 'react-redux';
 
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import Icon from '../../components/common/AppIcon';
 import createStyles from '@/styles/profile/invitationCodeStyles';
 import { useAppTheme } from '@/theme/useAppTheme';
 import type { AppDispatch } from '@/store/Store';
@@ -172,9 +173,7 @@ function InvitationCodeScreen({ navigation }: any) {
                         </Text>
 
                         <View style={styles.tipRow}>
-                            <Text style={styles.tipIcon}>
-                                💡
-                            </Text>
+                            <Icon source="lightbulb-on-outline" size={20} color={colors.primary} style={{ marginRight: 8 }} />
 
                             <Text style={styles.tipText}>
                                 You will need to log in to

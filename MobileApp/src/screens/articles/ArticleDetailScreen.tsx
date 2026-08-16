@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert, StatusBar, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
@@ -24,6 +25,8 @@ interface CommentItem {
 
 const ArticleDetailScreen = ({ route, navigation }: any) => {
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const topSafeOffset = Math.max(insets.top, Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 20) + 8;
   const id = Number(route?.params?.id);
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,9 +60,15 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const loadSavedComments = useCallback(async () => {
     try {
-      const stored = await AsyncStorage.getItem(`article_comments_${id}`);
-      if (stored) {
-        setComments(JSON.parse(stored));
+      const data = await articleService.getComments(id);
+      if (Array.isArray(data)) {
+        setComments(data.map(c => ({
+          id: c.id,
+          userName: c.userName || 'User',
+          avatar: c.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.userName || 'User')}&background=FF5F70&color=fff&bold=true`,
+          content: c.content,
+          time: formatRealTimeAgo(c.createdAt),
+        })));
       }
     } catch (e) {
       console.error('Load comments error:', e);
@@ -68,33 +77,18 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
 
   const loadRatingData = useCallback(async () => {
     try {
-      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        const list: number[] = Array.isArray(parsed.ratingsList)
-          ? parsed.ratingsList
-          : (parsed.userRating ? [parsed.userRating] : []);
-        const uRating = parsed.userRating || 0;
+      const summary = await articleService.getRatingSummary(id);
+      setAvgRating(summary.averageRating);
+      setRatingCount(summary.totalRatings);
 
-        if (list.length > 0) {
-          const sum = list.reduce((a, b) => a + b, 0);
-          const avg = Number((sum / list.length).toFixed(1));
-          setUserRating(uRating);
-          setAvgRating(avg);
-          setRatingCount(list.length);
-          return;
-        }
+      if (authMode !== 'guest') {
+        const myR = await articleService.getMyRating(id);
+        setUserRating(myR || 0);
       }
-      setUserRating(0);
-      setAvgRating(0);
-      setRatingCount(0);
     } catch (e) {
       console.error('Load rating data error:', e);
-      setUserRating(0);
-      setAvgRating(0);
-      setRatingCount(0);
     }
-  }, [id]);
+  }, [id, authMode]);
 
   const saveRatingData = async (newScore: number) => {
     if (authMode === 'guest') {
@@ -103,53 +97,20 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     }
 
     try {
-      const storedRating = await AsyncStorage.getItem(`article_rating_${id}`);
-      let list: number[] = [];
-      if (storedRating) {
-        const parsed = JSON.parse(storedRating);
-        if (Array.isArray(parsed.ratingsList)) {
-          list = parsed.ratingsList;
-        }
-      }
-
-      if (userRating > 0 && list.length > 0) {
-        const userIndex = list.indexOf(userRating);
-        if (userIndex !== -1) {
-          list[userIndex] = newScore;
-        } else {
-          list.push(newScore);
-        }
-      } else {
-        list.push(newScore);
-      }
-
-      const sum = list.reduce((a, b) => a + b, 0);
-      const avg = Number((sum / list.length).toFixed(1));
-
+      await articleService.rate(id, newScore);
       setUserRating(newScore);
-      setAvgRating(avg);
-      setRatingCount(list.length);
-
-      await AsyncStorage.setItem(
-        `article_rating_${id}`,
-        JSON.stringify({
-          userRating: newScore,
-          ratingsList: list,
-          avgRating: avg,
-          ratingCount: list.length,
-        })
-      );
+      await loadRatingData();
 
       dispatch(addActivity({
         type: 'rate',
         title: `Rated article ${newScore}⭐: ${article?.title || 'Article'}`,
-        details: `Average rating: ${avg}⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        details: `Rating saved on server.`,
         icon: '⭐',
       }));
 
       appAlert.show(
         'Evaluation Saved',
-        `You rated "${article?.title}" ${newScore} out of 5 stars!\nAverage score: ${avg} ⭐ (${list.length} rating${list.length > 1 ? 's' : ''})`,
+        `You rated "${article?.title}" ${newScore} out of 5 stars!`,
         undefined,
         'star',
       );
@@ -176,16 +137,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
     setLiked(isSaved);
   }, [isSaved]);
 
-  const saveCommentsToStorage = async (newList: CommentItem[]) => {
-    setComments(newList);
-    try {
-      await AsyncStorage.setItem(`article_comments_${id}`, JSON.stringify(newList));
-    } catch (e) {
-      console.error('Save comments error:', e);
-    }
-  };
-
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (authMode === 'guest') {
       navigation.navigate('Login');
       return;
@@ -197,26 +149,22 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       return;
     }
 
-    const newComment: CommentItem = {
-      id: Date.now(),
-      userName: currentUserName,
-      avatar: currentUserAvatar,
-      content: text,
-      time: 'Just now',
-    };
+    try {
+      await articleService.addComment(id, text);
+      setCommentInput('');
+      await loadSavedComments();
 
-    const updated = [newComment, ...comments];
-    saveCommentsToStorage(updated);
-    setCommentInput('');
+      dispatch(addActivity({
+        type: 'comment',
+        title: `Commented on: ${article?.title}`,
+        details: `"${text.slice(0, 30)}..."`,
+        icon: 'comment',
+      }));
 
-    dispatch(addActivity({
-      type: 'comment',
-      title: `Commented on: ${article?.title}`,
-      details: `"${text.slice(0, 30)}..."`,
-      icon: '💬',
-    }));
-
-    appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
+      appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
+    } catch (e) {
+      appAlert.show('Error', 'Failed to post comment. Please try again.');
+    }
   };
 
   const handleToggleLikeAndSave = () => {
@@ -233,7 +181,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         type: 'like',
         title: `Liked & Saved: ${article?.title || 'Article'}`,
         details: 'Added to Favourites & Saved Articles tab',
-        icon: '❤️',
+        icon: 'heart',
       }));
       appAlert.show(
         'Saved to Favourites',
@@ -282,7 +230,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       const webUrl = `https://babynutri.app/articles/${article.id}`;
       await Share.share({
         title: article.title,
-        message: `📖 ${article.title}\n\n${article.summary || ''}\n\nRead more on Web & App:\n${webUrl}`,
+        message: `${article.title}\n\n${article.summary || ''}\n\nRead more on Web & App:\n${webUrl}`,
         url: webUrl,
       });
 
@@ -290,7 +238,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
         type: 'action',
         title: `Shared article link: ${article.title}`,
         details: 'External web & app link shared',
-        icon: '🔗',
+        icon: 'link',
       }));
     } catch (e) {
       console.error('Share article error:', e);
@@ -310,7 +258,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
             resizeMode={isLocalArticleImage(article.id) ? 'contain' : 'cover'}
           />
           <TouchableOpacity 
-            style={[styles.floatingBackBtn, { backgroundColor: colors.surface }]}
+            style={[styles.floatingBackBtn, { backgroundColor: colors.surface, top: topSafeOffset }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >

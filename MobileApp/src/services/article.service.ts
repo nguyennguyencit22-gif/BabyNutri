@@ -39,7 +39,31 @@ loadFromStorage().then(saved => {
   }
 });
 
+export type ArticleMetadata = {
+  categories: { id: number; name: string }[];
+  ageRanges: string[];
+  readingTimes: string[];
+};
+
 export const articleService = {
+  getMeta: async (): Promise<ArticleMetadata> => {
+    try {
+      const res = await api.get(`${BASE}/meta`);
+      return res.data;
+    } catch {
+      return {
+        categories: [
+          { id: 1, name: 'Nutrition Tips' },
+          { id: 2, name: 'Weaning Guide' },
+          { id: 3, name: 'Recipes & Meals' },
+          { id: 4, name: 'Health & Safety' },
+          { id: 5, name: 'Development' },
+        ],
+        ageRanges: ['0-6 months', '6-12 months', '12-24 months', '24+ months'],
+        readingTimes: ['2 min read', '5 min read', '10 min read'],
+      };
+    }
+  },
   getAll: async (): Promise<ArticleListItem[]> => {
     try {
       const res = await api.get(BASE);
@@ -144,5 +168,56 @@ export const articleService = {
   getMine: async (): Promise<ArticleListItem[]> => {
     const res = await api.get(`${BASE}/mine`);
     return res.data;
+  },
+
+  // Article Comments
+  getComments: async (articleId: number): Promise<any[]> => {
+    try {
+      const res = await api.get(`${BASE}/${articleId}/comments`);
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  addComment: async (articleId: number, content: string): Promise<any> => {
+    const res = await api.post(`${BASE}/${articleId}/comments`, { content });
+    return res.data;
+  },
+
+  deleteComment: async (commentId: number): Promise<void> => {
+    await api.delete(`${BASE}/comments/${commentId}`);
+  },
+
+  // Article Ratings
+  getRatings: async (articleId: number): Promise<any[]> => {
+    try {
+      const res = await api.get(`${BASE}/${articleId}/ratings`);
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  getRatingSummary: async (articleId: number): Promise<{ totalRatings: number; averageRating: number }> => {
+    try {
+      const res = await api.get(`${BASE}/${articleId}/rating-summary`);
+      return res.data;
+    } catch {
+      return { totalRatings: 0, averageRating: 0 };
+    }
+  },
+
+  getMyRating: async (articleId: number): Promise<number | null> => {
+    try {
+      const res = await api.get(`${BASE}/${articleId}/my-rating`);
+      return res.data?.rating ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  rate: async (articleId: number, rating: number, review?: string): Promise<void> => {
+    await api.post(`${BASE}/${articleId}/ratings`, { rating, review });
   },
 };

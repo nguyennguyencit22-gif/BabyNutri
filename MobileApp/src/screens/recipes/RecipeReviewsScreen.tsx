@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Text, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Icon from '../../components/common/AppIcon';
 import { recipeService } from '../../services/recipe.service';
 import type { RootState } from '../../store/store';
 import RatingReviewSection from '../../components/common/RatingReviewSection';
@@ -12,12 +14,9 @@ type RatingBreakdown = { 5: number; 4: number; 3: number; 2: number; 1: number }
 const EMPTY_BREAKDOWN: RatingBreakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
 // Full "Ratings & Reviews" page for a recipe — reached by tapping the
-// compact RatingSummaryPreview on RecipeDetailScreen. Read-only breakdown +
-// full comment thread (with delete); the interactive tap-to-rate control
-// and "write a comment" input both live on the compact preview instead,
-// alongside the 2-comment teaser.
-const RecipeReviewsScreen = ({ route }: any) => {
-  const { colors } = useAppTheme();
+// compact RatingSummaryPreview on RecipeDetailScreen.
+const RecipeReviewsScreen = ({ route, navigation }: any) => {
+  const { colors, isDark } = useAppTheme();
   const id = Number(route?.params?.id);
 
   const user = useSelector((state: RootState) => state.auth.user);
@@ -84,7 +83,15 @@ const RecipeReviewsScreen = ({ route }: any) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <View style={[styles.headerBar, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Icon source="arrow-left" size={20} color="#FF6B4A" />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Recipe Reviews</Text>
+        <View style={{ width: 36 }} />
+      </View>
       <ScrollView contentContainerStyle={styles.content}>
         <RatingReviewSection
           avgRating={avgRating}
@@ -102,11 +109,22 @@ const RecipeReviewsScreen = ({ route }: any) => {
           onDeleteComment={(commentId) => handleDeleteComment(Number(commentId))}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: { flex: 1 },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
   content: { padding: 18 },
 });
 
