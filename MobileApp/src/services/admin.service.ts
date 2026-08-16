@@ -11,6 +11,7 @@ export type AdminExpertItem = {
     specialization?: string;
     experienceYear?: number;
     isVerified?: boolean;
+    temporaryPassword?: string;
 };
 
 export type CreateExpertData = {

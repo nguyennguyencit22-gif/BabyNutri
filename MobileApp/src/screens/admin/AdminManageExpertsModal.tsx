@@ -77,7 +77,7 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
 
     setSubmitting(true);
     try {
-      await createAdminExpert({
+      const expert = await createAdminExpert({
         email: email.trim(),
         fullName: fullName.trim(),
         specialization: specialization.trim(),
@@ -85,7 +85,14 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
         experienceYear: Number(experienceYear) || 5,
         information: information.trim(),
       });
-      Alert.alert('Success', `Expert account for ${fullName} created/updated!`);
+      if (expert.temporaryPassword) {
+        Alert.alert(
+          'Expert Account Created',
+          `${fullName} was created with a temporary password:\n\n${expert.temporaryPassword}\n\nShare this with them securely — it will not be shown again.`
+        );
+      } else {
+        Alert.alert('Success', `${fullName} was promoted to Expert.`);
+      }
       resetForm();
       setShowAddForm(false);
       loadExperts();

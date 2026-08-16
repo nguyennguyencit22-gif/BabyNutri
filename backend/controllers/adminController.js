@@ -1,6 +1,7 @@
 // @ts-nocheck
 const db = require("../db");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 /**
  * Helper middleware / check to ensure request user is an Admin
@@ -57,16 +58,22 @@ exports.createOrPromoteExpert = async (req, res) => {
 
         let userId;
 
+        let generatedPassword = null;
+
         if (existing.length > 0) {
             userId = existing[0].id;
-            // Update role_id to 2 (Expert)
+            // Update role_id to 2 (Expert). Existing password is left untouched.
             await connection.query(
                 "UPDATE users SET role_id = 2, full_name = ? WHERE id = ?",
                 [cleanName, userId]
             );
         } else {
-            // Create new user with role_id = 2 (Expert)
-            const hashedPassword = password ? await bcrypt.hash(password, 10) : "123456";
+            // Create new user with role_id = 2 (Expert). If no password was
+            // supplied, generate a random one rather than falling back to a
+            // guessable default -- this account is reachable via the plain
+            // /auth/login endpoint, not just Google Sign-In.
+            generatedPassword = password || crypto.randomBytes(9).toString("base64").replace(/[+/=]/g, "x");
+            const hashedPassword = await bcrypt.hash(generatedPassword, 10);
             const [insertRes] = await connection.query(
                 `INSERT INTO users (full_name, email, password, role_id, avatar)
                  VALUES (?, ?, ?, 2, 'https://i.pravatar.cc/200?img=60')`,
@@ -96,7 +103,9 @@ exports.createOrPromoteExpert = async (req, res) => {
         await connection.commit();
 
         return res.status(201).json({
-            message: "Expert account created/updated successfully.",
+            message: generatedPassword
+                ? "Expert account created. Share the temporary password with them securely -- it will not be shown again."
+                : "Existing account promoted to Expert.",
             expert: {
                 id: userId,
                 fullName: cleanName,
@@ -105,7 +114,8 @@ exports.createOrPromoteExpert = async (req, res) => {
                 information: info,
                 certificate: cert,
                 specialization: spec,
-                experienceYear: expYears
+                experienceYear: expYears,
+                temporaryPassword: generatedPassword || undefined
             }
         });
     } catch (err) {
