@@ -36,6 +36,13 @@ function FeatureIntroScreen({
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
+                <Pressable
+                    onPress={() => navigation.goBack()}
+                    hitSlop={12}
+                    style={styles.backButton}>
+                    <Icon source="arrow-left" size={22} color={colors.text} />
+                </Pressable>
+
                 <View style={styles.content}>
                     <Text style={styles.title}>
                         Personalized nutrition for every child
@@ -77,6 +84,14 @@ const createStyles = (colors: AppColors) => StyleSheet.create({
         flex: 1,
         paddingHorizontal: 24,
         paddingVertical: 28,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.surface,
     },
     content: {
         flex: 1,
