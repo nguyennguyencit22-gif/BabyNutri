@@ -28,7 +28,6 @@ import {
 
 import {
     loginWithFirebaseToken,
-    loginWithGoogleDirect,
 } from '../../services/auth.service';
 
 import { loadBabies } from '../../store/babySlice';
@@ -64,25 +63,12 @@ function LoginScreen({ navigation }: any) {
             setLoading(true);
             dispatch(loginStarted());
 
-            let backendUser: any;
-            let firebaseIdToken = '';
-            let userUid = '';
-            let photoURL: string | undefined;
+            const googleResult = await loginWithGoogle();
+            const userUid = googleResult.user.uid;
+            const photoURL = googleResult.user.photoURL ?? undefined;
+            const firebaseIdToken = googleResult.firebaseIdToken;
 
-            try {
-                const googleResult = await loginWithGoogle();
-                userUid = googleResult.user.uid;
-                photoURL = googleResult.user.photoURL ?? undefined;
-                firebaseIdToken = googleResult.firebaseIdToken;
-
-                const res = await loginWithFirebaseToken(firebaseIdToken);
-                backendUser = res.user;
-            } catch (nativeErr) {
-                console.log('[Auth] Google native flow failed, using direct Google account fallback:', nativeErr);
-                const directRes = await loginWithGoogleDirect('khoa.nguyenhoang.cit22@eiu.edu.vn');
-                backendUser = directRes.user;
-                userUid = 'qrQlvBGR9VTPsVLOVq59OwKSbrw2';
-            }
+            const { user: backendUser } = await loginWithFirebaseToken(firebaseIdToken);
 
             dispatch(
                 loginSucceeded({
@@ -93,8 +79,7 @@ function LoginScreen({ navigation }: any) {
                         email: backendUser.email,
                         displayName:
                             backendUser.fullName ||
-                            backendUser.full_name ||
-                            'Nguyen Khoa',
+                            'BabyNutri User',
                         photoURL:
                             backendUser.avatar ??
                             photoURL,
