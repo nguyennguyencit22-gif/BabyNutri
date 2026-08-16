@@ -68,7 +68,20 @@ function LoginScreen({ navigation }: any) {
             const photoURL = googleResult.user.photoURL ?? undefined;
             const firebaseIdToken = googleResult.firebaseIdToken;
 
-            const { user: backendUser } = await loginWithFirebaseToken(firebaseIdToken);
+            const loginResult = await loginWithFirebaseToken(firebaseIdToken);
+
+            if ('requiresPasswordVerification' in loginResult) {
+                setLoading(false);
+                navigation.navigate('ExpertPasswordVerify', {
+                    firebaseIdToken,
+                    email: loginResult.email,
+                    userUid,
+                    photoURL,
+                });
+                return;
+            }
+
+            const { user: backendUser } = loginResult;
 
             dispatch(
                 loginSucceeded({

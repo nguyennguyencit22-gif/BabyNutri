@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import ExpertPasswordVerifyScreen from '../screens/auth/ExpertPasswordVerifyScreen';
 import QuestionnaireScreen from '../screens/questions/QuestionnaireScreen';
 import MainTabNavigator from './MainTabNavigator';
 import FeatureIntroScreen from '../screens/onboarding/FeatureIntroScreen';
@@ -60,6 +61,12 @@ function AppNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="ExpertPasswordVerify"
+        component={ExpertPasswordVerifyScreen}
         options={{ headerShown: false }}
       />
 

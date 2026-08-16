@@ -15,12 +15,20 @@ type FirebaseLoginResponse = {
     user: BackendUser;
 };
 
+// An Admin-provisioned Expert account that has never signed in before
+// comes back this shape instead -- no token yet, since the temporary
+// password still needs to be confirmed via verifyExpertTempPassword().
+type RequiresPasswordVerification = {
+    requiresPasswordVerification: true;
+    email: string;
+};
+
 // Exchanges a Firebase ID token for our own backend JWT. Uses a raw fetch
 // (not apiPost from api.ts) because this specific call must send the
 // Firebase ID token as the bearer, not whatever JWT we already have stored.
 export async function loginWithFirebaseToken(
     firebaseIdToken: string,
-): Promise<FirebaseLoginResponse> {
+): Promise<FirebaseLoginResponse | RequiresPasswordVerification> {
     const response = await fetch(`${API_BASE_URL}/auth/firebase-login`, {
         method: 'POST',
         headers: {
@@ -33,6 +41,38 @@ export async function loginWithFirebaseToken(
 
     if (!response.ok) {
         throw new Error(data.message ?? 'Firebase login failed.');
+    }
+
+    if (data.requiresPasswordVerification) {
+        return data as RequiresPasswordVerification;
+    }
+
+    await setAuthToken(data.token);
+
+    return data as FirebaseLoginResponse;
+}
+
+// Second step for a first-time Expert login: confirms the one-time
+// temporary password an Admin generated, alongside the same Firebase ID
+// token, then returns a normal session (token + user) just like a
+// regular login.
+export async function verifyExpertTempPassword(
+    firebaseIdToken: string,
+    password: string,
+): Promise<FirebaseLoginResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-expert-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${firebaseIdToken}`,
+        },
+        body: JSON.stringify({ password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Incorrect temporary password.');
     }
 
     await setAuthToken(data.token);

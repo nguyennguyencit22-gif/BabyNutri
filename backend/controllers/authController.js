@@ -333,6 +333,19 @@ exports.firebaseLogin = async (req, res) => {
         if (existing.length > 0) {
             user = existing[0];
 
+            // An Expert account created by an Admin (via /admin/experts)
+            // starts with no firebase_uid -- it has never actually been
+            // signed into yet. Before linking this Google identity to it,
+            // require the one-time temporary password the Admin handed
+            // out, so knowing/controlling the email alone isn't enough to
+            // claim an Expert seat someone else was invited into.
+            if (!user.firebase_uid && user.role === "Expert") {
+                return res.status(200).json({
+                    requiresPasswordVerification: true,
+                    email: user.email,
+                });
+            }
+
             if (!user.firebase_uid) {
                 await db.query(
                     `UPDATE users SET firebase_uid = ? WHERE id = ?`,
@@ -379,6 +392,84 @@ exports.firebaseLogin = async (req, res) => {
         });
     } catch (err) {
         console.error("FIREBASE LOGIN ERROR:", err);
+
+        return res.status(500).json({
+            message: "Server error",
+            error: err.message,
+        });
+    }
+};
+
+/**
+ * VERIFY EXPERT TEMP PASSWORD
+ * Second step for an Admin-provisioned Expert account's first login.
+ * Requires a freshly-verified Firebase ID token (same middleware as
+ * firebase-login) PLUS the one-time password the Admin generated, so
+ * both "this is a real Google account" and "this is the person the
+ * Admin actually meant to invite" are proven before the account's
+ * firebase_uid gets linked and a session JWT is issued.
+ */
+exports.verifyExpertTempPassword = async (req, res) => {
+    try {
+        const { uid, email } = req.firebaseUser;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: "Password is required." });
+        }
+
+        const [rows] = await db.query(
+            `
+            SELECT u.*, r.name AS role
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.email = ?
+            `,
+            [email]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({ message: "Account not found." });
+        }
+
+        const user = rows[0];
+
+        if (user.role !== "Expert") {
+            return res.status(400).json({ message: "Password verification only applies to Expert accounts." });
+        }
+
+        if (user.firebase_uid) {
+            return res.status(400).json({ message: "This account is already verified. Please sign in with Google." });
+        }
+
+        const isMatch = user.password && user.password.startsWith("$2")
+            ? await bcrypt.compare(password, user.password)
+            : false;
+
+        if (!isMatch) {
+            return res.status(401).json({ message: "Incorrect temporary password." });
+        }
+
+        await db.query(`UPDATE users SET firebase_uid = ? WHERE id = ?`, [uid, user.id]);
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return res.json({
+            token,
+            user: {
+                id: user.id,
+                fullName: user.full_name,
+                email: user.email,
+                avatar: user.avatar || null,
+                role: user.role,
+            },
+        });
+    } catch (err) {
+        console.error("VERIFY EXPERT TEMP PASSWORD ERROR:", err);
 
         return res.status(500).json({
             message: "Server error",
