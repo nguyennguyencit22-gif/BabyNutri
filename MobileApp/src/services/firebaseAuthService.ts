@@ -35,21 +35,30 @@ export async function loginWithGoogle() {
         idToken = (response as any).data.idToken;
     }
 
-    if (!idToken) {
-        try {
-            const tokens = await GoogleSignin.getTokens();
-            console.log('[Google Auth] getTokens response:', tokens ? 'received tokens' : 'null');
-            idToken = tokens?.idToken;
-        } catch (e) {
-            console.log('[Google Auth] getTokens error:', e);
-        }
+    // @react-native-firebase/auth (the version in use) requires a non-empty
+    // accessToken alongside the idToken, or signInWithCredential throws
+    // "[auth/unknown] Exception in HostFunction: accessToken cannot be
+    // empty" — always fetch both via getTokens() rather than relying on
+    // whatever GoogleSignin.signIn() happened to return.
+    let accessToken: string | null | undefined = null;
+    try {
+        const tokens = await GoogleSignin.getTokens();
+        console.log('[Google Auth] getTokens response:', tokens ? 'received tokens' : 'null');
+        if (!idToken) idToken = tokens?.idToken;
+        accessToken = tokens?.accessToken;
+    } catch (e) {
+        console.log('[Google Auth] getTokens error:', e);
     }
 
     if (!idToken) {
         throw new Error(`Google Sign-In response type: ${response?.type || 'unknown'}. Please choose your Google account.`);
     }
 
-    const googleCredential = GoogleAuthProvider.credential(idToken);
+    if (!accessToken) {
+        throw new Error('Google access token is missing. Please try signing in again.');
+    }
+
+    const googleCredential = GoogleAuthProvider.credential(idToken, accessToken);
 
     const userCredential = await signInWithCredential(
         getAuth(),
