@@ -38,23 +38,6 @@ const getWeekDayDateStr = (dayIndex: number, weekOffsetIndex: number = 0): strin
   return `${y}-${m}-${d}`;
 };
 
-const WEEK_OPTIONS = [
-  { id: 0, title: 'Week 1', subtitle: 'Menu Week 1' },
-  { id: 1, title: 'Week 2', subtitle: 'Menu Week 2' },
-  { id: 2, title: 'Week 3', subtitle: 'Menu Week 3' },
-  { id: 3, title: 'Week 4', subtitle: 'Menu Week 4' },
-];
-
-const DAYS_OF_WEEK = [
-  { day: 'Mon', date: 'Day 1' },
-  { day: 'Tue', date: 'Day 2' },
-  { day: 'Wed', date: 'Day 3' },
-  { day: 'Thu', date: 'Day 4' },
-  { day: 'Fri', date: 'Day 5' },
-  { day: 'Sat', date: 'Day 6' },
-  { day: 'Sun', date: 'Day 7' },
-];
-
 function getSlotFromTime(timeStr: string): 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' {
   const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
   if (!match) return 'Breakfast';
@@ -280,7 +263,7 @@ export const MealSchedulerScreen = ({ route, navigation }: any) => {
     setAddSlotModalVisible(true);
   };
 
-  const openEditTimeClockModal = (dish: any, mealType: string) => {
+  const openEditTimeClockModal = (dish: any, _mealType: string) => {
     setTargetRecipe(dish);
     const match = (dish.time || '08:00 AM').match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (match) {

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  FlatList,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,7 +107,7 @@ export const ExpertDetailScreen = ({ route, navigation }: any) => {
         setIsFollowing(true);
         appAlert.show('Following', `You are now following ${expertName}. You will receive notifications when new articles/recipes are published!`);
       }
-    } catch (e) {
+    } catch {
       appAlert.show('Error', 'Unable to update follow status');
     }
   };

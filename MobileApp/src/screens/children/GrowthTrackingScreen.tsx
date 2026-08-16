@@ -30,7 +30,7 @@ import { BabyGrowthReportModal } from './BabyGrowthReportModal';
 import { useAppTheme } from '../../theme/useAppTheme';
 
 export const GrowthTrackingScreen = ({ route, navigation }: any) => {
-    const { colors, isDark } = useAppTheme();
+    const { colors } = useAppTheme();
     const reduxSelectedBabyId = useSelector(
         (state: RootState) => state.baby.selectedBabyId,
     );
@@ -104,7 +104,7 @@ export const GrowthTrackingScreen = ({ route, navigation }: any) => {
                         try {
                             await deleteGrowthRecord(Number(activeChildId), recordId);
                             loadData();
-                        } catch (err) {
+                        } catch {
                             Alert.alert('Error', 'Could not delete growth record.');
                         }
                     },

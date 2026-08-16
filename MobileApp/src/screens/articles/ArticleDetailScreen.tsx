@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Animated, Share, Alert, StatusBar, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from '../../components/common/AppIcon';
 import { articleService } from '../../services/article.service';
@@ -51,7 +50,6 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
   const user = useSelector((state: RootState) => state.auth.user);
   const isStaffOrAdmin = authMode === 'authenticated' && (user?.role === 'expert' || user?.role === 'admin');
   const currentUserName = user?.displayName || (user?.email ? user.email.split('@')[0] : 'Parent');
-  const currentUserAvatar = user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=FF5F70&color=fff&bold=true`;
 
   const isCurrentUserAuthor = !article?.author || article.author === 'Parent' || article.author === currentUserName;
   const displayAuthor = isCurrentUserAuthor ? currentUserName : article?.author;
@@ -162,7 +160,7 @@ const ArticleDetailScreen = ({ route, navigation }: any) => {
       }));
 
       appAlert.show('Success', 'Comment posted successfully!', undefined, 'success');
-    } catch (e) {
+    } catch {
       appAlert.show('Error', 'Failed to post comment. Please try again.');
     }
   };

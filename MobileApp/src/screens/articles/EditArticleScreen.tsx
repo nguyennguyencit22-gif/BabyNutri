@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import ImageSourcePicker from '../../components/common/ImageSourcePicker';
-import { articleService, ArticleMetadata } from '../../services/article.service';
+import { articleService } from '../../services/article.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, ARTICLE_CATEGORIES, ARTICLE_AGE_RANGES, ARTICLE_READING_TIMES } from '../../components/articles/ArticleFieldChips';
 

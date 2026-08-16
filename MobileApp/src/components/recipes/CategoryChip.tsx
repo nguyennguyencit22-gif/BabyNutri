@@ -9,7 +9,7 @@ interface Props {
 }
 
 const CategoryChip: React.FC<Props> = ({ label, active, onPress }) => {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
     <TouchableOpacity

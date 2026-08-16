@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import { childService } from '../../services/childService';
 import { useAppTheme } from '../../theme/useAppTheme';
-import { Child } from '../../types/child';
 
 export const AddEditChildScreen = ({ route, navigation }: any) => {
   const { colors, isDark } = useAppTheme();
@@ -65,7 +64,7 @@ export const AddEditChildScreen = ({ route, navigation }: any) => {
         await childService.createChild(childData);
       }
       navigation.goBack();
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Unable to save child info right now');
     }
   };

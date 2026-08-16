@@ -422,10 +422,6 @@ export const MealPlanListScreen = ({ route, navigation }: any) => {
     );
   };
 
-  const getMealIcon = (meal: Meal) => {
-    return '';
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />

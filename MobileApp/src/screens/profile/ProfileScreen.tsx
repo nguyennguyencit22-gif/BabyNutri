@@ -59,7 +59,6 @@ function ProfileScreen({
     const userRole = (user?.role || '').toLowerCase();
     const isAdmin = isAuthenticated && userRole === 'admin';
     const isExpert = isAuthenticated && userRole === 'expert';
-    const isExpertOrAdmin = isAdmin || isExpert;
 
     const selectedBaby = babies.find(
         baby => baby.id === selectedBabyId,

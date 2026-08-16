@@ -13,8 +13,6 @@ import { getOrCreateInvitationCode } from '../../services/child.service';
 import BabySwitcherModal from '../home/BabySwitcherModal';
 import BabyProfileActionsModal from '../profile/BabyProfileActionsModal';
 
-const statusBarHeight = Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 10;
-
 type IconProps = { size?: number; color?: string };
 
 const HeartOutlineIcon = ({ size = 20, color = '#FF5F70' }: IconProps) => (

@@ -12,7 +12,7 @@ import { useAppTheme } from '../../theme/useAppTheme';
 import type { RootState } from '../../store/store';
 
 const FavoriteRecipesScreen = ({ navigation }: any) => {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const [favoriteRecipes, setFavoriteRecipes] = useState<RecipeListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +52,7 @@ const FavoriteRecipesScreen = ({ navigation }: any) => {
   const handleRecipePress = (recipeId: number) => {
     try {
       navigation.navigate('RecipeDetail', { id: recipeId });
-    } catch (e) {
+    } catch {
       navigation.navigate('Recipes', { screen: 'RecipeDetail', params: { id: recipeId } });
     }
   };

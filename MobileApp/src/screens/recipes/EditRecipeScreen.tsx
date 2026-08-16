@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/common/AppIcon';
 import ImageSourcePicker from '../../components/common/ImageSourcePicker';
-import { recipeService, RecipeMetadata } from '../../services/recipe.service';
+import { recipeService } from '../../services/recipe.service';
 import { useAppTheme } from '../../theme/useAppTheme';
 import { ChipSelectRow, RECIPE_MEAL_TYPES, RECIPE_WEANING_METHODS, RECIPE_DIETARY_NEEDS, RECIPE_OCCASIONS, toOptionNames } from '../../components/recipes/RecipeFieldChips';
 

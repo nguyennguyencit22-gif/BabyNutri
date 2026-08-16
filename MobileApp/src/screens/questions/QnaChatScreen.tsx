@@ -131,7 +131,7 @@ export const QnaChatScreen = ({ route, navigation }: any) => {
 
     // Emit via Socket.io first for instant realtime delivery (< 50ms)
     if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('send_qna_message', messageData, (ack: any) => {
+      socketRef.current.emit('send_qna_message', messageData, () => {
         setSending(false);
       });
       setSending(false);

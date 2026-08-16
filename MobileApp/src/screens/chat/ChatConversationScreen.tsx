@@ -119,7 +119,7 @@ const ChatConversationScreen = ({ route, navigation }: any) => {
         const sent = await chatService.sendMessage(conversationId, text);
         setMessages((prev) => [...prev, sent]);
       }
-    } catch (err) {
+    } catch {
       try {
         const sent = await chatService.sendMessage(conversationId, text);
         setMessages((prev) => [...prev, sent]);

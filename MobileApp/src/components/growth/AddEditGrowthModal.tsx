@@ -19,7 +19,6 @@ interface AddEditGrowthModalProps {
     onClose: () => void;
     onSave: (input: GrowthRecordInput) => Promise<void>;
     initialData?: GrowthRecord | null;
-    loading?: boolean;
 }
 
 export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
@@ -27,7 +26,6 @@ export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
     onClose,
     onSave,
     initialData,
-    loading = false,
 }) => {
     const today = new Date().toISOString().slice(0, 10);
     const [recordDate, setRecordDate] = useState(today);
@@ -87,7 +85,7 @@ export const AddEditGrowthModal: React.FC<AddEditGrowthModalProps> = ({
                 notes: notes.trim() || null,
             });
             onClose();
-        } catch (err) {
+        } catch {
             Alert.alert('Error', 'Could not save growth record. Please try again.');
         } finally {
             setSubmitting(false);

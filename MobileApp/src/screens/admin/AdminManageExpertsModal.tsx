@@ -25,7 +25,7 @@ type Props = {
 };
 
 export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) => {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const [experts, setExperts] = useState<AdminExpertItem[]>([]);
   const [loading, setLoading] = useState(false);

@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
-import { RootStackParamList } from '../types/navigation/navigationTopTypes';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import QuestionnaireScreen from '../screens/questions/QuestionnaireScreen';
 import MainTabNavigator from './MainTabNavigator';

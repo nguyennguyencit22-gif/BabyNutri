@@ -93,6 +93,7 @@ function MeasurementSettingsScreen({ navigation }: any) {
     }, [dispatch]);
 
     const save = (partial: Partial<MeasurementSettings>) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- destructured only to exclude them from `current`
         const { status, error, ...current } = settings;
 
         dispatch(
