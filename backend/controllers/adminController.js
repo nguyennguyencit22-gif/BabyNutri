@@ -2,6 +2,8 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const firebaseAdmin = require("../config/firebaseAdmin");
+const { deleteUserCascade } = require("../utils/deleteUserCascade");
 
 /**
  * Helper middleware / check to ensure request user is an Admin
@@ -215,5 +217,56 @@ exports.demoteExpert = async (req, res) => {
     } catch (err) {
         console.error("ADMIN DEMOTE EXPERT ERROR:", err);
         return res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+/**
+ * DELETE /api/admin/experts/:id/permanent
+ * Permanently deletes an Expert account and every piece of data tied to it
+ * (authored content just loses attribution — see deleteUserCascade).
+ * Irreversible. Scoped to role_id = 2 so this can't be used to wipe an
+ * arbitrary user id by guessing.
+ */
+exports.deleteExpert = async (req, res) => {
+    if (!checkIsAdmin(req, res)) return;
+
+    const expertId = Number(req.params.id);
+    if (!expertId) {
+        return res.status(400).json({ message: "Invalid expert ID." });
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const [rows] = await connection.query(
+            `SELECT id, role_id, firebase_uid FROM users WHERE id = ?`,
+            [expertId]
+        );
+        if (!rows.length) {
+            return res.status(404).json({ message: "Account not found." });
+        }
+        if (rows[0].role_id !== 2) {
+            return res.status(400).json({ message: "This account is not an Expert." });
+        }
+        const firebaseUid = rows[0].firebase_uid;
+
+        await connection.beginTransaction();
+        await deleteUserCascade(connection, expertId);
+        await connection.commit();
+
+        if (firebaseUid && firebaseAdmin.isReady()) {
+            try {
+                await firebaseAdmin.deleteUser(firebaseUid);
+            } catch (firebaseErr) {
+                console.error("Delete Firebase user error (MySQL data already deleted):", firebaseErr);
+            }
+        }
+
+        return res.json({ message: "Expert account permanently deleted." });
+    } catch (err) {
+        try { await connection.rollback(); } catch { }
+        console.error("ADMIN DELETE EXPERT ERROR:", err);
+        return res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        connection.release();
     }
 };

@@ -16,6 +16,7 @@ import {
   fetchAdminExperts,
   createAdminExpert,
   demoteAdminExpert,
+  deleteAdminExpert,
   AdminExpertItem
 } from '../../services/admin.service';
 
@@ -121,6 +122,28 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
               loadExperts();
             } catch (err: any) {
               Alert.alert('Error', err.message || 'Failed to demote expert');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteExpert = (expert: AdminExpertItem) => {
+    Alert.alert(
+      'Delete Expert Account',
+      `This permanently deletes ${expert.fullName}'s account and everything tied to it (their profile, ratings, chats, questions...). Their recipes and articles will stay but lose attribution. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAdminExpert(expert.id);
+              loadExperts();
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete expert account');
             }
           },
         },
@@ -256,12 +279,20 @@ export const AdminManageExpertsModal: React.FC<Props> = ({ visible, onClose }) =
                     </Text>
                   </View>
 
-                  <TouchableOpacity
-                    style={styles.demoteBtn}
-                    onPress={() => handleDemoteExpert(item)}
-                  >
-                    <Icon source="trash-can-outline" size={20} color="#EF4444" />
-                  </TouchableOpacity>
+                  <View style={styles.actionsCol}>
+                    <TouchableOpacity
+                      style={styles.demoteBtn}
+                      onPress={() => handleDemoteExpert(item)}
+                    >
+                      <Icon source="account-arrow-down-outline" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={() => handleDeleteExpert(item)}
+                    >
+                      <Icon source="trash-can-outline" size={20} color="#991B1B" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))
@@ -347,7 +378,9 @@ const styles = StyleSheet.create({
   expertName: { fontSize: 15, fontWeight: '700' },
   expertEmail: { fontSize: 12, marginTop: 1 },
   expertMeta: { fontSize: 12, fontWeight: '600', marginTop: 3 },
+  actionsCol: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   demoteBtn: { padding: 8 },
+  deleteBtn: { padding: 8 },
 });
 
 export default AdminManageExpertsModal;

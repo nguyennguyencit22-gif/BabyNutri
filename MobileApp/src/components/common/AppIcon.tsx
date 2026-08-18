@@ -197,6 +197,11 @@ const glyphs: Record<string, (color: string) => React.ReactNode> = {
     'flag-outline': (c) => <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M5 21V4a1 1 0 011-1h11l-2.5 4.5L19.5 12H6" />,
     fire: (c) => <Path fill={c} d="M12 2s5 5 5 10a5 5 0 01-10 0c0-1.5.6-2.5 1.3-3.5C9 10 9 12 10 12c1 0 .5-2 .5-3.5C10.5 6 12 2 12 2z" />,
 
+    'account-arrow-down-outline': (c) => <>
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M15 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <Circle cx={7} cy={7} r={4} stroke={c} strokeWidth={2} fill="none" />
+        <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" d="M20 8v6M17 11l3 3 3-3" />
+    </>,
     'account-plus-outline': (c) => <>
         <Path stroke={c} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
         <Circle cx={8.5} cy={7} r={4} stroke={c} strokeWidth={2} fill="none" />

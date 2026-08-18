@@ -49,6 +49,11 @@ export async function demoteAdminExpert(expertId: number): Promise<void> {
     await apiDelete<{ message: string }>(`/admin/experts/${expertId}`);
 }
 
+// Permanently deletes the Expert account and all associated data. Irreversible.
+export async function deleteAdminExpert(expertId: number): Promise<void> {
+    await apiDelete<{ message: string }>(`/admin/experts/${expertId}/permanent`);
+}
+
 export async function fetchAdminReports(): Promise<AdminReports> {
     const res = await apiGet<{ reports: AdminReports }>('/admin/reports');
     return res.reports;
