@@ -309,7 +309,7 @@ VALUES (?, ?, ?, ?, ?)
  */
 exports.firebaseLogin = async (req, res) => {
     try {
-        const { uid, email, name } = req.firebaseUser;
+        const { uid, email, name, picture } = req.firebaseUser;
 
         if (!email) {
             return res.status(400).json({
@@ -353,21 +353,31 @@ exports.firebaseLogin = async (req, res) => {
                     [uid, user.id]
                 );
             }
+
+            // Fill in the real Google profile photo if this account never
+            // had one set, or still has the generic placeholder handed out
+            // at creation (seed data / admin-created Expert accounts).
+            // Never overwrite an avatar the user deliberately uploaded
+            // themselves via the in-app photo picker.
+            if (picture && (!user.avatar || user.avatar.includes("pravatar.cc"))) {
+                await db.query(`UPDATE users SET avatar = ? WHERE id = ?`, [picture, user.id]);
+                user.avatar = picture;
+            }
         } else {
             const [insertResult] = await db.query(
                 `
                 INSERT INTO users
-                    (full_name, email, password, role_id, firebase_uid)
-                VALUES (?, ?, NULL, 3, ?)
+                    (full_name, email, password, role_id, firebase_uid, avatar)
+                VALUES (?, ?, NULL, 3, ?, ?)
                 `,
-                [name || email.split("@")[0], email, uid]
+                [name || email.split("@")[0], email, uid, picture || null]
             );
 
             user = {
                 id: insertResult.insertId,
                 full_name: name || email.split("@")[0],
                 email,
-                avatar: null,
+                avatar: picture || null,
                 role: "Parent",
             };
         }
@@ -412,7 +422,7 @@ exports.firebaseLogin = async (req, res) => {
  */
 exports.verifyExpertTempPassword = async (req, res) => {
     try {
-        const { uid, email } = req.firebaseUser;
+        const { uid, email, picture } = req.firebaseUser;
         const { password } = req.body;
 
         if (!password) {
@@ -452,6 +462,11 @@ exports.verifyExpertTempPassword = async (req, res) => {
         }
 
         await db.query(`UPDATE users SET firebase_uid = ? WHERE id = ?`, [uid, user.id]);
+
+        if (picture && (!user.avatar || user.avatar.includes("pravatar.cc"))) {
+            await db.query(`UPDATE users SET avatar = ? WHERE id = ?`, [picture, user.id]);
+            user.avatar = picture;
+        }
 
         const token = jwt.sign(
             { id: user.id, role: user.role },
