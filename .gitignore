@@ -1,61 +1,102 @@
-# Dependencies
+# ==========================================
+# 1. Dependencies & Node
+# ==========================================
 node_modules/
 **/node_modules/
 MobileApp/node_modules/
-
-# Android generated files
-MobileApp/android/.gradle/
-MobileApp/android/build/
-MobileApp/android/app/build/
-MobileApp/android/.cxx/
-MobileApp/android/app/.cxx/
-
-# iOS generated files
-MobileApp/ios/build/
-MobileApp/ios/Pods/
-
-# Build outputs
-*.apk
-*.aab
-*.so
-
-# Logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# IDE
-.vscode/
-.idea/
+# ==========================================
+# 2. Python & Bytecode & Scratch Scripts
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+*.py
 
-# Environment files
+# ==========================================
+# 3. AI Tools & CodeGraph
+# ==========================================
+.codegraph/
+.gemini/
+.antigravity/
+.agy/
+.cursor/
+.windsurf/
+
+# ==========================================
+# 4. Android Generated Files & Builds
+# ==========================================
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+**/android/.cxx/
+**/android/app/.cxx/
+**/android/local.properties
+*.keystore
+
+# ==========================================
+# 5. iOS Generated Files & Builds
+# ==========================================
+**/ios/build/
+**/ios/Pods/
+
+# ==========================================
+# 6. Build Outputs
+# ==========================================
+*.apk
+*.aab
+*.so
+build/
+
+# ==========================================
+# 7. Environment & Secrets
+# ==========================================
 .env
 .env.*
-
-# Firebase service account credentials (never commit these)
 backend/config/firebase-service-account.json
 *firebase-adminsdk*.json
 *service-account*.json
 
-# Temporary Office files
+# ==========================================
+# 8. IDE & Editor Artifacts
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ==========================================
+# 9. Non-Code Documents, Office, Reports & Media
+# ==========================================
+.DS_Store
+Thumbs.db
+*.docx
+*.xlsx
+*.pptx
 ~$*.docx
 ~$*.xlsx
 ~$*.pptx
+*.pdf
+*.tmp
+*.bak
+scratch_docs.txt
+docs/extracted_media/
+docs/BabyNutri_FullStack_Presentation_Doc.*
+BabyNutri_FullStack_Presentation_Doc.*
 
-node_modules/
-build/
-.gradle/
-*.keystore
-.env
-**/android/app/build/
-**/android/build/
-**/android/.gradle/
-**/android/app/.cxx/
-**/android/local.properties
-**/ios/build/
-**/ios/Pods/
-
-# User-uploaded files (served from disk, not source-controlled)
+# ==========================================
+# 10. Backend Uploads
+# ==========================================
 backend/uploads/*
 !backend/uploads/.gitkeep
