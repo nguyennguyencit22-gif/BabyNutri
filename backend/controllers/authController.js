@@ -15,11 +15,11 @@ exports.login = async (req, res) => {
         const [users] = await db.query(
             `
           SELECT
-    u.*,
-    r.name AS role
-FROM users u
-JOIN roles r ON u.role_id = r.id
-WHERE u.email = ?
+            u.*,
+            r.name AS role
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE u.email = ?
             `,
             [email],
         );
@@ -539,7 +539,7 @@ exports.deleteMyAccount = async (req, res) => {
 
         res.json({ message: "Account and all associated data deleted" });
     } catch (err) {
-        try { await connection.rollback(); } catch {}
+        try { await connection.rollback(); } catch { }
         console.error("deleteMyAccount error:", err);
         res.status(500).json({ message: "Failed to delete account", error: err.message });
     } finally {
